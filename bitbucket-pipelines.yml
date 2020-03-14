@@ -1,18 +1,14 @@
-# This is a sample build configuration for .NET Core.
-# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
 image: mcr.microsoft.com/dotnet/core/sdk:3.1
 
 pipelines:
-  default:
+  branches: 
+    '{master, development}': 
     - parallel:
       - step:
           name: Agent
           caches:
             - dotnetcore
-          script: # Modify the commands below to build your repository.
+          script:
             - export PROJECT_NAME=TheProjectGame/Agent
             - export TEST_NAME=TheProjectGame/AgentTests
             - dotnet restore $PROJECT_NAME/Agent.csproj
@@ -23,7 +19,7 @@ pipelines:
           name: CommunicationServer
           caches:
             - dotnetcore
-          script: # Modify the commands below to build your repository.
+          script:
             - export PROJECT_NAME=TheProjectGame/CommunicationServer
             - export TEST_NAME=TheProjectGame/CommunicationServerTests
             - dotnet restore $PROJECT_NAME/CommunicationServer.csproj
@@ -34,7 +30,7 @@ pipelines:
           name: GameMaster
           caches:
             - dotnetcore
-          script: # Modify the commands below to build your repository.
+          script:
             - export PROJECT_NAME=TheProjectGame/GameMaster
             - export TEST_NAME=TheProjectGame/GameMasterTests
             - dotnet restore $PROJECT_NAME/GameMaster.csproj
