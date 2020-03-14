@@ -15,7 +15,7 @@ pipelines:
           - export PROJECT_NAME=TheProjectGame/Agent
           - export TEST_NAME=TheProjectGame/AgentTests
           - dotnet restore $PROJECT_NAME/Agent.csproj
-          - dotnet restore $TEST_NAME/AgentTest.csproj
+          - dotnet restore $TEST_NAME/AgentTests.csproj
           - dotnet build $PROJECT_NAME
           - dotnet test $TEST_NAME
     - step:
