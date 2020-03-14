@@ -2,7 +2,7 @@ image: mcr.microsoft.com/dotnet/core/sdk:3.1
 
 pipelines:
   branches: 
-    '{master, development}': 
+    master:
     - parallel:
       - step:
           name: Agent
@@ -37,3 +37,39 @@ pipelines:
             - dotnet restore $TEST_NAME/GameMasterTests.csproj
             - dotnet build $PROJECT_NAME
             - dotnet test $TEST_NAME
+    development:
+    - parallel:
+      - step:
+          name: Agent
+          caches:
+            - dotnetcore
+          script:
+            - export PROJECT_NAME=TheProjectGame/Agent
+            - export TEST_NAME=TheProjectGame/AgentTests
+            - dotnet restore $PROJECT_NAME/Agent.csproj
+            - dotnet restore $TEST_NAME/AgentTests.csproj
+            - dotnet build $PROJECT_NAME
+            - dotnet test $TEST_NAME
+      - step:
+          name: CommunicationServer
+          caches:
+            - dotnetcore
+          script:
+            - export PROJECT_NAME=TheProjectGame/CommunicationServer
+            - export TEST_NAME=TheProjectGame/CommunicationServerTests
+            - dotnet restore $PROJECT_NAME/CommunicationServer.csproj
+            - dotnet restore $TEST_NAME/CommunicationServerTests.csproj
+            - dotnet build $PROJECT_NAME
+            - dotnet test $TEST_NAME
+      - step:
+          name: GameMaster
+          caches:
+            - dotnetcore
+          script:
+            - export PROJECT_NAME=TheProjectGame/GameMaster
+            - export TEST_NAME=TheProjectGame/GameMasterTests
+            - dotnet restore $PROJECT_NAME/GameMaster.csproj
+            - dotnet restore $TEST_NAME/GameMasterTests.csproj
+            - dotnet build $PROJECT_NAME
+            - dotnet test $TEST_NAME
+
