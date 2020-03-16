@@ -6,7 +6,7 @@ namespace Messaging.Contracts.Agent
     {
         public MessageId GetMessageId() => MessageId.JoinRequest;
 
-        public TeamId TeamId { get; set; }
+        public TeamId TeamId { get; private set; }
 
         public JoinRequest(TeamId teamId)
         {

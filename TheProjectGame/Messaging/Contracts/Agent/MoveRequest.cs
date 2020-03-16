@@ -6,7 +6,7 @@ namespace Messaging.Contracts.Agent
     {
         public MessageId GetMessageId() => MessageId.MoveRequest;
 
-        public Direction Direction { get; set; }
+        public Direction Direction { get; private set; }
 
         public MoveRequest(Direction direction)
         {
