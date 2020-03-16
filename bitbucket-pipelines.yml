@@ -3,6 +3,17 @@ image: mcr.microsoft.com/dotnet/core/sdk:3.1
 pipelines:
   branches: 
     master:
+    - step:
+        name: Messaging
+        caches:
+          - dotnetcore
+        script:
+          - export PROJECT_NAME=TheProjectGame/Messaging
+          - export TEST_NAME=TheProjectGame/MessagingTests
+          - dotnet restore $PROJECT_NAME/Messaging.csproj
+          - dotnet restore $TEST_NAME/MessagingTests.csproj
+          - dotnet build $PROJECT_NAME
+          - dotnet test $TEST_NAME
     - parallel:
       - step:
           name: Agent
@@ -38,6 +49,17 @@ pipelines:
             - dotnet build $PROJECT_NAME
             - dotnet test $TEST_NAME
     development:
+    - step:
+        name: Messaging
+        caches:
+          - dotnetcore
+        script:
+          - export PROJECT_NAME=TheProjectGame/Messaging
+          - export TEST_NAME=TheProjectGame/MessagingTests
+          - dotnet restore $PROJECT_NAME/Messaging.csproj
+          - dotnet restore $TEST_NAME/MessagingTests.csproj
+          - dotnet build $PROJECT_NAME
+          - dotnet test $TEST_NAME
     - parallel:
       - step:
           name: Agent
@@ -72,4 +94,3 @@ pipelines:
             - dotnet restore $TEST_NAME/GameMasterTests.csproj
             - dotnet build $PROJECT_NAME
             - dotnet test $TEST_NAME
-
