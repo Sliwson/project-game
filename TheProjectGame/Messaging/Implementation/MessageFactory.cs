@@ -1,9 +1,4 @@
 ﻿using Messaging.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Messaging.Contracts.Agent;
-using Messaging.Enumerators;
 
 namespace Messaging.Implementation
 {

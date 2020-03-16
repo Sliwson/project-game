@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Messaging.Enumerators
+﻿namespace Messaging.Enumerators
 {
     public enum Direction
     {
