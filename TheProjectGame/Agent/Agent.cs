@@ -19,9 +19,11 @@ namespace Agent
 
         public bool isLeader;
 
-        public bool havePiece;
-
         public Field[,] board;
+
+        public (int, int) boardSize;
+
+        public int goalAreaSize;
 
         public (int, int) position;
 
@@ -46,7 +48,7 @@ namespace Agent
 
         public void Stop() { }
 
-        public void Move() { }
+        public void Move(Direction direction) { }
 
         public void Put() { }
 
@@ -55,6 +57,8 @@ namespace Agent
         public void GiveInfo() { }
 
         public void CheckPiece() { }
+
+        public void Discover() { }
 
         public void AcceptMessage() { }
 

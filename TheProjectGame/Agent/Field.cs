@@ -10,8 +10,8 @@ namespace Agent
 
         public int distToPiece;
 
-        public bool playerInfo;
+        public DateTime distLearned;
 
-        public List<Piece> piece;
+        public DateTime deniedMove;
     }
 }
