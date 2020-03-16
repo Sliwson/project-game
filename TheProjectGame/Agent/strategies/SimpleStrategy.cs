@@ -70,6 +70,7 @@ namespace Agent.strategies
             else if (CouldMove(agent, Direction.Down)) direction = Direction.Down;
             else direction = GetGoalDirection(agent);
             if (direction == Direction.Up || direction == Direction.Down) stayInLineCount++;
+            else stayInLineCount = 0;
             return direction;
         }
 
@@ -122,6 +123,7 @@ namespace Agent.strategies
                 InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
             {
                 agent.Put();
+                stayInLineCount = 0;
                 return;
             }
             if (agent.piece != null && agent.piece.isDiscovered &&
