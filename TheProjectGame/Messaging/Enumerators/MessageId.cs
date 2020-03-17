@@ -27,8 +27,8 @@
 
         // Error Messages:
         MoveError =                     901,
-        PutDownPieceError =             902, // TODO: Create issue to ensure these types are properly defined
-        PickUpPieceError =              903, //
+        PickUpPieceError =              902,
+        PutDownPieceError =             903,
         IgnoredDelayError =             904,
         UndefinedError =                905
     }

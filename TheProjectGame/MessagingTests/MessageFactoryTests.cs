@@ -7,12 +7,17 @@ using System.Collections.Generic;
 using Messaging.Enumerators;
 using System;
 using System.Drawing;
+using Messaging.Contracts.Errors;
+using System.Linq;
 
 namespace MessagingTests
 {
     public class MessageFactoryTests
     {
         List<BaseMessage> messages;
+        
+        // Update it if new error message has been added to messages
+        readonly int errorMessagesCount = 5;
 
         [SetUp]
         public void SetUp()
@@ -36,6 +41,26 @@ namespace MessagingTests
             {
                 dynamic dynamicMessage = message;
                 Assert.IsTrue(IsMessagePayloadDerived(dynamicMessage));
+            }
+        }
+
+        [Test]
+        public void ErrorMessage_ShouldHaveErrorPayload()
+        {
+            foreach (var message in messages.TakeLast(errorMessagesCount))
+            {
+                dynamic dynamicMessage = message;
+                Assert.IsTrue(IsMessagePayloadError(dynamicMessage));
+            }
+        }
+
+        [Test]
+        public void NotErrorMessage_ShouldNotHaveErrorPayload()
+        {
+            foreach (var message in messages.SkipLast(errorMessagesCount))
+            {
+                dynamic dynamicMessage = message;
+                Assert.IsFalse(IsMessagePayloadError(dynamicMessage));
             }
         }
 
@@ -67,6 +92,7 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new ExchangeInformationPayload(666, false, TeamId.Blue)),
                 MessageFactory.GetMessage(new JoinResponse(false, 333)),
                 MessageFactory.GetMessage(new MoveResponse(false, new Point(3,3), 2)),
+                MessageFactory.GetMessage(new PickUpPieceResponse()),
                 MessageFactory.GetMessage(new PutDownPieceResponse()),
                 MessageFactory.GetMessage(new StartGamePayload(
                                                     333,
@@ -82,7 +108,14 @@ namespace MessagingTests
                                                     5,
                                                     new Dictionary<ActionType, decimal>(),
                                                     0.1m,
-                                                    new Point(3,3)))
+                                                    new Point(3,3))),
+
+                // Error messages
+                MessageFactory.GetMessage(new MoveError(new Point(3,3))),
+                MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere)),
+                MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding)),
+                MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(5.0))),
+                MessageFactory.GetMessage(new UndefinedError(new Point(3,3), false))
             };
         }
 
@@ -94,6 +127,11 @@ namespace MessagingTests
         private bool IsMessagePayloadDerived(BaseMessage message)
         {
             return false;
+        }
+
+        private bool IsMessagePayloadError<T>(Message<T> message) where T:IPayload
+        {
+            return message.Payload is IErrorPayload && message != null;
         }
     }
 }
