@@ -1,5 +1,4 @@
 ﻿using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 
 namespace Messaging.Implementation
 {

@@ -16,7 +16,7 @@
         // Game Master's Messages:
         CheckShamResponse =             101,
         DestroyPieceResponse =          102,
-        DiscoveryReponse =              103,
+        DiscoverResponse =              103,
         EndGameMessage =                104,
         StartGameMessage =              105,
         ExchangeInformationMessage =    106,
