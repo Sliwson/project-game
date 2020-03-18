@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\GameMaster\" />
     <Folder Include="Serialization\" />
   </ItemGroup>
 
