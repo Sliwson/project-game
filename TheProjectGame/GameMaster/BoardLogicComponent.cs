@@ -14,6 +14,10 @@ namespace GameMaster
         public BoardLogicComponent(Point size)
         {
             fields = new Field[size.Y, size.X];
+            for (int y = 0; y < size.Y; y++)
+                for (int x = 0; x < size.X; x++)
+                    fields[y, x] = new Field();
+
             this.size = size;
         }
 
@@ -27,6 +31,11 @@ namespace GameMaster
         public Field GetField(Point point)
         {
             return fields[point.Y, point.X];
+        }
+
+        public Field GetField(int x, int y)
+        {
+            return fields[y, x];
         }
 
         public Point? GetPointWhere(Func<Field, bool> predicate)
@@ -60,7 +69,7 @@ namespace GameMaster
                     int taby = y - field.Y + 1;
                     int tabx = x - field.X + 1;
 
-                    if (!IsPointOnMap(x, y))
+                    if (!IsPointOnBoard(x, y))
                         tab[taby, tabx] = -1;        
                     else
                         tab[taby, tabx] = CalculateDistanceToNearestPiece(new Point(x, y));
@@ -84,14 +93,14 @@ namespace GameMaster
             return Math.Abs(p1.X - p2.X) +  Math.Abs(p1.Y - p2.Y);
         }
 
-        private bool IsPointOnMap(int x, int y)
+        private bool IsPointOnBoard(int x, int y)
         {
             return x >= 0 && x < size.X && y >= 0 && y < size.Y;
         }
 
-        private bool IsPointOnMap(Point p)
+        private bool IsPointOnBoard(Point p)
         {
-            return IsPointOnMap(p.X, p.Y);
+            return IsPointOnBoard(p.X, p.Y);
         }
     }
 }
