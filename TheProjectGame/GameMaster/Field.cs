@@ -8,7 +8,7 @@ namespace GameMaster
     {
         public FieldState State { get; set; } = FieldState.Empty;
         public Agent Agent { get; set; }
-        public Stack<Piece> Pieces { get; set; }
+        public Stack<Piece> Pieces { get; } = new Stack<Piece>();
 
         public void Clean()
         {
