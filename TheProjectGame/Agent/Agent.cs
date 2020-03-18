@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Threading;
 
@@ -21,11 +22,11 @@ namespace Agent
 
         public Field[,] board;
 
-        public (int, int) boardSize;
+        public Point boardSize;
 
         public int goalAreaSize;
 
-        public (int, int) position;
+        public Point position;
 
         public List<int> waitingPlayers;
 
