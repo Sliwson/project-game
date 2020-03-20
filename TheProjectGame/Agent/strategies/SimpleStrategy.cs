@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
@@ -19,13 +20,13 @@ namespace Agent.strategies
         {
             switch (direction)
             {
-                case Direction.Up:
+                case Direction.North:
                     return new Point(position.X, position.Y + 1);
-                case Direction.Right:
+                case Direction.East:
                     return new Point(position.X + 1, position.Y);
-                case Direction.Down:
+                case Direction.South:
                     return new Point(position.X, position.Y - 1);
-                case Direction.Left:
+                case Direction.West:
                     return new Point(position.X - 1, position.Y);
             }
             return position;
@@ -52,17 +53,17 @@ namespace Agent.strategies
         {
             if (agent.team == Team.Red)
             {
-                if (CouldMove(agent, Direction.Right)) return Direction.Right;
-                if (CouldMove(agent, Direction.Up)) return Direction.Up;
-                if (CouldMove(agent, Direction.Down)) return Direction.Down;
-                return Direction.Right;
+                if (CouldMove(agent, Direction.East)) return Direction.East;
+                if (CouldMove(agent, Direction.North)) return Direction.North;
+                if (CouldMove(agent, Direction.South)) return Direction.South;
+                return Direction.East;
             }
             else
             {
-                if (CouldMove(agent, Direction.Left)) return Direction.Left;
-                if (CouldMove(agent, Direction.Up)) return Direction.Up;
-                if (CouldMove(agent, Direction.Down)) return Direction.Down;
-                return Direction.Left;
+                if (CouldMove(agent, Direction.West)) return Direction.West;
+                if (CouldMove(agent, Direction.North)) return Direction.North;
+                if (CouldMove(agent, Direction.South)) return Direction.South;
+                return Direction.West;
             }
         }
 
@@ -70,10 +71,10 @@ namespace Agent.strategies
         {
             Direction direction;
             if (stayInLineCount > agent.boardSize.Y) direction = GetGoalDirection(agent);
-            else if (CouldMove(agent, Direction.Up)) direction = Direction.Up;
-            else if (CouldMove(agent, Direction.Down)) direction = Direction.Down;
+            else if (CouldMove(agent, Direction.North)) direction = Direction.North;
+            else if (CouldMove(agent, Direction.South)) direction = Direction.South;
             else direction = GetGoalDirection(agent);
-            if (direction == Direction.Up || direction == Direction.Down) stayInLineCount++;
+            if (direction == Direction.North || direction == Direction.South) stayInLineCount++;
             else stayInLineCount = 0;
             return direction;
         }
@@ -81,7 +82,7 @@ namespace Agent.strategies
         private int FindClosest(Agent agent, out Direction direction)
         {
             int shortest = int.MaxValue;
-            direction = Direction.Up;
+            direction = Direction.North;
             for (int i = agent.position.X - 1; i <= agent.position.X + 1; i++)
                 for (int j = agent.position.Y - 1; j <= agent.position.Y + 1; j++)
                     if ((i != agent.position.X || j != agent.position.Y) &&
@@ -90,10 +91,10 @@ namespace Agent.strategies
                         agent.board[i, j].distToPiece < Math.Min(shortest, agent.board[agent.position.X, agent.position.Y].distToPiece))
                     {
                         shortest = agent.board[i, j].distToPiece;
-                        if (j > agent.position.Y) direction = Direction.Up;
-                        else if (j < agent.position.Y) direction = Direction.Down;
-                        else if (i < agent.position.X) direction = Direction.Left;
-                        else direction = Direction.Right;
+                        if (j > agent.position.Y) direction = Direction.North;
+                        else if (j < agent.position.Y) direction = Direction.South;
+                        else if (i < agent.position.X) direction = Direction.West;
+                        else direction = Direction.East;
                     }
             return shortest;
         }
