@@ -50,15 +50,15 @@ namespace Agent
 
         public void Stop() { }
 
-        public void Move(Direction direction) { }
+        public void Move(Direction direction) { /*if distance=0 send pick up request*/ }
 
         public void Put() { }
 
-        public void BegForInfo() { }
+        public void BegForInfo() { /*teammate that was not asked before or last asked*/ }
 
-        public void GiveInfo() { }
+        public void GiveInfo() { /*to first waiting player*/ }
 
-        public void CheckPiece() { }
+        public void CheckPiece() { /*if sham send destroy request*/ }
 
         public void Discover() { }
 
