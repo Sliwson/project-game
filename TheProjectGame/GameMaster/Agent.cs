@@ -2,6 +2,7 @@
 using Messaging.Enumerators;
 using System.Collections.Generic;
 using System.Text;
+using System.Drawing;
 
 namespace GameMaster
 {
@@ -12,11 +13,13 @@ namespace GameMaster
         public bool IsTeamLeader { get; private set; } = false;
         public double Timeout { get; private set; } = 0;
         public Piece Piece { get; private set; } = null;
+        public Point Position { get; private set; }
 
-        public Agent(int id, TeamId team, bool isTeamLeader = false)
+        public Agent(int id, TeamId team, Point position, bool isTeamLeader = false)
         {
             Id = id;
             Team = team;
+            Position = position;
             IsTeamLeader = isTeamLeader;
         }
 
