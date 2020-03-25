@@ -10,7 +10,7 @@ namespace GameMaster
     {
         public int Id { get; private set; }
         public TeamId Team { get; private set; }
-        public Point Position { get; private set; }
+        public Point Position { get; set; }
         public bool IsTeamLeader { get; private set; } = false;
         public double Timeout { get; private set; } = 0;
         public Piece Piece { get; private set; } = null;
