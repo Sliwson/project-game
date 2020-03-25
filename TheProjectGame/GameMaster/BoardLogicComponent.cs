@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Messaging.Enumerators;
 
 namespace GameMaster
 {
@@ -79,7 +80,33 @@ namespace GameMaster
             return tab;
         }
 
-        private int CalculateDistanceToNearestPiece(Point from)
+        public bool CanMove(Agent agent, Direction direction)
+        {
+            var agentPoint = GetPointWhere(f => f.Agent == agent);
+            if (!agentPoint.HasValue)
+            {
+                //TODO: log error
+                return false;
+            }
+
+            var newPosition = GetPointInDirection(agentPoint.Value, direction);
+            if (IsPointOnBoard(newPosition) && GetField(newPosition).Agent == null && !IsFieldInOppositeGoalArea(agent.Team, newPosition))
+                return true;
+            else
+                return false;
+        }
+
+        public void MoveAgent(Agent agent, Direction direction)
+        {
+            var field = GetField(agent.Position);
+            field.Agent = null;
+            var newPoint = GetPointInDirection(agent.Position, direction));
+            var newField = GetField(newPoint);
+            newField.Agent = agent;
+            agent.Position = newPoint;
+        }
+
+        public int CalculateDistanceToNearestPiece(Point from)
         {
             var pieces = GetPointsWhere(f => { return f.Pieces.Count != 0; });
             if (pieces.Count == 0)
@@ -91,6 +118,29 @@ namespace GameMaster
         private int GetDistance(Point p1, Point p2)
         {
             return Math.Abs(p1.X - p2.X) +  Math.Abs(p1.Y - p2.Y);
+        }
+
+        private Point GetPointInDirection(Point p, Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.East:
+                    return new Point(p.X + 1, p.Y);
+                case Direction.North:
+                    return new Point(p.X, p.Y + 1);
+                case Direction.South:
+                    return new Point(p.X, p.Y - 1);
+                case Direction.West:
+                    return new Point(p.X - 1, p.Y);
+            }
+
+            return new Point(p.X, p.Y);
+        }
+
+        private bool IsFieldInOppositeGoalArea(TeamId agentTeam, Point position)
+        {
+            //TODO: implement
+            return false;
         }
 
         private bool IsPointOnBoard(int x, int y)
