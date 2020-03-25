@@ -10,10 +10,12 @@ namespace GameMaster
     {
         public int Id { get; private set; }
         public TeamId Team { get; private set; }
+        public Point Position { get; private set; }
         public bool IsTeamLeader { get; private set; } = false;
         public double Timeout { get; private set; } = 0;
         public Piece Piece { get; private set; } = null;
-        public Point Position { get; private set; }
+
+        private ExchangeInformationState exchangeInformationState = ExchangeInformationState.None;
 
         public Agent(int id, TeamId team, Point position, bool isTeamLeader = false)
         {
@@ -43,6 +45,33 @@ namespace GameMaster
         public bool CanPerformAction()
         {
             return Timeout <= 0;
+        }
+
+        public void InformationExchangeRequested(bool wasTeamLeader)
+        {
+            exchangeInformationState = wasTeamLeader ? ExchangeInformationState.Obligated : ExchangeInformationState.Eligible;
+        }
+
+        public void ClearExchangeState()
+        {
+            exchangeInformationState = ExchangeInformationState.None;
+        }
+
+        public bool HaveToExchange()
+        {
+            return exchangeInformationState == ExchangeInformationState.Obligated;
+        }
+
+        public bool CanExchange()
+        {
+            return exchangeInformationState == ExchangeInformationState.Obligated || exchangeInformationState == ExchangeInformationState.Eligible;
+        }
+
+        private enum ExchangeInformationState
+        {
+            None,
+            Eligible,
+            Obligated
         }
     }
 }
