@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,12 +7,20 @@ namespace Agent
 {
     public class Field
     {
-        public GoalInfo goalInfo;
+        public GoalInformation goalInfo;
 
         public int distToPiece;
 
-        public bool playerInfo;
+        public DateTime distLearned;
 
-        public List<Piece> piece;
+        public DateTime deniedMove;
+
+        public Field()
+        {
+            goalInfo = GoalInformation.NoInformation;
+            distToPiece = int.MaxValue;
+            distLearned = DateTime.MinValue;
+            deniedMove = DateTime.MinValue;
+        }
     }
 }
