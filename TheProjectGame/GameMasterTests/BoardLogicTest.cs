@@ -20,7 +20,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void BoardIsInitialized()
+        public void BoardLogicComponent_ConstructorShouldInitializeField()
         {
             for (int y = 0; y < size.Y; y++)
                 for (int x = 0; x < size.X; x++)
@@ -28,7 +28,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void BoardIsCleaned()
+        public void Clean_ShouldCleanAllFields()
         {
             ChangeBoard();
             boardLogicComponent.Clean();
@@ -38,7 +38,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void AgentIsFound()
+        public void GetPointWhere_ShouldReturnAgentIfExists()
         {
             boardLogicComponent.Clean();
             var field = boardLogicComponent.GetField(4, 4);
@@ -49,7 +49,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void FakeGoalsAreFound()
+        public void GetPointWhere_ShouldReturnAllFakeGoalsThatExist()
         {
             boardLogicComponent.Clean();
             ChangeBoard();
@@ -57,7 +57,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void DistancesAreCalculatedCorrectly()
+        public void GetDiscoverArray_ShouldCalculateDistancesCorrectly()
         {
             boardLogicComponent.Clean();
             ChangeBoard();
