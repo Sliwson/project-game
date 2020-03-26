@@ -27,7 +27,7 @@ namespace GameMaster
         // csIP
         // csPort
 
-        Dictionary<ActionType, TimeSpan> agentTimeouts = null;
+        private Dictionary<ActionType, TimeSpan> agentTimeouts = null;
 
         public Dictionary<ActionType, TimeSpan> GetTimeouts()
         {

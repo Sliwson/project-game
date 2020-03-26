@@ -34,7 +34,11 @@ namespace GameMaster
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
 
-            //TODO: add timeout
+            if (agent != null)
+            {
+                var timeout = gameMaster.Configuration.GetTimeouts();
+                agent.AddTimeout(timeout[message.MessageId.ToActionType()].TotalSeconds);
+            }
 
             dynamic dynamicMessage = message;
             return Process(dynamicMessage, agent);

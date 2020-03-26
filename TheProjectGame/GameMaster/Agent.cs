@@ -47,6 +47,11 @@ namespace GameMaster
             return Timeout <= 0;
         }
 
+        public void AddTimeout(double value)
+        {
+            Timeout += value;
+        }
+
         public void InformationExchangeRequested(bool wasTeamLeader)
         {
             exchangeInformationState = wasTeamLeader ? ExchangeInformationState.Obligated : ExchangeInformationState.Eligible;
