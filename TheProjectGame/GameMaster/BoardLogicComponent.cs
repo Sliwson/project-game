@@ -100,7 +100,7 @@ namespace GameMaster
         {
             var field = GetField(agent.Position);
             field.Agent = null;
-            var newPoint = GetPointInDirection(agent.Position, direction));
+            var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
             newField.Agent = agent;
             agent.Position = newPoint;
@@ -139,8 +139,12 @@ namespace GameMaster
 
         private bool IsFieldInOppositeGoalArea(TeamId agentTeam, Point position)
         {
-            //TODO: implement
-            return false;
+            //TODO: get goal size from config
+            int goalSize = 0;
+            if (agentTeam == TeamId.Blue)
+                return position.Y >= size.Y - goalSize;
+            else
+                return position.Y < goalSize;
         }
 
         private bool IsPointOnBoard(int x, int y)
