@@ -46,7 +46,7 @@ namespace Agent
 
         private void Communicate() { }
 
-        public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos)
+        public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos, int[] alliesIds)
         {
             isLeader = id == leaderId ? true : false;
             team = teamId;
@@ -60,6 +60,8 @@ namespace Agent
                 }
             }
             position = pos;
+            teamMates = new int[alliesIds.Length];
+            teamMates = alliesIds;
             goalAreaSize = goalAreaHeight;
             waitingPlayers = new List<int>();
             piece = null;
@@ -176,6 +178,7 @@ namespace Agent
                 if(response.Payload.ClosestPoint == 0)
                 {
                     PickUp();
+                    return;
                 }
             }
             else
