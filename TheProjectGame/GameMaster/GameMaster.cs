@@ -22,13 +22,11 @@ namespace GameMaster
 
         public GameMaster()
         {
+            LoadDefaultConfiguration();
+
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
-
-            LoadDefaultConfiguration();
-
-            //create board with deafult parameters
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
 
             //try to connect to communciation server
