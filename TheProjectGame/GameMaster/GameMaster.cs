@@ -59,6 +59,9 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
+            if (state == GameMasterState.Configuration)
+                return;
+
             if (state == GameMasterState.InGame)
                 BoardLogic.Update(dt);
             
