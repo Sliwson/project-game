@@ -79,6 +79,11 @@ namespace GameMaster
             return agents.FirstOrDefault(a => a.Id == agentId);
         }
 
+        public void AddAgent(Agent agent)
+        {
+            agents.Add(agent);
+        }
+
         //TODO: move to messaging system
         private List<BaseMessage> GetIncomingMessages()
         {
