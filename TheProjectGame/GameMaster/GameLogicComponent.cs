@@ -12,7 +12,7 @@ using GameMaster.Interfaces;
 
 namespace GameMaster
 {
-    class GameLogicComponent : IMessageProcessor
+    public class GameLogicComponent : IMessageProcessor
     {
         private GameMaster gameMaster;
         
@@ -26,7 +26,7 @@ namespace GameMaster
             var agent = gameMaster.GetAgent(message.AgentId);
 
             if (agent == null && message.MessageId != MessageId.JoinRequest)
-                return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), agent.Id);
+                return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), message.AgentId);
 
             if (!agent.CanPerformAction())
                 return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);

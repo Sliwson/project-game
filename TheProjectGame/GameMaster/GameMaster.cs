@@ -10,6 +10,8 @@ namespace GameMaster
     public class GameMaster
     {
         public BoardLogicComponent BoardLogic { get; private set; }
+        public GameLogicComponent GameLogic { get; private set; }
+
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
 
@@ -18,18 +20,17 @@ namespace GameMaster
 
         private IMessageProcessor currentMessageProcessor = null;
         private ConnectionLogicComponent connectionLogicComponent;
-        private GameLogicComponent gameLogicComponent;
 
         public GameMaster()
         {
             connectionLogicComponent = new ConnectionLogicComponent(this);
-            gameLogicComponent = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
 
             LoadDefaultConfiguration();
 
             //create board with deafult parameters
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            GameLogic = new GameLogicComponent(this);
 
             //try to connect to communciation server
         }
@@ -48,7 +49,7 @@ namespace GameMaster
         public void StartGame()
         {
             state = GameMasterState.InGame;
-            currentMessageProcessor = gameLogicComponent;
+            currentMessageProcessor = GameLogic;
             BoardLogic.GenerateGoals();
         }
 
