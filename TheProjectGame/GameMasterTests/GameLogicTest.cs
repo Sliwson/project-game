@@ -182,11 +182,111 @@ namespace GameMasterTests
 
             var payload = response.Payload as DiscoverResponse;
             Assert.AreEqual(discoverArray, payload.Distances);
+            Assert.AreEqual(configuration.DiscoveryPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        #endregion
+
+        #region Exchange information (request)
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationRequest_ShouldReturnUndefinedErrorMessageWhenReceipentNotConnected()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
+            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationRequest_ShouldReturnExchangeInformationMessage()
+        {
+            var sender = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var receipent = new Agent(333, TeamId.Blue, new Point(3, 3));
+
+            gameMaster.AddAgent(sender);
+            gameMaster.AddAgent(receipent);
+
+            var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+
+            var payload = response.Payload as ExchangeInformationPayload;
+            Assert.AreEqual(666, payload.AskingAgentId);
+            Assert.AreEqual(TeamId.Blue, payload.TeamId);
+            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationRequest_ShouldForceReplyIfLeaderAsking()
+        {
+            var sender = new Agent(666, TeamId.Blue, new Point(3, 3), true);
+            var receipent = new Agent(333, TeamId.Blue, new Point(3, 3));
+
+            gameMaster.AddAgent(sender);
+            gameMaster.AddAgent(receipent);
+
+            var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+
+            var payload = response.Payload as ExchangeInformationPayload;
+            Assert.AreEqual(666, payload.AskingAgentId);
+            Assert.AreEqual(TeamId.Blue, payload.TeamId);
+            Assert.IsTrue(payload.Leader);
+            Assert.IsTrue(receipent.HaveToExchange());
+            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
         }
 
         #endregion
 
 
+        #region Exchange information (response)
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationResponse_ShouldReturnUndefinedErrorMessageWhenAgentNotAsked()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new ExchangeInformationResponse(333, null, null, null), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
+            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationResponse_OnlyAgentIdShouldBeChanged()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
+            agent.InformationExchangeRequested(false);
+
+            gameMaster.AddAgent(agent);
+
+            var payload = new ExchangeInformationResponse(
+                          333,
+                          new int[,] { { 1, 2 }, { 3, 4 } },
+                          new GoalInformation[,] { { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } },
+                          new GoalInformation[,] { { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } });
+
+            var message = GetBaseMessage(payload, 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(333, response.AgentId);
+            Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
+            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        #endregion
 
         // This method simulates normal situation where messages are stored in IEnumerable<BaseMessage>
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
