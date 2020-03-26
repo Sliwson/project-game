@@ -1,4 +1,5 @@
-﻿using Messaging.Enumerators;
+﻿using Messaging.Contracts;
+using Messaging.Enumerators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -62,7 +63,7 @@ namespace Agent
 
         public void Discover() { }
 
-        public void AcceptMessage() { }
+        public void AcceptMessage(Message<IPayload> message) { }
 
         public void MakeDecisionFromStrategy() { }
 
