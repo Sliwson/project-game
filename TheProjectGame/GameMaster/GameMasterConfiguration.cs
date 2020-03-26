@@ -21,6 +21,7 @@ namespace GameMaster
         //TODO: check fields below in issues
         public TimeSpan GeneratePieceDelay { get; set; }
         public float ShamProbability { get; set; }
+        public int NumberOfFakeGoals { get; set; }
         // csIP
         // csPort
     }

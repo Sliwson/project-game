@@ -23,7 +23,8 @@ namespace GameMaster
                 NumberOfGoals = 10,
                 NumberOfPieces = 20,
                 GeneratePieceDelay = new TimeSpan(5000),
-                ShamProbability = 0.3f
+                ShamProbability = 0.3f,
+                NumberOfFakeGoals = 3;
             };
         }
     }

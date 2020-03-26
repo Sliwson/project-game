@@ -29,7 +29,7 @@ namespace GameMaster
             LoadDefaultConfiguration();
 
             //create board with deafult parameters
-            BoardLogic = new BoardLogicComponent(new Point(Configuration.BoardX, Configuration.BoardY));
+            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
 
             //try to connect to communciation server
         }
@@ -49,6 +49,7 @@ namespace GameMaster
         {
             state = GameMasterState.InGame;
             currentMessageProcessor = gameLogicComponent;
+            BoardLogic.GenerateGoals();
         }
 
         public void PauseGame()

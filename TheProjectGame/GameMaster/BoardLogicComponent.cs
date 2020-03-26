@@ -11,8 +11,11 @@ namespace GameMaster
     {
         private Field[,] fields;
         private Point size;
+        private int piecesDropped = 0;
+        private Random random = new Random();
+        private GameMaster gameMaster;
 
-        public BoardLogicComponent(Point size)
+        public BoardLogicComponent(GameMaster gameMaster, Point size)
         {
             fields = new Field[size.Y, size.X];
             for (int y = 0; y < size.Y; y++)
@@ -20,6 +23,54 @@ namespace GameMaster
                     fields[y, x] = new Field();
 
             this.size = size;
+            this.gameMaster = gameMaster;
+            piecesDropped = 0;
+        }
+
+        public void GenerateGoals()
+        {
+            var conf = gameMaster.Configuration;
+
+            //blue
+            var rectangle = GetGoalAreaRectangle(TeamId.Blue);
+            GenerateGoalFieldsInRectangle(rectangle, FieldState.Goal, conf.NumberOfGoals);
+            GenerateGoalFieldsInRectangle(rectangle, FieldState.FakeGoal, conf.NumberOfFakeGoals);
+            
+            //red
+            MirrorBlueGoalArea();
+        }
+
+        private void GenerateGoalFieldsInRectangle(Rectangle rectangle, FieldState state, int count)
+        {
+            //TODO: log error on failure
+            for (int i = 0; i < count; i++)
+            {
+                int treshold = 1000;
+                while (treshold > 0)
+                {
+                    var point = GetRandomPointInRectangle(rectangle);
+                    if (fields[point.Y, point.X].State == FieldState.Empty)
+                    {
+                        fields[point.Y, point.X].State = state;
+                        break;
+                    }
+
+                    treshold--;
+                }
+            }
+        }
+        
+        private void MirrorBlueGoalArea()
+        {
+            var conf = gameMaster.Configuration;
+            for (int y = 0; y < conf.GoalAreaHeight; y++)
+            {
+                for (int x = 0; x < size.X; x++)
+                {
+                    var y1 = size.Y - y - 1;
+                    fields[y1, x].State = fields[y, x].State;
+                }
+            }
         }
 
         public void Clean()
@@ -155,6 +206,22 @@ namespace GameMaster
         private bool IsPointOnBoard(Point p)
         {
             return IsPointOnBoard(p.X, p.Y);
+        }
+
+        private Point GetRandomPointInRectangle(Rectangle r)
+        {
+            var x = random.Next(r.Left, r.Right);
+            var y = random.Next(r.Bottom, r.Top + 1);
+            return new Point(x, y);
+        }
+
+        private Rectangle GetGoalAreaRectangle(TeamId team)
+        {
+            var config = gameMaster.Configuration;
+            if (team == TeamId.Blue)
+                return new Rectangle(0, 0, size.X, config.GoalAreaHeight);
+            else
+                return new Rectangle(0, size.Y - config.GoalAreaHeight, size.X, size.Y);
         }
     }
 }
