@@ -9,12 +9,14 @@ namespace GameMasterTests
     public class BoardLogicTest
     {
         private BoardLogicComponent boardLogicComponent;
-        readonly Point size = new Point(5, 10);
+        private Point size;
 
         [SetUp]
         public void Setup()
         {
-            boardLogicComponent = new BoardLogicComponent(size);
+            var gameMaster = new GameMaster.GameMaster();
+            boardLogicComponent = gameMaster.BoardLogic;
+            size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
 
         [Test]
@@ -77,7 +79,7 @@ namespace GameMasterTests
             Action<Field, Point> changeField = (Field f, Point position) => {
                 f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
                 f.State = FieldState.FakeGoal;
-                f.Pieces.Push(new Piece());
+                f.Pieces.Push(new Piece(false));
             };
 
             var pos1 = new Point(0, 0);
