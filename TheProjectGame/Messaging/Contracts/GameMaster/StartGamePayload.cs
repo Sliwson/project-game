@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -19,8 +20,8 @@ namespace Messaging.Contracts.GameMaster
         public int NumberOfEnemies { get; set; }
         public int NumberOfPieces { get; set; }
         public int NumberOfGoals { get; set; }
-        public Dictionary<ActionType, decimal> Penalties { get; set; }
-        public decimal ShamPieceProbability { get; set; }
+        public Dictionary<ActionType, TimeSpan> Penalties { get; set; }
+        public float ShamPieceProbability { get; set; }
         public Point Position { get; set; }
 
         public StartGamePayload(int agentId, 
@@ -34,8 +35,8 @@ namespace Messaging.Contracts.GameMaster
                                 int numberOfEnemies, 
                                 int numberOfPieces, 
                                 int numberOfGoals, 
-                                Dictionary<ActionType, decimal> penalties, 
-                                decimal shamPieceProbability, 
+                                Dictionary<ActionType, TimeSpan> penalties, 
+                                float shamPieceProbability, 
                                 Point position)
         {
             AgentId = agentId;

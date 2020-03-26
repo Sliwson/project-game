@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using GameMaster.Interfaces;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -19,6 +20,69 @@ namespace GameMaster
         public GameLogicComponent(GameMaster gameMaster)
         {
             this.gameMaster = gameMaster;
+        }
+
+        public List<BaseMessage> GetStartGameMessages()
+        {
+            var agents = gameMaster.Agents;
+            var config = gameMaster.Configuration;
+            var messages = new List<BaseMessage>();
+
+            foreach (var a in agents)
+            {
+                int[] alliesIds = agents.Where(ag => ag.Team == a.Team && ag.Id != a.Id).Select(a => a.Id).ToArray();
+                int[] enemiesIds = agents.Where(ag => ag.Team != a.Team).Select(a => a.Id).ToArray();
+                int leaderId = agents.FirstOrDefault(ag => ag.Team == a.Team && ag.IsTeamLeader).Id;
+                var payload = new StartGamePayload(
+                    a.Id,
+                    alliesIds,
+                    leaderId,
+                    enemiesIds,
+                    a.Team,
+                    new Point(config.BoardX, config.BoardY),
+                    config.GoalAreaHeight,
+                    alliesIds.Length,
+                    enemiesIds.Length,
+                    config.NumberOfPieces,
+                    config.NumberOfGoals,
+                    config.GetTimeouts(),
+                    config.ShamProbability,
+                    a.Position
+                   );
+
+                messages.Add(MessageFactory.GetMessage(payload, a.Id));
+            }
+
+            return messages;
+        }
+
+        public List<BaseMessage> GetPauseMessages()
+        {
+            var agents = gameMaster.Agents;
+            var messages = new List<BaseMessage>();
+
+            //TODO: check for pause message
+            return messages;
+        }
+
+        public List<BaseMessage> GetResumeMessages()
+        {
+            var agents = gameMaster.Agents;
+            var messages = new List<BaseMessage>();
+
+            //TODO: check for resume message
+            return messages;
+        }
+
+        public List<BaseMessage> GetEndGameMessages(TeamId winner)
+        {
+            var agents = gameMaster.Agents;
+            var messages = new List<BaseMessage>();
+
+            foreach (var a in agents)
+                messages.Add(MessageFactory.GetMessage(new EndGamePayload(winner), a.Id));
+
+            return messages;
         }
 
         public BaseMessage ProcessMessage(BaseMessage message)
