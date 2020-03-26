@@ -288,6 +288,87 @@ namespace GameMasterTests
 
         #endregion
 
+
+        #region Join request
+
+        [Test]
+        public void ProcessMessage_JoinRequest_NewAgentShouldNotBeAcceptedDuringGame()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.JoinResponse, response.MessageId);
+
+            var payload = response.Payload as JoinResponse;
+            Assert.AreEqual(666, payload.AgentId);
+            Assert.AreEqual(payload.AgentId, response.AgentId);
+            Assert.IsFalse(payload.Accepted);
+        }
+
+        [Test]
+        public void ProcessMessage_JoinRequest_OldAgentShouldNotBeAcceptedDuringGame()
+        {
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.JoinResponse, response.MessageId);
+
+            var payload = response.Payload as JoinResponse;
+            Assert.AreEqual(666, payload.AgentId);
+            Assert.AreEqual(payload.AgentId, response.AgentId);
+            Assert.IsFalse(payload.Accepted);
+        }
+
+        #endregion
+
+        #region Move request
+
+        [Test]
+        public void ProcessMessage_MoveRequest_ShouldChangeAgentPositionIfAllowed()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new MoveRequest(Direction.North), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.MoveResponse, response.MessageId);
+
+            var payload = response.Payload as MoveResponse;
+            Assert.IsTrue(payload.MadeMove);
+            Assert.AreEqual(new Point(3, 4), payload.CurrentPosition);
+            Assert.AreEqual(configuration.MovePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_MoveRequest_ShouldNotChangeAgentPositionIfNotAllowed()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            var field = gameMaster.BoardLogic.GetField(new Point(0, 0));
+
+            gameMaster.AddAgent(agent);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new MoveRequest(Direction.South), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.MoveResponse, response.MessageId);
+
+            var payload = response.Payload as MoveResponse;
+            Assert.IsFalse(payload.MadeMove);
+            Assert.AreEqual(new Point(0, 0), payload.CurrentPosition);
+            Assert.AreEqual(configuration.MovePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        #endregion
+
         // This method simulates normal situation where messages are stored in IEnumerable<BaseMessage>
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
         {
