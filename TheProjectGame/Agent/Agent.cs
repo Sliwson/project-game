@@ -110,6 +110,39 @@ namespace Agent
             return goalAreaInformation;
         }
 
+        private void UpdateDistances(int[,] distances)
+        {
+            for (int i = 0; i < boardSize.Y; i++)
+            {
+                for (int j = 0; j < boardSize.X; j++)
+                {
+                      board[i, j].distToPiece = distances[i, j];
+                }
+            }
+        }
+
+        private void UpdateBlueTeamGoalAreaInformation(GoalInformation[,] goalAreaInformation)
+        {
+            for (int i = 0; i < goalAreaSize; i++)
+            {
+                for (int j = 0; j < boardSize.X; j++)
+                {
+                   board[i, j].goalInfo = goalAreaInformation[i, j];
+                }
+            }
+        }
+
+        private void UpdateRedTeamGoalAreaInformation(GoalInformation[,] goalAreaInformation)
+        {
+            for (int i = boardSize.Y - goalAreaSize + 1; i < boardSize.Y; i++)
+            {
+                for (int j = 0; j < boardSize.X; j++)
+                {
+                   board[i, j].goalInfo = goalAreaInformation[i, j];
+                }
+            }
+        }
+
         public void JoinTheGame() 
         {
             var request = MessageFactory.GetMessage(new JoinRequest(team));
@@ -125,6 +158,7 @@ namespace Agent
 
         public void Start() 
         {
+            JoinTheGame();
             MakeDecisionFromStrategy();
         }
 
@@ -179,6 +213,12 @@ namespace Agent
         public void BegForInfo() 
         {
             var request = MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate]));
+
+            var response = MessageFactory.GetMessage(new ExchangeInformationResponse(1, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation()));
+
+            UpdateDistances(response.Payload.Distances);
+            UpdateBlueTeamGoalAreaInformation(response.Payload.BlueTeamGoalAreaInformation);
+            UpdateRedTeamGoalAreaInformation(response.Payload.RedTeamGoalAreaInformation);
 
             lastAskedTeammate++;
             lastAskedTeammate %= teamMates.Length;
@@ -235,13 +275,13 @@ namespace Agent
             var response = MessageFactory.GetMessage(new DiscoverResponse(new Distances(1, 1, 1, 1, 1, 1, 1, 1, 1)));
 
             board[position.Y, position.X].distToPiece = response.Payload.Distances.distanceFromCurrent;
-            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances.distanceE ;
-            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances.distanceS;
-            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances.distanceN;
-            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances.distanceW;
+            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances.distanceN;
+            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances.distanceW;
+            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances.distanceE;
+            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances.distanceS;
             board[position.Y + 1, position.X + 1].distToPiece = response.Payload.Distances.distanceNE;
-            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances.distanceSE;
-            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances.distanceNW;
+            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances.distanceNW;
+            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances.distanceSE;
             board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances.distanceSW;
         }
 
@@ -250,6 +290,7 @@ namespace Agent
         public void MakeDecisionFromStrategy() 
         {
             Thread.Sleep(penaltyTime);
+            strategy.MakeDecision(this);
         }
 
     }

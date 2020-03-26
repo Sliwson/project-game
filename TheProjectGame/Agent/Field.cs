@@ -14,5 +14,13 @@ namespace Agent
         public DateTime distLearned;
 
         public DateTime deniedMove;
+
+        public Field()
+        {
+            goalInfo = GoalInformation.NoInformation;
+            distToPiece = int.MaxValue;
+            distLearned = DateTime.MinValue;
+            deniedMove = DateTime.MinValue;
+        }
     }
 }
