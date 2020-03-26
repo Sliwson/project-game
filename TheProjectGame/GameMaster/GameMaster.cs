@@ -11,6 +11,7 @@ namespace GameMaster
     {
         public BoardLogicComponent BoardLogic { get; private set; }
         public ScoreComponent ScoreComponent { get; private set; }
+        public GameMasterConfiguration Configuration { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private List<Agent> agents = new List<Agent>();
@@ -28,7 +29,7 @@ namespace GameMaster
             LoadDefaultConfiguration();
 
             //create board with deafult parameters
-            BoardLogic = new BoardLogicComponent(new Point(5, 10));
+            BoardLogic = new BoardLogicComponent(new Point(Configuration.BoardX, Configuration.BoardY));
 
             //try to connect to communciation server
         }
@@ -83,7 +84,8 @@ namespace GameMaster
 
         private void LoadDefaultConfiguration()
         {
-            
+            var configurationProvider = new MockConfigurationProvider();
+            Configuration = configurationProvider.GetConfiguration();
         }
     }
 }
