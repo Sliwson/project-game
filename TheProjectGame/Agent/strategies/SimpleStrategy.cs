@@ -30,7 +30,7 @@ namespace Agent.strategies
                 return;
             }
             if (agent.piece != null && agent.piece.isDiscovered &&
-                agent.board[agent.position.X, agent.position.Y].goalInfo == GoalInfo.IDK &&
+                Common.DoesAgentKnowGoalInfo(agent) &&
                 Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
             {
                 agent.Put();
@@ -42,7 +42,7 @@ namespace Agent.strategies
             {
                 var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
                 agent.Move(dir);
-                if (dir == Direction.North || dir == Direction.South) stayInLineCount++;
+                if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
                 else stayInLineCount = 0;
                 return;
             }
