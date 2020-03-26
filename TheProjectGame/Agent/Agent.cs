@@ -1,5 +1,4 @@
-﻿using Messaging.Contracts;
-using Messaging.Enumerators;
+﻿using Messaging.Enumerators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -36,8 +35,6 @@ namespace Agent
 
         public Piece piece;
 
-        public Message<IPayload> lastRequest;
-
         public Agent() { }
 
         private void Communicate() { }
@@ -65,7 +62,7 @@ namespace Agent
 
         public void Discover() { }
 
-        public void AcceptMessage(Message<IPayload> message) { }
+        public void AcceptMessage() { }
 
         public void MakeDecisionFromStrategy() { }
 
