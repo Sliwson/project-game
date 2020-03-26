@@ -27,6 +27,8 @@ namespace GameMasterTests
             configuration = gameMaster.Configuration;
         }
 
+        #region Process message (error handling)
+
         [Test]
         public void ProcessMessage_ShouldReturnUndefinedErrorMessageWhenAgentNotConnected()
         {
@@ -68,6 +70,10 @@ namespace GameMasterTests
             var payload = response.Payload as UndefinedError;
             Assert.AreEqual(new Point(3, 3), payload.Position);
         }
+
+#endregion
+
+        #region Check sham
 
         [Test]
         public void ProcessMessage_CheckSham_ShouldReturnUndefinedErrorWhenAgentNotHolding()
@@ -120,6 +126,65 @@ namespace GameMasterTests
             Assert.IsFalse(payload.Sham);
             Assert.AreEqual(configuration.CheckForShamPenalty.TotalSeconds, agent.Timeout);
         }
+
+        #endregion
+
+        #region Destroy piece
+        
+        [Test]
+        public void ProcessMessage_DestroyPiece_ShouldReturnUndefinedErrorWhenAgentNotHolding()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new DestroyPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
+
+            var payload = response.Payload as UndefinedError;
+            Assert.AreEqual(new Point(3, 3), payload.Position);
+            Assert.AreEqual(configuration.DestroyPiecePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_DestroyPiece_ShouldRemovePiece()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var piece = new Piece(false);
+            agent.PickUpPiece(piece);
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new DestroyPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.DestroyPieceResponse, response.MessageId);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(configuration.DestroyPiecePenalty.TotalSeconds, agent.Timeout);
+        }
+
+        #endregion
+
+        #region Discover
+
+        [Test]
+        public void ProcessMessage_Discover_ShouldReturnFilledArrayInResponse()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var discoverArray = gameMaster.BoardLogic.GetDiscoverArray(agent.Position);
+
+            gameMaster.AddAgent(agent);
+
+            var message = GetBaseMessage(new DiscoverRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.DiscoverResponse, response.MessageId);
+
+            var payload = response.Payload as DiscoverResponse;
+            Assert.AreEqual(discoverArray, payload.Distances);
+        }
+
+        #endregion
 
 
 
