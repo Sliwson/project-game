@@ -12,7 +12,7 @@ using GameMaster.Interfaces;
 
 namespace GameMaster
 {
-    class GameLogicComponent : IMessageProcessor
+    public class GameLogicComponent : IMessageProcessor
     {
         private GameMaster gameMaster;
         
