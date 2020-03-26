@@ -105,8 +105,22 @@ namespace GameMaster
         }
 
         //TODO: move to messaging system
+#if DEBUG
+        private List<BaseMessage> injectedMessages = new List<BaseMessage>();
+
+        public void InjectMessage(BaseMessage message)
+        {
+            injectedMessages.Add(message);
+        }
+#endif
+
         private List<BaseMessage> GetIncomingMessages()
         {
+#if DEBUG
+            var clone = new List<BaseMessage>(injectedMessages);
+            injectedMessages.Clear();
+            return clone;
+#endif
             return new List<BaseMessage>();
         }
 
