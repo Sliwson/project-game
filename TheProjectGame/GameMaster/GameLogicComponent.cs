@@ -68,7 +68,7 @@ namespace GameMaster
         {
             var targetAgent = gameMaster.GetAgent(message.Payload.AskedAgentId);
             if (targetAgent == null)
-                return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+                return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
 
             targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
             return MessageFactory.GetMessage(new ExchangeInformationPayload(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
@@ -77,11 +77,10 @@ namespace GameMaster
         private BaseMessage Process(Message<ExchangeInformationResponse> message, Agent agent)
         {
             if (!agent.CanExchange())
-                return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+                return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
 
-            //TODO: ask Szymon how to pass response
             agent.ClearExchangeState();
-            return null;
+            return MessageFactory.GetMessage(message.Payload, message.Payload.RespondToId);
         }
 
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)
@@ -102,12 +101,41 @@ namespace GameMaster
         
         private BaseMessage Process(Message<PickUpPieceRequest> message, Agent agent)
         {
-            return null;
+            if (agent.Piece != null)
+                return MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.Other), agent.Id);
+
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            if (field.Pieces.Count == 0)
+                return MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere), agent.Id);
+
+            agent.PickUpPiece(field.Pieces.Pop());
+            return MessageFactory.GetMessage(new PickUpPieceResponse(), agent.Id);
         }
 
         private BaseMessage Process(Message<PutDownPieceRequest> message, Agent agent)
         {
-            return null;
+            if (agent.Piece == null)
+                return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), agent.Id);
+
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            if (field.State == FieldState.Empty)
+            {
+                field.Pieces.Push(agent.RemovePiece());
+            }
+            else 
+            {
+                //TODO: changes in specification? send information about result
+                if (field.Pieces.Count == 0)
+                {
+                    field.Pieces.Push(agent.RemovePiece());
+                    if (field.State == FieldState.Goal)
+                        gameMaster.ScoreComponent.TeamScored(agent.Team);
+                }
+                else 
+                    return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.CannotPutThere), agent.Id);
+            }
+
+            return MessageFactory.GetMessage(new PutDownPieceResponse(), agent.Id);
         }
     }
 }

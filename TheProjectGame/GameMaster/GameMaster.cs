@@ -23,7 +23,7 @@ namespace GameMaster
         {
             connectionLogicComponent = new ConnectionLogicComponent(this);
             gameLogicComponent = new GameLogicComponent(this);
-            ScoreComponent = new ScoreComponent();
+            ScoreComponent = new ScoreComponent(this);
 
             LoadDefaultConfiguration();
 
@@ -67,6 +67,7 @@ namespace GameMaster
                 var response = currentMessageProcessor.ProcessMessage(message);
                 //TODO: send response
             }
+
         }
 
         public Agent GetAgent(int agentId)
