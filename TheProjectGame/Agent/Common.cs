@@ -24,9 +24,9 @@ namespace Agent
             return position;
         }
 
-        public static bool InGoalArea(Team team, Point position, Point boardSize, int goalAreaSize)
+        public static bool InGoalArea(TeamId team, Point position, Point boardSize, int goalAreaSize)
         {
-            return team == Team.Red ? position.Y >= boardSize.Y - goalAreaSize : position.Y < goalAreaSize;
+            return team == TeamId.Red ? position.Y >= boardSize.Y - goalAreaSize : position.Y < goalAreaSize;
         }
 
         public static bool OnBoard(Point position, Point boardSize)
@@ -43,7 +43,7 @@ namespace Agent
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
         {
-            if (agent.team == Team.Red)
+            if (agent.team == TeamId.Red)
             {
                 foreach (var direction in new [] { Direction.North, Direction.West, Direction.East })
                     if (CouldMove(agent, direction, shortTime)) return direction;
@@ -72,7 +72,7 @@ namespace Agent
 
         public static bool DoesAgentKnowGoalInfo(Agent agent)
         {
-            return agent.board[agent.position.Y, agent.position.X].goalInfo == GoalInfo.IDK;
+            return agent.board[agent.position.Y, agent.position.X].goalInfo == GoalInformation.NoInformation;
         }
 
         public static int FindClosest(Agent agent, int shortTime, out Direction direction)

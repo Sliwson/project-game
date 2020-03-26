@@ -1,4 +1,5 @@
-﻿using Messaging.Contracts;
+﻿using Agent.strategies;
+using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
@@ -13,7 +14,7 @@ namespace Agent
 {
     public class Agent
     {
-        private int id;
+        public int id;
 
         private int lastAskedTeammate;
 
@@ -45,11 +46,25 @@ namespace Agent
 
         private void Communicate() { }
 
-        private void Initialize()
+        public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos)
         {
+            isLeader = id == leaderId ? true : false;
+            team = teamId;
+            this.boardSize = boardSize;
+            board = new Field[boardSize.Y, boardSize.X];
+            for(int i = 0; i < boardSize.Y; i++)
+            {
+                for (int j = 0; j < boardSize.X; j++)
+                {
+                    board[i, j] = new Field();
+                }
+            }
+            position = pos;
+            goalAreaSize = goalAreaHeight;
             waitingPlayers = new List<int>();
             piece = null;
             lastAskedTeammate = 0;
+            strategy = new SimpleStrategy();
         }
         private void Penalty() 
         {
@@ -58,10 +73,10 @@ namespace Agent
 
         private int[,] GetDistances()
         {
-            int[,] distances = new int[boardSize.X, boardSize.Y];
-            for (int i = 0; i < boardSize.X; i++)
+            int[,] distances = new int[boardSize.Y, boardSize.X];
+            for (int i = 0; i < boardSize.Y; i++)
             {
-                for (int j = 0; j < boardSize.Y; j++)
+                for (int j = 0; j < boardSize.X; j++)
                 {
                     distances[i, j] = board[i, j].distToPiece;
                 }
@@ -71,10 +86,10 @@ namespace Agent
 
         private GoalInformation[,] GetBlueTeamGoalAreaInformation()
         {
-            GoalInformation[,] goalAreaInformation = new GoalInformation[boardSize.X, goalAreaSize];
-            for (int i = 0; i < boardSize.X; i++)
+            GoalInformation[,] goalAreaInformation = new GoalInformation[goalAreaSize, boardSize.X];
+            for (int i = 0; i < goalAreaSize ; i++)
             {
-                for (int j = 0; j < goalAreaSize; j++)
+                for (int j = 0; j < boardSize.X; j++)
                 {
                     goalAreaInformation[i, j] = board[i, j].goalInfo;
                 }
@@ -84,10 +99,10 @@ namespace Agent
 
         private GoalInformation[,] GetRedTeamGoalAreaInformation()
         {
-            GoalInformation[,] goalAreaInformation = new GoalInformation[boardSize.X, goalAreaSize];
-            for (int i = 0; i < boardSize.X; i++)
+            GoalInformation[,] goalAreaInformation = new GoalInformation[goalAreaSize, boardSize.X];
+            for (int i = boardSize.Y - goalAreaSize + 1; i < boardSize.Y; i++)
             {
-                for (int j = boardSize.Y - goalAreaSize + 1; j < boardSize.Y; j++)
+                for (int j = 0; j < boardSize.X; j++)
                 {
                     goalAreaInformation[i, j] = board[i, j].goalInfo;
                 }
@@ -102,6 +117,9 @@ namespace Agent
             if(response.Payload.Accepted)
             {
                 id = response.Payload.AgentId;
+                // wait for start game response
+                // get start game response
+                // Initialize();
             }
         }
 
@@ -113,14 +131,14 @@ namespace Agent
         public void Stop() { }
 
         public void Move(Direction direction) 
-        { /*if distance=0 send pick up request*/
+        { 
             var request = MessageFactory.GetMessage(new MoveRequest(direction));
             var response = MessageFactory.GetMessage(new MoveResponse(true, new Point(1, 1), 2));
             if(response.Payload.MadeMove)
             {
                 position = response.Payload.CurrentPosition;
-                board[position.X, position.Y].distToPiece = response.Payload.ClosestPoint;
-                board[position.X, position.Y].distLearned = DateTime.Now;
+                board[position.Y, position.X].distToPiece = response.Payload.ClosestPoint;
+                board[position.Y, position.X].distLearned = DateTime.Now;
                 if(response.Payload.ClosestPoint == 0)
                 {
                     PickUp();
@@ -128,8 +146,9 @@ namespace Agent
             }
             else
             {
-                board[position.X, position.Y].deniedMove = DateTime.Now;
+                board[position.Y, position.X].deniedMove = DateTime.Now;
             }
+            MakeDecisionFromStrategy();
         }
 
         public void PickUp()
@@ -137,8 +156,10 @@ namespace Agent
             var request = MessageFactory.GetMessage(new PickUpPieceRequest());
 
             var response = MessageFactory.GetMessage(new PickUpPieceResponse());
-
-            piece = new Piece();
+            if (board[position.Y, position.X].distToPiece == 0)
+            {
+                piece = new Piece();
+            }
 
             MakeDecisionFromStrategy();
         }
@@ -149,18 +170,8 @@ namespace Agent
 
             var response = MessageFactory.GetMessage(new PutDownPieceResponse());
 
-            board[position.X, position.Y].distToPiece = 0;
+            board[position.Y, position.X].distToPiece = 0;
             piece = null;
-
-            if(board[position.X, position.Y].goalInfo == GoalInformation.Goal)
-            {
-                //goal
-            }
-
-            if (board[position.X, position.Y].goalInfo == GoalInformation.NoGoal)
-            {
-                //noGoal
-            }
 
             MakeDecisionFromStrategy();
         }
@@ -223,20 +234,23 @@ namespace Agent
             /*send and receive*/
             var response = MessageFactory.GetMessage(new DiscoverResponse(new Distances(1, 1, 1, 1, 1, 1, 1, 1, 1)));
 
-            board[position.X, position.Y].distToPiece = response.Payload.Distances.distanceFromCurrent;
-            board[position.X+1, position.Y].distToPiece = response.Payload.Distances.distanceE ;
-            board[position.X, position.Y-1].distToPiece = response.Payload.Distances.distanceS;
-            board[position.X, position.Y+1].distToPiece = response.Payload.Distances.distanceN;
-            board[position.X-1, position.Y].distToPiece = response.Payload.Distances.distanceW;
-            board[position.X + 1, position.Y+1].distToPiece = response.Payload.Distances.distanceNE;
-            board[position.X+1, position.Y-1].distToPiece = response.Payload.Distances.distanceSE;
-            board[position.X-1, position.Y+1].distToPiece = response.Payload.Distances.distanceNW;
-            board[position.X-1, position.Y-1].distToPiece = response.Payload.Distances.distanceSW;
+            board[position.Y, position.X].distToPiece = response.Payload.Distances.distanceFromCurrent;
+            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances.distanceE ;
+            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances.distanceS;
+            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances.distanceN;
+            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances.distanceW;
+            board[position.Y + 1, position.X + 1].distToPiece = response.Payload.Distances.distanceNE;
+            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances.distanceSE;
+            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances.distanceNW;
+            board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances.distanceSW;
         }
 
         public void AcceptMessage() { }
 
-        public void MakeDecisionFromStrategy() { }
+        public void MakeDecisionFromStrategy() 
+        {
+            Thread.Sleep(penaltyTime);
+        }
 
     }
 }
