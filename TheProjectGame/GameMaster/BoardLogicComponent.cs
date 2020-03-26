@@ -14,6 +14,7 @@ namespace GameMaster
         private int piecesDropped = 0;
         private Random random = new Random();
         private GameMaster gameMaster;
+        private double timeFromLastDrop = 0;
 
         public BoardLogicComponent(GameMaster gameMaster, Point size)
         {
@@ -147,6 +148,28 @@ namespace GameMaster
                 return false;
         }
 
+        public void Update(double dt)
+        {
+            var conf = gameMaster.Configuration;
+            timeFromLastDrop += dt;
+            if (timeFromLastDrop > conf.GeneratePieceDelay.TotalSeconds)
+                DropPiece();
+        }
+
+        private void DropPiece()
+        {
+            if (piecesDropped >= gameMaster.Configuration.NumberOfPieces)
+                return;
+
+            timeFromLastDrop = 0;
+            var point = GetRandomPointInRectangle(GetGameAreaRectangle());
+            var isSham = random.NextDouble() < gameMaster.Configuration.ShamProbability;
+            var piece = new Piece(isSham);
+            fields[point.Y, point.X].Pieces.Push(piece);
+
+            piecesDropped++;
+        }
+
         public void MoveAgent(Agent agent, Direction direction)
         {
             var field = GetField(agent.Position);
@@ -190,8 +213,7 @@ namespace GameMaster
 
         private bool IsFieldInOppositeGoalArea(TeamId agentTeam, Point position)
         {
-            //TODO: get goal size from config
-            int goalSize = 0;
+            var goalSize = gameMaster.Configuration.GoalAreaHeight;
             if (agentTeam == TeamId.Blue)
                 return position.Y >= size.Y - goalSize;
             else
@@ -219,9 +241,15 @@ namespace GameMaster
         {
             var config = gameMaster.Configuration;
             if (team == TeamId.Blue)
-                return new Rectangle(0, 0, size.X, config.GoalAreaHeight);
+                return new Rectangle(0, config.GoalAreaHeight, size.X, config.GoalAreaHeight);
             else
-                return new Rectangle(0, size.Y - config.GoalAreaHeight, size.X, size.Y);
+                return new Rectangle(0, size.Y, size.X, size.Y - config.GoalAreaHeight);
+        }
+        
+        private Rectangle GetGameAreaRectangle()
+        {
+            var config = gameMaster.Configuration;
+            return new Rectangle(size.Y - config.GoalAreaHeight, 0, size.X, config.GoalAreaHeight);
         }
     }
 }
