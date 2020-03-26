@@ -72,7 +72,6 @@ namespace GameMaster
                 var response = currentMessageProcessor.ProcessMessage(message);
                 //TODO: send response
             }
-
         }
 
         public Agent GetAgent(int agentId)

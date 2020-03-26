@@ -15,9 +15,7 @@ namespace GameMaster
         public ScoreComponent(GameMaster gameMaster)
         {
             this.gameMaster = gameMaster;
-
-            //TODO: add default score target
-            Reset(0);
+            Reset(gameMaster.Configuration.NumberOfGoals);
         }
 
         public void Reset(int scoreTarget)
