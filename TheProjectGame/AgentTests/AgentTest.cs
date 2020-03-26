@@ -43,7 +43,7 @@ namespace AgentTests
         {
             var message = new Message<IPayload>(0, 0, new MoveResponse(false, new System.Drawing.Point(0, 0), 0));
             agent.AcceptMessage(message);
-            //Assert sends PickUpPieceRequest
+            Assert.IsInstanceOf<PickUpPieceRequest>(agent.lastRequest.Payload);
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace AgentTests
         {
             var message = new Message<IPayload>(0, 0, new CheckShamResponse(true));
             agent.AcceptMessage(message);
-            //Assert sends DestroyPieceRequest
+            Assert.IsInstanceOf<DestroyPieceRequest>(agent.lastRequest.Payload);
         }
     }
 }

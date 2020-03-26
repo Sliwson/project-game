@@ -36,6 +36,8 @@ namespace Agent
 
         public Piece piece;
 
+        public Message<IPayload> lastRequest;
+
         public Agent() { }
 
         private void Communicate() { }
