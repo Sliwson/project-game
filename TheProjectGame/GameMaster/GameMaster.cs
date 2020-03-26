@@ -10,27 +10,24 @@ namespace GameMaster
     public class GameMaster
     {
         public BoardLogicComponent BoardLogic { get; private set; }
-        public GameLogicComponent GameLogic { get; private set; }
-
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
+        public ConnectionLogicComponent ConnectionLogic { get; private set; }
+        public GameLogicComponent GameLogic { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private List<Agent> agents = new List<Agent>();
 
         private IMessageProcessor currentMessageProcessor = null;
-        private ConnectionLogicComponent connectionLogicComponent;
 
         public GameMaster()
         {
-            connectionLogicComponent = new ConnectionLogicComponent(this);
-            ScoreComponent = new ScoreComponent(this);
-
             LoadDefaultConfiguration();
 
-            //create board with deafult parameters
-            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
+            ScoreComponent = new ScoreComponent(this);
+            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
 
             //try to connect to communciation server
         }
@@ -43,11 +40,12 @@ namespace GameMaster
         {
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
-            currentMessageProcessor = connectionLogicComponent;
+            currentMessageProcessor = ConnectionLogic;
         }
 
         public void StartGame()
         {
+            agents = ConnectionLogic.FlushLobby();
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;
             BoardLogic.GenerateGoals();
@@ -61,6 +59,9 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
+            if (state == GameMasterState.Configuration)
+                return;
+
             if (state == GameMasterState.InGame)
                 BoardLogic.Update(dt);
             

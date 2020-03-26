@@ -148,6 +148,22 @@ namespace GameMaster
                 return false;
         }
 
+        public Point GetRandomPositionForAgent(TeamId team)
+        {
+            var area = GetGoalAreaRectangle(team);
+            int treshold = 1000;
+            while (treshold > 0)
+            {
+                var point = GetRandomPointInRectangle(area);
+                if (fields[point.Y, point.X].Agent == null)
+                    return point;
+
+                treshold--;
+            }
+
+            return new Point(-1, -1);
+        }
+
         public void Update(double dt)
         {
             var conf = gameMaster.Configuration;

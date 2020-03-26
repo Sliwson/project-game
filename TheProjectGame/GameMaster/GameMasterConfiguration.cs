@@ -22,6 +22,7 @@ namespace GameMaster
         //TODO: check fields below in issues
         public TimeSpan DestroyPiecePenalty { get; set; }
         public TimeSpan GeneratePieceDelay { get; set; }
+        public int AgentsLimit { get; set; }
         public float ShamProbability { get; set; }
         public int NumberOfFakeGoals { get; set; }
         // csIP
