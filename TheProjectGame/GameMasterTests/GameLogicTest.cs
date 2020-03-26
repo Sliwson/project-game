@@ -289,7 +289,7 @@ namespace GameMasterTests
         #endregion
 
 
-        #region Join request
+        #region Join
 
         [Test]
         public void ProcessMessage_JoinRequest_NewAgentShouldNotBeAcceptedDuringGame()
@@ -325,7 +325,7 @@ namespace GameMasterTests
 
         #endregion
 
-        #region Move request
+        #region Move
 
         [Test]
         public void ProcessMessage_MoveRequest_ShouldChangeAgentPositionIfAllowed()
@@ -366,6 +366,137 @@ namespace GameMasterTests
             Assert.AreEqual(new Point(0, 0), payload.CurrentPosition);
             Assert.AreEqual(configuration.MovePenalty.TotalSeconds, agent.Timeout);
         }
+
+        #endregion
+
+        #region Pick up piece
+
+        [Test]
+        public void ProcessMessage_PickUpPieceRequest_ShouldReturnErrorIfNoPiece()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PickUpPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PickUpPieceError, response.MessageId);
+
+            var payload = response.Payload as PickUpPieceError;
+            Assert.AreEqual(PickUpPieceErrorSubtype.NothingThere, payload.ErrorSubtype);
+        }
+
+        [Test]
+        public void ProcessMessage_PickUpPieceRequest_ShouldReturnErrorIfAlreadyHolding()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var piece = new Piece(false);
+
+            gameMaster.AddAgent(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PickUpPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PickUpPieceError, response.MessageId);
+
+            var payload = response.Payload as PickUpPieceError;
+            Assert.AreEqual(PickUpPieceErrorSubtype.Other, payload.ErrorSubtype);
+        }
+
+        [Test]
+        public void ProcessMessage_PickUpPieceRequest_ShouldAssignPieceIfAllowed()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var piece = new Piece(false);
+
+            gameMaster.AddAgent(agent);
+            field.Pieces.Push(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PickUpPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PickUpPieceResponse, response.MessageId);
+            Assert.AreEqual(piece, agent.Piece);
+            Assert.AreEqual(0, field.Pieces.Count);
+        }
+
+        #endregion
+
+        #region Put down piece
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldReturnErrorIfNoPiece()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+
+            gameMaster.AddAgent(agent);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceError, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceError;
+            Assert.AreEqual(PutDownPieceErrorSubtype.AgentNotHolding, payload.ErrorSubtype);
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldReturnErrorIfGoalAlreadyCompleted()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var piece1 = new Piece(false);
+            var piece2 = new Piece(false);
+
+            gameMaster.AddAgent(agent);
+            agent.PickUpPiece(piece1);
+            field.Pieces.Push(piece2);
+            field.State = FieldState.Goal;
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceError, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceError;
+            Assert.AreEqual(PutDownPieceErrorSubtype.CannotPutThere, payload.ErrorSubtype);
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldLeavePieceIfFieldIsEmpty()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var piece = new Piece(false);
+
+            gameMaster.AddAgent(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(1, field.Pieces.Count);
+            Assert.AreEqual(piece, field.Pieces.Peek());
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        // TODO: Add more test cases for put down when changes in specification are decided
 
         #endregion
 
