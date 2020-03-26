@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -19,10 +20,29 @@ namespace GameMaster
         public int NumberOfPieces { get; set; }
         
         //TODO: check fields below in issues
+        public TimeSpan DestroyPiecePenalty { get; set; }
         public TimeSpan GeneratePieceDelay { get; set; }
         public float ShamProbability { get; set; }
         public int NumberOfFakeGoals { get; set; }
         // csIP
         // csPort
+
+        Dictionary<ActionType, TimeSpan> agentTimeouts = null;
+
+        public Dictionary<ActionType, TimeSpan> GetTimeouts()
+        {
+            if (agentTimeouts != null)
+                return agentTimeouts;
+
+            agentTimeouts = new Dictionary<ActionType, TimeSpan>();
+            agentTimeouts.Add(ActionType.CheckForSham, CheckForShamPenalty);
+            agentTimeouts.Add(ActionType.DestroyPiece, DestroyPiecePenalty);
+            agentTimeouts.Add(ActionType.Discovery, DiscoveryPenalty);
+            agentTimeouts.Add(ActionType.InformationRequest, AskPenalty);
+            agentTimeouts.Add(ActionType.InformationResponse, ResponsePenalty);
+            agentTimeouts.Add(ActionType.Move, MovePenalty);
+            agentTimeouts.Add(ActionType.PutPiece, PutPenalty);
+            return agentTimeouts;
+        }
     }
 }
