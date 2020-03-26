@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Threading;
 
@@ -19,11 +21,13 @@ namespace Agent
 
         public bool isLeader;
 
-        public bool havePiece;
-
         public Field[,] board;
 
-        public (int, int) position;
+        public Point boardSize;
+
+        public int goalAreaSize;
+
+        public Point position;
 
         public List<int> waitingPlayers;
 
@@ -46,15 +50,17 @@ namespace Agent
 
         public void Stop() { }
 
-        public void Move() { }
+        public void Move(Direction direction) { /*if distance=0 send pick up request*/ }
 
         public void Put() { }
 
-        public void BegForInfo() { }
+        public void BegForInfo() { /*teammate that was not asked before or last asked*/ }
 
-        public void GiveInfo() { }
+        public void GiveInfo() { /*to first waiting player*/ }
 
-        public void CheckPiece() { }
+        public void CheckPiece() { /*if sham send destroy request*/ }
+
+        public void Discover() { }
 
         public void AcceptMessage() { }
 

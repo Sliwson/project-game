@@ -6,6 +6,6 @@ namespace Agent
 {
     public class Piece
     {
-        public bool isSham;
+        public bool isDiscovered;
     }
 }
