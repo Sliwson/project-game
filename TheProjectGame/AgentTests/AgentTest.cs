@@ -3,15 +3,19 @@ using Agent.strategies;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.GameMaster;
+using Messaging.Enumerators;
 using Messaging.Implementation;
 using NUnit.Framework;
 using System;
+using System.Drawing;
 
 namespace AgentTests
 {
     public class AgentTest
     {
         private Agent.Agent agent;
+
+        private DateTime startTime;
 
         [SetUp]
         public void Setup()
@@ -20,6 +24,7 @@ namespace AgentTests
             var teamMates = new int[3] { 2, 3, 4 };
             agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates);
             agent.SetDoNothingStrategy();
+            startTime = DateTime.Now;
         }
 
         [Test]
@@ -130,7 +135,7 @@ namespace AgentTests
         #region Discover
 
         [Test]
-        public void ProcessMessage_DiscoverResponse_()
+        public void ProcessMessage_DiscoverResponse_Should_Update_Agent_Board_State()
         {
             agent.AcceptMessage(GetBaseMessage(new DiscoverResponse(new int[,] { { 1, 2, 3 }, { 2, 2, 2 }, { 3, 0, 2 } }), 1));
             var position = agent.position;
@@ -172,6 +177,134 @@ namespace AgentTests
 
         #endregion
 
+        #region Exchange information
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationPayload_If_Not_TeamLeader_Asking_Should_Be_Added_To_Waiting_List()
+        {
+            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationPayload(2, false, Messaging.Enumerators.TeamId.Blue), 1));
+
+            Assert.AreEqual(agent.waitingPlayers.Count, 1);
+            Assert.AreEqual(agent.waitingPlayers[0], 2);
+        }
+
+
+        [Test]
+        public void ProcessMessage_ExchangeInformationResponse_Should_Update_Agent_Board_State()
+        {
+            var blueGoalAreaInformation = new GoalInformation[,] { { GoalInformation.Goal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoInformation } };
+            var redGoalAreaInformation = new GoalInformation[,] { { GoalInformation.NoInformation, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.Goal, GoalInformation.NoInformation } };
+            var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 } };
+
+            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponse(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
+
+            for(int i = 0; i < agent.boardSize.Y; i++)
+            {
+                for(int j = 0; j< agent.boardSize.X; j++)
+                {
+                    Assert.AreEqual(agent.board[i, j].distToPiece, distances[i, j]);
+                }
+            }
+
+            for (int i = 0; i < agent.goalAreaSize; i++)
+            {
+                for (int j = 0; j < agent.boardSize.X; j++)
+                {
+                    Assert.AreEqual(agent.board[i, j].goalInfo, blueGoalAreaInformation[i, j]);
+                }
+            }
+
+            for (int i = agent.boardSize.Y - agent.goalAreaSize + 1; i < agent.boardSize.Y; i++)
+            {
+                for (int j = 0; j < agent.boardSize.X; j++)
+                {
+                    Assert.AreEqual(agent.board[i, j].goalInfo, redGoalAreaInformation[i, j]);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Move
+
+        [Test]
+        public void ProcessMessage_MoveResponse_When_Move_Made_Agent_Position_Should_Change_And_DistToPiece_Should_Update()
+        {
+            agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 2), 1));
+
+            Assert.AreEqual(agent.position, new Point(1, 0));
+            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 2);
+        }
+
+        [Test]
+        public void ProcessMessage_MoveResponse_When_DistToPiece_Equal_Zero_Agent_Should_PickUp_Piece()
+        {
+            agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 0), 1));
+
+            agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
+
+            Assert.AreEqual(agent.position, new Point(1, 0));
+            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
+            Assert.IsNotNull(agent.piece);
+        }
+
+        [Test]
+        public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Not_Move_And_Update_Board_State()
+        {
+            agent.AcceptMessage(GetBaseMessage(new MoveResponse(false, new Point(1, 0), 2), 1));
+
+            Assert.AreEqual(agent.position, new Point(0, 0));
+            Assert.AreNotEqual(agent.board[agent.position.Y, agent.position.X].deniedMove, startTime);
+        }
+
+        #endregion
+
+        #region PickUp
+
+        [Test]
+        public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Zero_Agent_Should_PickUp_Piece()
+        {
+            agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
+
+            Assert.IsNull(agent.piece);
+
+            agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
+
+            Assert.IsNotNull(agent.piece);
+        }
+
+        [Test]
+        public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Not_Zero_Agent_Should_Not_PickUp_Piece()
+        {
+            agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
+
+            Assert.IsNull(agent.piece);
+
+            agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
+
+            Assert.IsNull(agent.piece);
+        }
+
+        #endregion
+
+        #region PutDown
+
+        [Test]
+        public void ProcessMessage_PutDownPieceResponse_DistToPiece_Should_Be_Updated_And_Agent_Should_Not_Have_Piece()
+        {
+            agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
+            agent.piece = new Piece();
+
+            Assert.IsNotNull(agent.piece);
+            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 1);
+
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+
+            Assert.IsNull(agent.piece);
+            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
+        }
+
+        #endregion
         // This method simulates normal situation where messages are stored in IEnumerable<BaseMessage>
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T : IPayload
         {
