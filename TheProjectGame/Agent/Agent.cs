@@ -1,6 +1,7 @@
 ﻿using Agent.strategies;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
+using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
@@ -17,6 +18,8 @@ namespace Agent
         public int id;
 
         private int lastAskedTeammate;
+
+        private Direction lastDirection;
 
         private ISender sender;
 
@@ -66,6 +69,7 @@ namespace Agent
             lastAskedTeammate = 0;
             strategy = new SimpleStrategy();
         }
+
         private void Penalty() 
         {
             Thread.Sleep(penaltyTime);
@@ -112,6 +116,7 @@ namespace Agent
 
         private void UpdateDistances(int[,] distances)
         {
+            //TODO: update only when distLearned old
             for (int i = 0; i < boardSize.Y; i++)
             {
                 for (int j = 0; j < boardSize.X; j++)
@@ -127,7 +132,7 @@ namespace Agent
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
-                   board[i, j].goalInfo = goalAreaInformation[i, j];
+                   if (board[i, j].goalInfo == GoalInformation.NoInformation) board[i, j].goalInfo = goalAreaInformation[i, j];
                 }
             }
         }
@@ -157,7 +162,8 @@ namespace Agent
         public void Stop() { }
 
         public void Move(Direction direction) 
-        { 
+        {
+            lastDirection = direction;
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
             MakeDecisionFromStrategy();
         }
@@ -177,11 +183,13 @@ namespace Agent
         public void BegForInfo() 
         {
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
+            lastAskedTeammate++;
+            lastAskedTeammate %= teamMates.Length;
             MakeDecisionFromStrategy();
         }
 
         public void GiveInfo()
-        { 
+        {
             int respondToId = waitingPlayers.Count > 0 ? waitingPlayers[0] : -1;
             if (respondToId == -1)
             {
@@ -228,7 +236,6 @@ namespace Agent
         {
             if (message.Payload.Sham)
             {
-                Penalty();
                 DestroyPiece();
             }
             else
@@ -246,15 +253,20 @@ namespace Agent
 
         private void Process(Message<DiscoverResponse> message)
         {
-            board[position.Y, position.X].distToPiece = message.Payload.Distances[1, 1];
-            board[position.Y + 1, position.X].distToPiece = message.Payload.Distances[0, 1];
-            board[position.Y, position.X - 1].distToPiece = message.Payload.Distances[1, 0];
-            board[position.Y, position.X + 1].distToPiece = message.Payload.Distances[1, 2];
-            board[position.Y - 1, position.X].distToPiece = message.Payload.Distances[2, 1];
-            board[position.Y + 1, position.X + 1].distToPiece = message.Payload.Distances[0, 2];
-            board[position.Y + 1, position.X - 1].distToPiece = message.Payload.Distances[0, 0];
-            board[position.Y - 1, position.X + 1].distToPiece = message.Payload.Distances[2, 2];
-            board[position.Y - 1, position.X - 1].distToPiece = message.Payload.Distances[2, 0];
+            if (Common.OnBoard(new Point(position.X, position.Y), boardSize)) board[position.Y, position.X].distToPiece = message.Payload.Distances[1, 1];
+            if (Common.OnBoard(new Point(position.X, position.Y + 1), boardSize)) board[position.Y + 1, position.X].distToPiece = message.Payload.Distances[0, 1];
+            if (Common.OnBoard(new Point(position.X - 1, position.Y), boardSize)) board[position.Y, position.X - 1].distToPiece = message.Payload.Distances[1, 0];
+            if (Common.OnBoard(new Point(position.X + 1, position.Y), boardSize)) board[position.Y, position.X + 1].distToPiece = message.Payload.Distances[1, 2];
+            if (Common.OnBoard(new Point(position.X, position.Y - 1), boardSize)) board[position.Y - 1, position.X].distToPiece = message.Payload.Distances[2, 1];
+            if (Common.OnBoard(new Point(position.X + 1, position.Y + 1), boardSize)) board[position.Y + 1, position.X + 1].distToPiece = message.Payload.Distances[0, 2];
+            if (Common.OnBoard(new Point(position.X - 1, position.Y + 1), boardSize)) board[position.Y + 1, position.X - 1].distToPiece = message.Payload.Distances[0, 0];
+            if (Common.OnBoard(new Point(position.X + 1, position.Y - 1), boardSize)) board[position.Y - 1, position.X + 1].distToPiece = message.Payload.Distances[2, 2];
+            if (Common.OnBoard(new Point(position.X - 1, position.Y - 1), boardSize)) board[position.Y - 1, position.X - 1].distToPiece = message.Payload.Distances[2, 0];
+            DateTime now = DateTime.Now;
+            for (int i = position.X - 1; i <= position.X + 1; i++)
+                for (int j = position.Y - 1; j <= position.Y + 1; j++)
+                    if (Common.OnBoard(new Point(i, j), boardSize))
+                        board[j, i].distLearned = now;
             MakeDecisionFromStrategy();
         }
 
@@ -281,15 +293,12 @@ namespace Agent
             UpdateDistances(message.Payload.Distances);
             UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
-
-            lastAskedTeammate++;
-            lastAskedTeammate %= teamMates.Length;
-
             MakeDecisionFromStrategy();
         }
 
         private void Process(Message<JoinResponse> message)
         {
+            //TODO
             if (message.Payload.Accepted)
             {
                 id = message.Payload.AgentId;
@@ -315,7 +324,8 @@ namespace Agent
             }
             else
             {
-                board[position.Y, position.X].deniedMove = DateTime.Now;
+                var denied = Common.GetFieldInDirection(position, lastDirection);
+                board[denied.Y, denied.X].deniedMove = DateTime.Now;
             }
             MakeDecisionFromStrategy();
         }
@@ -339,6 +349,37 @@ namespace Agent
         private void Process(Message<StartGamePayload> message)
         {
             Start();
+        }
+
+        private void Process(Message<IgnoredDelayError> message)
+        {
+            var time = message.Payload.WaitUntil - DateTime.Now;
+            if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
+            strategy.MakeDecision(this);
+        }
+
+        private void Process(Message<MoveError> message)
+        {
+            position = message.Payload.Position;
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<PickUpPieceError> message)
+        {
+            board[position.Y, position.X].distLearned = DateTime.Now;
+            board[position.Y, position.X].distToPiece = int.MaxValue;
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<PutDownPieceError> message)
+        {
+            if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) piece = null;
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<UndefinedError> message)
+        {
+            MakeDecisionFromStrategy();
         }
     }
 }
