@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Agent
 {
-    public class Agent
+    public class Agent : IMessageProcessor
     {
         public int id;
 
@@ -288,13 +288,37 @@ namespace Agent
             board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances[2, 0];
         }
 
-        public void AcceptMessage(Message<IPayload> message) { }
-
-        public void MakeDecisionFromStrategy() 
+        public void MakeDecisionFromStrategy()
         {
             Thread.Sleep(penaltyTime);
             strategy.MakeDecision(this);
         }
+
+        void AcceptMessage(BaseMessage message)
+        {
+            dynamic dynamicMessage = message;
+            Process(dynamicMessage);
+        }
+
+        private void Process(Message<CheckShamResponse> message) { }
+
+        private void Process(Message<DestroyPieceResponse> message) { }
+
+        private void Process(Message<DiscoverResponse> message) { }
+
+        private void Process(Message<EndGamePayload> message) { }
+
+        private void Process(Message<ExchangeInformationPayload> message) { }
+
+        private void Process(Message<JoinRequest> message) { }
+
+        private void Process(Message<MoveRequest> message) { }
+
+        private void Process(Message<PickUpPieceResponse> message) { }
+
+        private void Process(Message<PutDownPieceResponse> message) { }
+
+        private void Process(Message<StartGamePayload> message) { }
 
     }
 }
