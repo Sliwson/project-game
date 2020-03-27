@@ -6,9 +6,9 @@ namespace Messaging.Contracts.GameMaster
     {
         public MessageId GetMessageId() => MessageId.DiscoverResponse;
 
-        public Distances Distances { get; private set; }
+        public int[,] Distances { get; private set; }
 
-        public DiscoverResponse(Distances distances)
+        public DiscoverResponse(int[,] distances)
         {
             Distances = distances;
         }

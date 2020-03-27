@@ -275,17 +275,17 @@ namespace Agent
         {
             var request = MessageFactory.GetMessage(new DiscoverRequest());
             /*send and receive*/
-            var response = MessageFactory.GetMessage(new DiscoverResponse(new Distances(1, 1, 1, 1, 1, 1, 1, 1, 1)));
+            var response = MessageFactory.GetMessage(new DiscoverResponse(new int[,] { {1, 1, 1 }, {1, 1, 1 }, {1, 1, 1 } }));
 
-            board[position.Y, position.X].distToPiece = response.Payload.Distances.distanceFromCurrent;
-            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances.distanceN;
-            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances.distanceW;
-            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances.distanceE;
-            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances.distanceS;
-            board[position.Y + 1, position.X + 1].distToPiece = response.Payload.Distances.distanceNE;
-            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances.distanceNW;
-            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances.distanceSE;
-            board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances.distanceSW;
+            board[position.Y, position.X].distToPiece = response.Payload.Distances[1, 1];
+            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances[0, 1];
+            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances[1, 0];
+            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances[1, 2];
+            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances[2, 1];
+            board[position.Y + 1, position.X + 1].distToPiece = response.Payload.Distances[0, 2];
+            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances[0, 0];
+            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances[2, 2];
+            board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances[2, 0];
         }
 
         public void AcceptMessage() { }
