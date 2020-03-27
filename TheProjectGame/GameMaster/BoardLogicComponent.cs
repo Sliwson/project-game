@@ -249,7 +249,7 @@ namespace GameMaster
         private Point GetRandomPointInRectangle(Rectangle r)
         {
             var x = random.Next(r.Left, r.Right);
-            var y = random.Next(r.Bottom, r.Top + 1);
+            var y = random.Next(r.Top, r.Bottom);
             return new Point(x, y);
         }
 
@@ -257,15 +257,15 @@ namespace GameMaster
         {
             var config = gameMaster.Configuration;
             if (team == TeamId.Blue)
-                return new Rectangle(0, config.GoalAreaHeight, size.X, config.GoalAreaHeight);
+                return new Rectangle(0, 0, size.X, config.GoalAreaHeight);
             else
-                return new Rectangle(0, size.Y, size.X, size.Y - config.GoalAreaHeight);
+                return new Rectangle(0, size.Y - config.GoalAreaHeight, size.X, config.GoalAreaHeight);
         }
         
         private Rectangle GetGameAreaRectangle()
         {
             var config = gameMaster.Configuration;
-            return new Rectangle(size.Y - config.GoalAreaHeight, 0, size.X, config.GoalAreaHeight);
+            return new Rectangle(config.GoalAreaHeight, 0, size.X, size.Y - 2 * config.GoalAreaHeight);
         }
     }
 }
