@@ -2,6 +2,7 @@ using Agent;
 using Agent.strategies;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
+using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
@@ -285,6 +286,20 @@ namespace AgentTests
             Assert.IsNull(agent.piece);
         }
 
+        [Test]
+        public void ProcessMessage_PickUpPieceResponse_When_PickUpPieceError_DistToPiece_Should_Be_Set_To_Default()
+        {
+            agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
+
+            Assert.IsNull(agent.piece);
+
+            agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
+
+            agent.AcceptMessage(GetBaseMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere), 1));
+
+            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, int.MaxValue);
+        }
+
         #endregion
 
         #region PutDown
@@ -304,7 +319,21 @@ namespace AgentTests
             Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
         }
 
+        [Test]
+        public void ProcessMessage_PutDownPieceResponse_When_PutDownPieceError_AgentNotHolding_Agent_Should_Not_Have_Piece()
+        {
+            agent.piece = new Piece();
+
+            Assert.IsNotNull(agent.piece);
+
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), 1));
+
+            Assert.IsNull(agent.piece);
+        }
+
         #endregion
+
         // This method simulates normal situation where messages are stored in IEnumerable<BaseMessage>
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T : IPayload
         {
