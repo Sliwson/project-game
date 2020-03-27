@@ -6,7 +6,6 @@
         CheckForSham,
         Discovery,
         DestroyPiece,
-        PickUpPiece,
         PutPiece,
         InformationRequest,
         InformationResponse

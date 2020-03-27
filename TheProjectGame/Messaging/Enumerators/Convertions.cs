@@ -18,8 +18,6 @@ namespace Messaging.Enumerators
                     return ActionType.Discovery;
                 case MessageId.MoveRequest:
                     return ActionType.Move;
-                case MessageId.PickUpPieceRequest:
-                    return ActionType.PickUpPiece;
                 case MessageId.PutDownPieceRequest:
                     return ActionType.PutPiece;
                 case MessageId.ExchangeInformationRequest:
