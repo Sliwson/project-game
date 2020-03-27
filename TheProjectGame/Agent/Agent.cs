@@ -147,7 +147,7 @@ namespace Agent
 
         public void JoinTheGame() 
         {
-            var request = MessageFactory.GetMessage(new JoinRequest(team));
+            var request = MessageFactory.GetMessage(new JoinRequest(team, isLeader));
             var response = MessageFactory.GetMessage(new JoinResponse(true, 1));
             if(response.Payload.Accepted)
             {
