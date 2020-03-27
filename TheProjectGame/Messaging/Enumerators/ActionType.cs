@@ -7,6 +7,7 @@
         Discovery,
         DestroyPiece,
         PutPiece,
-        InformationExchange
+        InformationRequest,
+        InformationResponse
     }
 }

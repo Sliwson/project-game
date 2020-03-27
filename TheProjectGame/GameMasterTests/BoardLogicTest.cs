@@ -9,12 +9,14 @@ namespace GameMasterTests
     public class BoardLogicTest
     {
         private BoardLogicComponent boardLogicComponent;
-        readonly Point size = new Point(5, 10);
+        private Point size;
 
         [SetUp]
         public void Setup()
         {
-            boardLogicComponent = new BoardLogicComponent(size);
+            var gameMaster = new GameMaster.GameMaster();
+            boardLogicComponent = gameMaster.BoardLogic;
+            size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
 
         [Test]
@@ -40,7 +42,7 @@ namespace GameMasterTests
         {
             boardLogicComponent.Clean();
             var field = boardLogicComponent.GetField(4, 4);
-            var agent = new Agent();
+            var agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, new Point(4,4));
             field.Agent = agent;
 
             Assert.AreEqual(new Point(4, 4), boardLogicComponent.GetPointWhere(p => p.Agent == agent).Value);
@@ -74,16 +76,18 @@ namespace GameMasterTests
 
         private void ChangeBoard()
         {
-            Action<Field> changeField = (Field f) => {
-                f.Agent = new Agent();
+            Action<Field, Point> changeField = (Field f, Point position) => {
+                f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
                 f.State = FieldState.FakeGoal;
-                f.Pieces.Push(new Piece());
+                f.Pieces.Push(new Piece(false));
             };
 
-            var field1 = boardLogicComponent.GetField(0, 0);
-            var field2 = boardLogicComponent.GetField(size.X - 1, size.Y - 1);
-            changeField(field1);
-            changeField(field2);
+            var pos1 = new Point(0, 0);
+            var pos2 = new Point(size.X - 1, size.Y - 1);
+            var field1 = boardLogicComponent.GetField(pos1);
+            var field2 = boardLogicComponent.GetField(pos2);
+            changeField(field1, pos1);
+            changeField(field2, pos2);
         }
     }
 }
