@@ -8,5 +8,6 @@ namespace Agent
     interface IMessageProcessor
     {
         public void AcceptMessage(BaseMessage message);
+        public void SendMessage(BaseMessage message);
     }
 }

@@ -44,8 +44,6 @@ namespace Agent
 
         public Agent() { }
 
-        private void Communicate() { }
-
         public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos, int[] alliesIds)
         {
             isLeader = id == leaderId ? true : false;
@@ -147,35 +145,169 @@ namespace Agent
 
         public void JoinTheGame() 
         {
-            var request = MessageFactory.GetMessage(new JoinRequest(team, isLeader));
-            var response = MessageFactory.GetMessage(new JoinResponse(true, 1));
-            if(response.Payload.Accepted)
-            {
-                id = response.Payload.AgentId;
-                // wait for start game response
-                // get start game response
-                // Initialize();
-            }
+            SendMessage(MessageFactory.GetMessage(new JoinRequest(team, isLeader)));
+            MakeDecisionFromStrategy();
         }
 
         public void Start() 
         {
             JoinTheGame();
-            MakeDecisionFromStrategy();
         }
 
         public void Stop() { }
 
         public void Move(Direction direction) 
         { 
-            var request = MessageFactory.GetMessage(new MoveRequest(direction));
-            var response = MessageFactory.GetMessage(new MoveResponse(true, new Point(1, 1), 2));
-            if(response.Payload.MadeMove)
+            SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
+            MakeDecisionFromStrategy();
+        }
+
+        public void PickUp()
+        {
+            SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
+            MakeDecisionFromStrategy();
+        }
+
+        public void Put() 
+        {
+            SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
+            MakeDecisionFromStrategy();
+        }
+
+        public void BegForInfo() 
+        {
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
+            MakeDecisionFromStrategy();
+        }
+
+        public void GiveInfo()
+        { 
+            int respondToId = waitingPlayers.Count > 0 ? waitingPlayers[0] : -1;
+            if (respondToId == -1)
             {
-                position = response.Payload.CurrentPosition;
-                board[position.Y, position.X].distToPiece = response.Payload.ClosestPoint;
+                MakeDecisionFromStrategy();
+                return;
+            }
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation())));
+            MakeDecisionFromStrategy();
+        }
+
+        public void CheckPiece() 
+        {
+            SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
+            MakeDecisionFromStrategy();
+        }
+
+        public void Discover() 
+        {
+            SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
+            MakeDecisionFromStrategy();
+        }
+
+        public void DestroyPiece()
+        {
+            SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
+            MakeDecisionFromStrategy();
+        }
+
+        public void MakeDecisionFromStrategy()
+        {
+            Thread.Sleep(penaltyTime);
+            strategy.MakeDecision(this);
+        }
+
+        void IMessageProcessor.AcceptMessage(BaseMessage message)
+        {
+            dynamic dynamicMessage = message;
+            Process(dynamicMessage);
+        }
+
+        public void SendMessage(BaseMessage message) { }
+
+        private void Process(Message<CheckShamResponse> message)
+        {
+            if (message.Payload.Sham)
+            {
+                Penalty();
+                DestroyPiece();
+            }
+            else
+            {
+                piece.isDiscovered = true;
+                MakeDecisionFromStrategy();
+            }
+        }
+
+        private void Process(Message<DestroyPieceResponse> message)
+        {
+            piece = null;
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<DiscoverResponse> message)
+        {
+            board[position.Y, position.X].distToPiece = message.Payload.Distances[1, 1];
+            board[position.Y + 1, position.X].distToPiece = message.Payload.Distances[0, 1];
+            board[position.Y, position.X - 1].distToPiece = message.Payload.Distances[1, 0];
+            board[position.Y, position.X + 1].distToPiece = message.Payload.Distances[1, 2];
+            board[position.Y - 1, position.X].distToPiece = message.Payload.Distances[2, 1];
+            board[position.Y + 1, position.X + 1].distToPiece = message.Payload.Distances[0, 2];
+            board[position.Y + 1, position.X - 1].distToPiece = message.Payload.Distances[0, 0];
+            board[position.Y - 1, position.X + 1].distToPiece = message.Payload.Distances[2, 2];
+            board[position.Y - 1, position.X - 1].distToPiece = message.Payload.Distances[2, 0];
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<EndGamePayload> message)
+        {
+            Stop();
+        }
+        
+        private void Process(Message<ExchangeInformationPayload> message)
+        {
+            if (message.Payload.Leader)
+            {
+                GiveInfo();
+            }
+            else
+            {
+                waitingPlayers.Add(message.Payload.AskingAgentId);
+                MakeDecisionFromStrategy();
+            }
+        }
+
+        private void Process(Message<ExchangeInformationResponse> message)
+        {
+            UpdateDistances(message.Payload.Distances);
+            UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
+            UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
+
+            lastAskedTeammate++;
+            lastAskedTeammate %= teamMates.Length;
+
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<JoinResponse> message)
+        {
+            if (message.Payload.Accepted)
+            {
+                id = message.Payload.AgentId;
+                // wait for start game response
+                // get start game response
+                // Initialize();
+            }
+            MakeDecisionFromStrategy();
+        }
+
+        private void Process(Message<MoveResponse> message)
+        {
+            if (message.Payload.MadeMove)
+            {
+                position = message.Payload.CurrentPosition;
+                board[position.Y, position.X].distToPiece = message.Payload.ClosestPoint;
                 board[position.Y, position.X].distLearned = DateTime.Now;
-                if(response.Payload.ClosestPoint == 0)
+                if (message.Payload.ClosestPoint == 0)
                 {
                     PickUp();
                     return;
@@ -188,137 +320,25 @@ namespace Agent
             MakeDecisionFromStrategy();
         }
 
-        public void PickUp()
+        private void Process(Message<PickUpPieceResponse> message)
         {
-            var request = MessageFactory.GetMessage(new PickUpPieceRequest());
-
-            var response = MessageFactory.GetMessage(new PickUpPieceResponse());
             if (board[position.Y, position.X].distToPiece == 0)
             {
                 piece = new Piece();
             }
-
             MakeDecisionFromStrategy();
         }
 
-        public void Put() 
+        private void Process(Message<PutDownPieceResponse> message)
         {
-            var request = MessageFactory.GetMessage(new PutDownPieceRequest());
-
-            var response = MessageFactory.GetMessage(new PutDownPieceResponse());
-
             board[position.Y, position.X].distToPiece = 0;
             piece = null;
-
             MakeDecisionFromStrategy();
         }
 
-        public void BegForInfo() 
+        private void Process(Message<StartGamePayload> message)
         {
-            var request = MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate]));
-
-            var response = MessageFactory.GetMessage(new ExchangeInformationResponse(1, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation()));
-
-            UpdateDistances(response.Payload.Distances);
-            UpdateBlueTeamGoalAreaInformation(response.Payload.BlueTeamGoalAreaInformation);
-            UpdateRedTeamGoalAreaInformation(response.Payload.RedTeamGoalAreaInformation);
-
-            lastAskedTeammate++;
-            lastAskedTeammate %= teamMates.Length;
+            Start();
         }
-
-        public void GiveInfo() /*to first waiting player*/
-        { 
-            int respondToId = waitingPlayers.Count > 0 ? waitingPlayers[0] : -1;
-            if (respondToId == -1) return;
-            
-            var response = MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation()));
-
-            MakeDecisionFromStrategy();
-        }
-
-        public void RequestResponse()
-        {
-            var response = MessageFactory.GetMessage(new ExchangeInformationPayload(1, true, TeamId.Blue));
-            if(response.Payload.Leader)
-            {
-                GiveInfo();
-            }
-            else
-            {
-                waitingPlayers.Add(response.Payload.AskingAgentId);
-            }
-        }
-
-        public void CheckPiece() 
-        {
-            var request = MessageFactory.GetMessage(new CheckShamRequest());
-            /*send and receive*/
-            var response = MessageFactory.GetMessage(new CheckShamResponse(true));
-
-            if(response.Payload.Sham)
-            {
-                var destroyRequest = MessageFactory.GetMessage(new DestroyPieceRequest());
-                /*send and receive*/
-                var destroyResponse = MessageFactory.GetMessage(new DestroyPieceResponse());
-                piece = null;
-            }
-            else
-            {
-                piece.isDiscovered = true;
-            }
-
-            MakeDecisionFromStrategy();
-        }
-
-        public void Discover() 
-        {
-            var request = MessageFactory.GetMessage(new DiscoverRequest());
-            /*send and receive*/
-            var response = MessageFactory.GetMessage(new DiscoverResponse(new int[,] { {1, 1, 1 }, {1, 1, 1 }, {1, 1, 1 } }));
-
-            board[position.Y, position.X].distToPiece = response.Payload.Distances[1, 1];
-            board[position.Y + 1, position.X].distToPiece = response.Payload.Distances[0, 1];
-            board[position.Y, position.X - 1].distToPiece = response.Payload.Distances[1, 0];
-            board[position.Y, position.X + 1].distToPiece = response.Payload.Distances[1, 2];
-            board[position.Y - 1, position.X].distToPiece = response.Payload.Distances[2, 1];
-            board[position.Y + 1, position.X + 1].distToPiece = response.Payload.Distances[0, 2];
-            board[position.Y + 1, position.X - 1].distToPiece = response.Payload.Distances[0, 0];
-            board[position.Y - 1, position.X + 1].distToPiece = response.Payload.Distances[2, 2];
-            board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances[2, 0];
-        }
-
-        public void MakeDecisionFromStrategy()
-        {
-            Thread.Sleep(penaltyTime);
-            strategy.MakeDecision(this);
-        }
-
-        void AcceptMessage(BaseMessage message)
-        {
-            dynamic dynamicMessage = message;
-            Process(dynamicMessage);
-        }
-
-        private void Process(Message<CheckShamResponse> message) { }
-
-        private void Process(Message<DestroyPieceResponse> message) { }
-
-        private void Process(Message<DiscoverResponse> message) { }
-
-        private void Process(Message<EndGamePayload> message) { }
-
-        private void Process(Message<ExchangeInformationPayload> message) { }
-
-        private void Process(Message<JoinRequest> message) { }
-
-        private void Process(Message<MoveRequest> message) { }
-
-        private void Process(Message<PickUpPieceResponse> message) { }
-
-        private void Process(Message<PutDownPieceResponse> message) { }
-
-        private void Process(Message<StartGamePayload> message) { }
-
     }
 }
