@@ -51,10 +51,10 @@ namespace Agent
             isLeader = id == leaderId ? true : false;
             team = teamId;
             this.boardSize = boardSize;
-            board = new Field[boardSize.Y, boardSize.X];
-            for(int i = 0; i < boardSize.Y; i++)
+            board = new Field[boardSize.X, boardSize.Y];
+            for(int i = 0; i < boardSize.X; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < boardSize.Y; j++)
                 {
                     board[i, j] = new Field();
                 }
@@ -288,7 +288,7 @@ namespace Agent
             board[position.Y - 1, position.X - 1].distToPiece = response.Payload.Distances[2, 0];
         }
 
-        public void AcceptMessage() { }
+        public void AcceptMessage(Message<IPayload> message) { }
 
         public void MakeDecisionFromStrategy() 
         {
