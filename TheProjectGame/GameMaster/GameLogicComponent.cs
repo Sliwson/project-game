@@ -89,8 +89,13 @@ namespace GameMaster
         {
             var agent = gameMaster.GetAgent(message.AgentId);
 
-            if (agent == null && message.MessageId != MessageId.JoinRequest)
-                return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), agent.Id);
+            if (agent == null)
+            {
+                if (message.MessageId != MessageId.JoinRequest)
+                    return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), message.AgentId);
+                else
+                    return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId), message.AgentId);
+            }
 
             if (!agent.CanPerformAction())
                 return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);
@@ -98,7 +103,7 @@ namespace GameMaster
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
 
-            if (agent != null)
+            if (agent != null && message.MessageId != MessageId.JoinRequest && message.MessageId != MessageId.PickUpPieceRequest)
             {
                 var timeout = gameMaster.Configuration.GetTimeouts();
                 agent.AddTimeout(timeout[message.MessageId.ToActionType()].TotalSeconds);
@@ -154,7 +159,7 @@ namespace GameMaster
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)
         {
             // do not accept new agents during the game
-            return MessageFactory.GetMessage(new JoinResponse(false, -1), agent.Id);
+            return MessageFactory.GetMessage(new JoinResponse(false, agent.Id), agent.Id);
         }
         
         private BaseMessage Process(Message<MoveRequest> message, Agent agent)
@@ -192,7 +197,7 @@ namespace GameMaster
             }
             else 
             {
-                //TODO: changes in specification? send information about result
+                //TODO: changes in specification? send information about result and add tests
                 if (field.Pieces.Count == 0)
                 {
                     field.Pieces.Push(agent.RemovePiece());

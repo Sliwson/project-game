@@ -11,11 +11,12 @@ namespace GameMaster
     public class GameMaster
     {
         public BoardLogicComponent BoardLogic { get; private set; }
-        public ScoreComponent ScoreComponent { get; private set; }
-        public GameMasterConfiguration Configuration { get; private set; }
         public ConnectionLogicComponent ConnectionLogic { get; private set; }
         public GameLogicComponent GameLogic { get; private set; }
         public List<Agent> Agents { get; private set; } = new List<Agent>();
+
+        public ScoreComponent ScoreComponent { get; private set; }
+        public GameMasterConfiguration Configuration { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
