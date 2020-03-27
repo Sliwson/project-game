@@ -68,11 +68,16 @@ namespace Agent
             piece = null;
             lastAskedTeammate = 0;
             strategy = new SimpleStrategy();
+            penaltyTime = 500;
         }
 
         private void Penalty() 
         {
             Thread.Sleep(penaltyTime);
+        }
+        public void SetDoNothingStrategy()
+        {
+            this.strategy = new DoNothingStrategy();
         }
 
         private int[,] GetDistances()
@@ -224,7 +229,7 @@ namespace Agent
             strategy.MakeDecision(this);
         }
 
-        void IMessageProcessor.AcceptMessage(BaseMessage message)
+        public void AcceptMessage(BaseMessage message)
         {
             dynamic dynamicMessage = message;
             Process(dynamicMessage);
