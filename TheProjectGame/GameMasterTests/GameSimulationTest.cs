@@ -28,7 +28,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void Simulation()
+        public void SimpleSimulationTest_GameMasterShouldConnectAgentsAndProcessMoveRequestsAfterGameStart()
         {
             gameMaster.ApplyConfiguration();
             CreateAndConnectAgents();
