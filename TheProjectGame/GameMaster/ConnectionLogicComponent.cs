@@ -60,6 +60,7 @@ namespace GameMaster
 
             //create new agent
             var agent = new Agent(message.AgentId, payload.TeamId, gameMaster.BoardLogic.GetRandomPositionForAgent(payload.TeamId), payload.IsTeamLeader);
+            gameMaster.BoardLogic.PlaceAgent(agent);
             lobby.Add(agent);
             return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId));
         } 

@@ -91,6 +91,13 @@ namespace GameMaster
             return fields[y, x];
         }
 
+        public void PlaceAgent(Agent a)
+        {
+            //TODO: check errors
+            var f = GetField(a.Position);
+            f.Agent = a;
+        }
+
         public Point? GetPointWhere(Func<Field, bool> predicate)
         {
             for (int y = 0; y < size.Y; y++)
@@ -265,7 +272,7 @@ namespace GameMaster
         private Rectangle GetGameAreaRectangle()
         {
             var config = gameMaster.Configuration;
-            return new Rectangle(config.GoalAreaHeight, 0, size.X, size.Y - 2 * config.GoalAreaHeight);
+            return new Rectangle(0, config.GoalAreaHeight, size.X, size.Y - 2 * config.GoalAreaHeight);
         }
     }
 }
