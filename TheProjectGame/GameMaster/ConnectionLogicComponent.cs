@@ -72,7 +72,7 @@ namespace GameMaster
 
         private bool CanAddTeamLeader(TeamId team)
         {
-            var count = lobby.Where(a => a.IsTeamLeader && a.IsTeamLeader == true).Count();
+            var count = lobby.Where(a => a.Team == team && a.IsTeamLeader == true).Count();
             return count == 0;
         }
     }
