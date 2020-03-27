@@ -274,7 +274,6 @@ namespace Agent
 
         public void MakeDecisionFromStrategy()
         {
-            if (agentState != AgentState.InGame) return;
             Thread.Sleep(penaltyTime);
             strategy.MakeDecision(this);
         }
@@ -355,7 +354,7 @@ namespace Agent
 
         private void Process(Message<JoinResponse> message)
         {
-            if (message.Payload.Accepted)
+            if (message.Payload.Accepted && agentState == AgentState.WaitingForJoinResponse)
             {
                 agentState = AgentState.WaitingForStart;
                 id = message.Payload.AgentId;

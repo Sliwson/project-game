@@ -88,6 +88,8 @@ namespace AgentTests
         {
             Assert.AreEqual(agent.id, 0);
 
+            agent.JoinTheGame();
+
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
 
             Assert.AreEqual(agent.id, 1);
@@ -330,6 +332,67 @@ namespace AgentTests
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), 1));
 
             Assert.IsNull(agent.piece);
+        }
+
+        #endregion
+
+        #region Agent state
+
+        [Test]
+        public void Joins_When_Accepted()
+        {
+            var agent = new Agent.Agent(false);
+            agent.SetDoNothingStrategy();
+            agent.JoinTheGame();
+            agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
+            Assert.AreEqual(agent.agentState, AgentState.WaitingForStart);
+
+        }
+
+        [Test]
+        public void Does_Not_Join_When_Rejected()
+        {
+            var agent = new Agent.Agent(false);
+            agent.SetDoNothingStrategy();
+            agent.JoinTheGame();
+            agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
+            Assert.AreEqual(agent.agentState, AgentState.WaitingForJoinResponse);
+        }
+
+        [Test]
+        public void Can_Not_Stop_When_Not_In_Game()
+        {
+            var agent = new Agent.Agent(false);
+            agent.SetDoNothingStrategy();
+            agent.JoinTheGame();
+            agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
+            Assert.AreNotEqual(agent.agentState, AgentState.InGame);
+            agent.Stop();
+            Assert.AreNotEqual(agent.agentState, AgentState.Paused);
+        }
+
+        [Test]
+        public void Can_Not_Start_When_Is_Not_Waiting_For_Start()
+        {
+            var agent = new Agent.Agent(false);
+            agent.SetDoNothingStrategy();
+            agent.JoinTheGame();
+            agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
+            Assert.AreNotEqual(agent.agentState, AgentState.WaitingForStart);
+            agent.Start();
+            Assert.AreNotEqual(agent.agentState, AgentState.InGame);
+        }
+
+        [Test]
+        public void Can_Not_Join_When_Not_In_Initial_State()
+        {
+            var agent = new Agent.Agent(false);
+            agent.SetDoNothingStrategy();
+            agent.JoinTheGame();
+            agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
+            Assert.AreNotEqual(agent.agentState, AgentState.Created);
+            agent.JoinTheGame();
+            Assert.AreNotEqual(agent.agentState, AgentState.WaitingForJoinResponse);
         }
 
         #endregion
