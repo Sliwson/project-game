@@ -106,8 +106,8 @@ namespace MessagingTests
                                                     1,
                                                     5,
                                                     5,
-                                                    new Dictionary<ActionType, decimal>(),
-                                                    0.1m,
+                                                    new Dictionary<ActionType, TimeSpan>(),
+                                                    0.1f,
                                                     new Point(3,3))),
 
                 // Error messages

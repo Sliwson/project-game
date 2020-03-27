@@ -44,7 +44,7 @@ namespace GameMasterTests
             agent.AddTimeout(10.0);
             var startTime = DateTime.Now.AddSeconds(10);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new PutDownPieceRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -61,7 +61,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             agent.InformationExchangeRequested(true);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new PutDownPieceRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -80,7 +80,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new CheckShamRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -98,7 +98,7 @@ namespace GameMasterTests
             var piece = new Piece(true);
             agent.PickUpPiece(piece);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new CheckShamRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -116,7 +116,7 @@ namespace GameMasterTests
             var piece = new Piece(false);
             agent.PickUpPiece(piece);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new CheckShamRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -136,7 +136,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new DestroyPieceRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -154,7 +154,7 @@ namespace GameMasterTests
             var piece = new Piece(false);
             agent.PickUpPiece(piece);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new DestroyPieceRequest(), 666);
             dynamic response = gameLogicComponent.ProcessMessage(message);
@@ -173,7 +173,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             var discoverArray = gameMaster.BoardLogic.GetDiscoverArray(agent.Position);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new DiscoverRequest(), 666);
 
@@ -194,7 +194,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
@@ -209,8 +209,8 @@ namespace GameMasterTests
             var sender = new Agent(666, TeamId.Blue, new Point(3, 3));
             var receipent = new Agent(333, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(sender);
-            gameMaster.AddAgent(receipent);
+            gameMaster.Agents.Add(sender);
+            gameMaster.Agents.Add(receipent);
 
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
@@ -229,8 +229,8 @@ namespace GameMasterTests
             var sender = new Agent(666, TeamId.Blue, new Point(3, 3), true);
             var receipent = new Agent(333, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(sender);
-            gameMaster.AddAgent(receipent);
+            gameMaster.Agents.Add(sender);
+            gameMaster.Agents.Add(receipent);
 
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
@@ -255,7 +255,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new ExchangeInformationResponse(333, null, null, null), 666);
 
@@ -270,7 +270,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
             agent.InformationExchangeRequested(false);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var payload = new ExchangeInformationResponse(
                           333,
@@ -296,7 +296,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
 
             var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
 
@@ -333,7 +333,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             field.Agent = agent;
 
             var message = GetBaseMessage(new MoveRequest(Direction.North), 666);
@@ -353,7 +353,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
             var field = gameMaster.BoardLogic.GetField(new Point(0, 0));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             field.Agent = agent;
 
             var message = GetBaseMessage(new MoveRequest(Direction.South), 666);
@@ -377,7 +377,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             field.Agent = agent;
 
             var message = GetBaseMessage(new PickUpPieceRequest(), 666);
@@ -396,7 +396,7 @@ namespace GameMasterTests
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
             var piece = new Piece(false);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             agent.PickUpPiece(piece);
             field.Agent = agent;
 
@@ -416,7 +416,7 @@ namespace GameMasterTests
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
             var piece = new Piece(false);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             field.Pieces.Push(piece);
             field.Agent = agent;
 
@@ -438,7 +438,7 @@ namespace GameMasterTests
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             field.Agent = agent;
 
             var message = GetBaseMessage(new PutDownPieceRequest(), 666);
@@ -459,7 +459,7 @@ namespace GameMasterTests
             var piece1 = new Piece(false);
             var piece2 = new Piece(false);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             agent.PickUpPiece(piece1);
             field.Pieces.Push(piece2);
             field.State = FieldState.Goal;
@@ -482,7 +482,7 @@ namespace GameMasterTests
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
             var piece = new Piece(false);
 
-            gameMaster.AddAgent(agent);
+            gameMaster.Agents.Add(agent);
             agent.PickUpPiece(piece);
             field.Agent = agent;
 
