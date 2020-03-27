@@ -38,7 +38,7 @@ namespace Agent
         {
             Point target = Common.GetFieldInDirection(agent.position, direction);
             return OnBoard(target, agent.boardSize) &&
-                DateTime.Now - agent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.penaltyTime);
+                DateTime.Now - agent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.averageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
@@ -83,7 +83,7 @@ namespace Agent
                 for (int j = agent.position.Y - 1; j <= agent.position.Y + 1; j++)
                     if ((i != agent.position.X || j != agent.position.Y) &&
                         OnBoard(new Point(i, j), agent.boardSize) &&
-                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.penaltyTime) &&
+                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.averageTime) &&
                         agent.board[j, i].distToPiece < Math.Min(shortest, agent.board[agent.position.Y, agent.position.X].distToPiece))
                     {
                         shortest = agent.board[j, i].distToPiece;
@@ -101,7 +101,7 @@ namespace Agent
             for (int i = agent.position.X - 1; i <= agent.position.X + 1; i++)
                 for (int j = agent.position.Y - 1; j <= agent.position.Y + 1; j++)
                     if (OnBoard(new Point(i, j), agent.boardSize) &&
-                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.penaltyTime))
+                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.averageTime))
                         count++;
             return count;
         }
