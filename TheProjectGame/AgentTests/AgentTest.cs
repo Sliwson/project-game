@@ -21,9 +21,9 @@ namespace AgentTests
         [SetUp]
         public void Setup()
         {
-            agent = new Agent.Agent();
+            agent = new Agent.Agent(false);
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates);
+            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             agent.SetDoNothingStrategy();
             startTime = DateTime.Now;
         }
@@ -31,19 +31,19 @@ namespace AgentTests
         [Test]
         public void Set_agent_TeamLeader()
         {
-            agent = new Agent.Agent();
+            agent = new Agent.Agent(false);
             agent.id = 1;
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 });
+            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 }, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             Assert.AreEqual(agent.isLeader, true);
         }
 
         [Test]
         public void Set_other_agent_TeamLeader()
         {
-            var agent = new Agent.Agent();
+            var agent = new Agent.Agent(true);
             agent.id = 1;
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates);
+            agent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, System.TimeSpan>(), 0.5f);
             Assert.AreEqual(agent.isLeader, false);
         }
 

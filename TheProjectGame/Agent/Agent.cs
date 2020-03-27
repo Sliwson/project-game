@@ -8,6 +8,7 @@ using Messaging.Implementation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -47,9 +48,13 @@ namespace Agent
 
         public Dictionary<ActionType, TimeSpan> penalties;
 
+        public int averageTime;
+
         public float shamPieceProbability;
 
         public Piece piece;
+
+        public AgentState agentState;
 
         public Agent(bool wantsToBeLeader)
         {
@@ -59,6 +64,7 @@ namespace Agent
             lastAskedTeammate = 0;
             waitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
+            agentState = AgentState.Created;
         }
 
         public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos, int[] alliesIds, Dictionary<ActionType, TimeSpan> penalties, float shamPieceProbability)
@@ -79,6 +85,7 @@ namespace Agent
             teamMates = alliesIds;
             goalAreaSize = goalAreaHeight;
             this.penalties = penalties;
+            averageTime = penalties.Count > 0 ? (int)penalties.Values.Max().TotalMilliseconds : 500;
             this.shamPieceProbability = shamPieceProbability;
         }
 
@@ -86,6 +93,7 @@ namespace Agent
         {
             Thread.Sleep(penaltyTime);
         }
+
         public void SetDoNothingStrategy()
         {
             this.strategy = new DoNothingStrategy();
@@ -166,41 +174,56 @@ namespace Agent
 
         public void JoinTheGame() 
         {
+            if (agentState != AgentState.Created) return;
+            agentState = AgentState.WaitingForJoinResponse;
             SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
             MakeDecisionFromStrategy();
         }
 
-        public void Start() 
+        public void Start()
         {
+            if (agentState != AgentState.WaitingForStart) return;
+            agentState = AgentState.InGame;
             MakeDecisionFromStrategy();
         }
 
-        public void Stop() { }
+        public void Stop()
+        {
+            if (agentState != AgentState.InGame) return;
+            agentState = AgentState.Paused;
+        }
 
         public void Move(Direction direction) 
         {
+            if (agentState != AgentState.InGame) return;
             lastDirection = direction;
-            penaltyTime = (int)penalties[ActionType.Move].TotalMilliseconds;
+            if (penalties.TryGetValue(ActionType.Move, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
             MakeDecisionFromStrategy();
         }
 
         public void PickUp()
         {
+            if (agentState != AgentState.InGame) return;
             SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
             MakeDecisionFromStrategy();
         }
 
         public void Put()
         {
-            penaltyTime = (int)penalties[ActionType.PutPiece].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.PutPiece, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
             MakeDecisionFromStrategy();
         }
 
         public void BegForInfo()
         {
-            penaltyTime = (int)penalties[ActionType.InformationRequest].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.InformationRequest, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             lastAskedTeammate++;
             lastAskedTeammate %= teamMates.Length;
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
@@ -209,7 +232,9 @@ namespace Agent
 
         public void GiveInfo()
         {
-            penaltyTime = (int)penalties[ActionType.InformationResponse].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.InformationResponse, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             int respondToId = waitingPlayers.Count > 0 ? waitingPlayers[0] : -1;
             if (respondToId == -1)
             {
@@ -222,27 +247,34 @@ namespace Agent
 
         public void CheckPiece()
         {
-            penaltyTime = (int)penalties[ActionType.CheckForSham].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.CheckForSham, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
             MakeDecisionFromStrategy();
         }
 
         public void Discover()
         {
-            penaltyTime = (int)penalties[ActionType.Discovery].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.Discovery, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
             MakeDecisionFromStrategy();
         }
 
         public void DestroyPiece()
         {
-            penaltyTime = (int)penalties[ActionType.DestroyPiece].TotalMilliseconds;
+            if (agentState != AgentState.InGame) return;
+            if (penalties.TryGetValue(ActionType.DestroyPiece, out TimeSpan span))
+                penaltyTime = (int)span.TotalMilliseconds;
             SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
             MakeDecisionFromStrategy();
         }
 
         public void MakeDecisionFromStrategy()
         {
+            if (agentState != AgentState.InGame) return;
             Thread.Sleep(penaltyTime);
             strategy.MakeDecision(this);
         }
@@ -325,6 +357,7 @@ namespace Agent
         {
             if (message.Payload.Accepted)
             {
+                agentState = AgentState.WaitingForStart;
                 id = message.Payload.AgentId;
             }
             MakeDecisionFromStrategy();
