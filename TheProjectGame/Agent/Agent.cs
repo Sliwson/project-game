@@ -56,7 +56,10 @@ namespace Agent
 
         public AgentState agentState;
 
-        public Agent(bool wantsToBeLeader)
+        public List<BaseMessage> messages;
+
+
+        public Agent(bool wantsToBeLeader = false)
         {
             this.wantsToBeLeader = wantsToBeLeader;
             penaltyTime = 0;
@@ -65,6 +68,7 @@ namespace Agent
             waitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
             agentState = AgentState.Created;
+            messages = new List<BaseMessage>();
         }
 
         public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos, int[] alliesIds, Dictionary<ActionType, TimeSpan> penalties, float shamPieceProbability)
@@ -436,6 +440,17 @@ namespace Agent
         private void Process(Message<UndefinedError> message)
         {
             MakeDecisionFromStrategy();
+        }
+
+        public BaseMessage GetIncommingMessage()
+        {
+            BaseMessage message = null;
+            if(messages.Count > 0)
+            {
+                message = messages.First();
+                messages.RemoveAt(0);
+            }
+            return message;
         }
     }
 }
