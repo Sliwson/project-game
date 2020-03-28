@@ -23,7 +23,7 @@ namespace AgentTests
         {
             agent = new Agent.Agent(false);
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
+            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             agent.SetDoNothingStrategy();
             startTime = DateTime.Now;
         }
@@ -51,7 +51,7 @@ namespace AgentTests
         public void Set_agent_boardSize()
         {
             Assert.AreEqual(agent.boardSize.X, 5);
-            Assert.AreEqual(agent.boardSize.Y, 5);
+            Assert.AreEqual(agent.boardSize.Y, 6);
         }
 
         [Test]
@@ -74,10 +74,10 @@ namespace AgentTests
         }
 
         [Test]
-        public void Has_coorect_board_size()
+        public void Has_correct_board_size()
         {
-            Assert.AreEqual(agent.boardSize.X, agent.board.GetLength(0));
-            Assert.AreEqual(agent.boardSize.Y, agent.board.GetLength(1));
+            Assert.AreEqual(agent.boardSize.X, agent.board.GetLength(1));
+            Assert.AreEqual(agent.boardSize.Y, agent.board.GetLength(0));
             Assert.True(agent.position.X >= 0 && agent.position.Y >= 0 && agent.position.X < agent.boardSize.X && agent.position.Y < agent.boardSize.Y);
         }
 
@@ -197,13 +197,13 @@ namespace AgentTests
         {
             var blueGoalAreaInformation = new GoalInformation[,] { { GoalInformation.Goal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoInformation } };
             var redGoalAreaInformation = new GoalInformation[,] { { GoalInformation.NoInformation, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.Goal, GoalInformation.NoInformation } };
-            var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 } };
+            var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 }, { 2, 1, 3, 4, 1 } };
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponse(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
 
             for(int i = 0; i < agent.boardSize.Y; i++)
             {
-                for(int j = 0; j< agent.boardSize.X; j++)
+                for(int j = 0; j < agent.boardSize.X; j++)
                 {
                     Assert.AreEqual(agent.board[i, j].distToPiece, distances[i, j]);
                 }
