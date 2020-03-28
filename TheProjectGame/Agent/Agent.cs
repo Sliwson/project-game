@@ -215,6 +215,7 @@ namespace Agent
             if (strategy is DoNothingStrategy) return;
             if (WaitForJoin()) return;
             if (WaitForStart()) return;
+            Penalty();
             MainLoop();
         }
 
