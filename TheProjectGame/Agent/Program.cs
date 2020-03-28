@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Agent
@@ -7,42 +8,33 @@ namespace Agent
     class Program
     {
         public AgentConfiguration Configuration { get; private set; }
-        public List<Agent> agents { get; set; }
-
+        public static Agent agent { get; set; }
+        private int numberOfAgents { get; set; }
         static void Main(string[] args)
         {
-        }
-        public void MainAgentMethod()
-        {
-            LoadDefaultConfiguration();
-            CreateAgents();
-            AgentsWork();
+            CreateAgent();
+            AgentWork();
         }
 
-        private void LoadDefaultConfiguration()
+        private static AgentConfiguration LoadDefaultConfiguration()
         {
-            var configurationProvider = new MockConfigurationProvider();
-            Configuration = configurationProvider.GetConfiguration();
-            agents = new List<Agent>();
+            AgentConfiguration agentConfiguration = new AgentConfiguration();
+            return agentConfiguration.GetConfiguration();
+        }
+     
+        public static void CreateAgent()
+        {
+            agent = new Agent();
+            AgentConfiguration agentConfiguration = LoadDefaultConfiguration();
+            agent.CsIP = agentConfiguration.CsIP;
+            agent.CsPort = agentConfiguration.CsPort;
+            agent.JoinTheGame();
         }
 
-        private void CreateAgents()
+        private static void AgentWork()
         {
-            for(int i = 0; i < Configuration.AgentsLimit * 2; i++)
-            {
-                var agent = new Agent(i % Configuration.AgentsLimit == 0);
-                agents.Add(agent);
-                agent.JoinTheGame();
-            }
-        }
-
-        private void AgentsWork()
-        {
-            Parallel.ForEach(agents, (agent) =>
-            {
-                var message = agent.GetIncommingMessage();
-                agent.AcceptMessage(message);
-            });
+            var message = agent.GetIncommingMessage();
+            agent.AcceptMessage(message);
         }
     }
 }

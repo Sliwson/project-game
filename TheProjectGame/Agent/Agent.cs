@@ -61,6 +61,10 @@ namespace Agent
 
         private static NLog.Logger logger;
 
+        public string CsIP;
+
+        public string CsPort;
+
         public Agent(bool wantsToBeLeader = false)
         {
             this.wantsToBeLeader = wantsToBeLeader;
