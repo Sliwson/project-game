@@ -30,7 +30,7 @@ namespace Agent
         {
             for(int i = 0; i < Configuration.AgentsLimit * 2; i++)
             {
-                var agent = new Agent();
+                var agent = new Agent(i % Configuration.AgentsLimit == 0);
                 agents.Add(agent);
                 agent.JoinTheGame();
             }
