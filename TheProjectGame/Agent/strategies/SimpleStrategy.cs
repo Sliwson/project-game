@@ -39,55 +39,48 @@ namespace Agent.strategies
             return false;
         }
 
-        public void MakeDecision(Agent agent)
+        public bool MakeDecision(Agent agent)
         {
             if (!Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize)) stayInLineCount = 0;
             if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationResponse, agent.penalties))
             {
-                agent.GiveInfo();
-                return;
+                return agent.GiveInfo();
             }
             if (agent.piece != null &&
                 !agent.piece.isDiscovered &&
                 agent.shamPieceProbability > smallShamProbability &&
                 !IsActionExpensive(ActionType.CheckForSham, agent.penalties))
             {
-                agent.CheckPiece();
-                return;
+                return agent.CheckPiece();
             }
             if (agent.piece != null &&
                 Common.DoesAgentKnowGoalInfo(agent) &&
                 Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
             {
-                agent.Put();
                 stayInLineCount = 0;
-                return;
+                return agent.Put();
             }
             if (agent.piece != null &&
                 Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
             {
                 var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
-                agent.Move(dir);
                 if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
                 else stayInLineCount = 0;
-                return;
+                return agent.Move(dir);
             }
             if (agent.piece != null)
             {
-                agent.Move(Common.GetGoalDirection(agent, shortTime));
-                return;
+                return agent.Move(Common.GetGoalDirection(agent, shortTime));
             }
             if (Common.FindClosest(agent, shortTime, out Direction direction) <= shortPieceDistance)
             {
-                agent.Move(direction);
-                return;
+                return agent.Move(direction);
             }
             if (Common.CountUndiscoveredFields(agent, shortTime) > smallUndiscoveredNumber)
             {
-                agent.Discover();
-                return;
+                return agent.Discover();
             }
-            agent.BegForInfo();
+            return agent.BegForInfo();
         }
     }
 }

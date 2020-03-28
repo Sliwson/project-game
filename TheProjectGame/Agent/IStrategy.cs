@@ -6,6 +6,6 @@ namespace Agent
 {
     interface IStrategy
     {
-        void MakeDecision(Agent agent);
+        bool MakeDecision(Agent agent);
     }
 }
