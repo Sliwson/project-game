@@ -1,4 +1,5 @@
-﻿using Agent.strategies;
+﻿using Agent.Interfaces;
+using Agent.strategies;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
@@ -58,6 +59,7 @@ namespace Agent
 
         public List<BaseMessage> messages;
 
+        private static NLog.Logger logger;
 
         public Agent(bool wantsToBeLeader = false)
         {
@@ -69,6 +71,7 @@ namespace Agent
             strategy = new SimpleStrategy();
             agentState = AgentState.Created;
             messages = new List<BaseMessage>();
+            logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
         public void Initialize(int leaderId, TeamId teamId, Point boardSize, int goalAreaHeight, Point pos, int[] alliesIds, Dictionary<ActionType, TimeSpan> penalties, float shamPieceProbability)
@@ -413,6 +416,7 @@ namespace Agent
 
         private void Process(Message<IgnoredDelayError> message)
         {
+            logger.Error("IgnoredDelay error");
             var time = message.Payload.WaitUntil - DateTime.Now;
             if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
             strategy.MakeDecision(this);
@@ -420,12 +424,14 @@ namespace Agent
 
         private void Process(Message<MoveError> message)
         {
+            logger.Error("Move error");
             position = message.Payload.Position;
             MakeDecisionFromStrategy();
         }
 
         private void Process(Message<PickUpPieceError> message)
         {
+            logger.Error("Pick up piece error");
             board[position.Y, position.X].distLearned = DateTime.Now;
             board[position.Y, position.X].distToPiece = int.MaxValue;
             MakeDecisionFromStrategy();
@@ -433,12 +439,14 @@ namespace Agent
 
         private void Process(Message<PutDownPieceError> message)
         {
+            logger.Error("Put down piece error");
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) piece = null;
             MakeDecisionFromStrategy();
         }
 
         private void Process(Message<UndefinedError> message)
         {
+            logger.Error("undefined error occured");
             MakeDecisionFromStrategy();
         }
 
