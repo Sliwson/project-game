@@ -450,9 +450,10 @@ namespace Agent
             if (agentState != AgentState.WaitingForJoin && endIfUnexpectedMessage) return true;
             if (message.Payload.Accepted)
             {
+                bool wasWaiting = agentState == AgentState.WaitingForJoin;
                 agentState = AgentState.WaitingForStart;
                 id = message.Payload.AgentId;
-                return MakeDecisionFromStrategy();
+                return wasWaiting ? false : MakeDecisionFromStrategy();
             }
             else
             {
