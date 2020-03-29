@@ -302,7 +302,8 @@ namespace Agent
 
         private BaseMessage GetMessage(Type type)
         {
-            var message = injectedMessages.FirstOrDefault(m => m.GetType() == type);
+            var message = injectedMessages.FirstOrDefault(m => m is Message<EndGamePayload>);
+            if (message == null) message = injectedMessages.FirstOrDefault(m => m.GetType() == type);
             if (message != null) injectedMessages.Remove(message);
             return message;
         }
