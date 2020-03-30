@@ -6,8 +6,9 @@ namespace Agent.strategies
 {
     public class DoNothingStrategy : IStrategy
     {
-        public void MakeDecision(Agent agent)
+        public bool MakeDecision(Agent agent)
         {
+            return false;
         }
     }
 }

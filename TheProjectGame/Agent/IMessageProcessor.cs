@@ -7,7 +7,7 @@ namespace Agent
 {
     interface IMessageProcessor
     {
-        public void AcceptMessage(BaseMessage message);
+        public bool AcceptMessage(BaseMessage message);
         public void SendMessage(BaseMessage message);
     }
 }
