@@ -20,6 +20,8 @@ namespace Agent
 
         private const bool endIfUnexpectedAction = false;
 
+        private const int sleepInterval = 50;
+
         public int id;
 
         private int lastAskedTeammate;
@@ -145,7 +147,7 @@ namespace Agent
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
-                    goalAreaInformation[i, j] = board[i, j].goalInfo;
+                    goalAreaInformation[i - boardSize.Y + goalAreaSize, j] = board[i, j].goalInfo;
                 }
             }
             return goalAreaInformation;
@@ -180,7 +182,7 @@ namespace Agent
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
-                   board[i, j].goalInfo = goalAreaInformation[i, j];
+                   board[i, j].goalInfo = goalAreaInformation[i - boardSize.Y + goalAreaSize, j];
                 }
             }
         }
@@ -188,13 +190,13 @@ namespace Agent
         private bool WaitForJoin()
         {
             if (agentState != AgentState.WaitingForJoin) return true;
-            return AcceptMessage(WaitForMessage(typeof(Message<JoinResponse>)));
+            return AcceptMessage(WaitForMessage(typeof(JoinResponse)));
         }
 
         private bool WaitForStart()
         {
             if (agentState != AgentState.WaitingForStart) return true;
-            return AcceptMessage(WaitForMessage(typeof(Message<StartGamePayload>)));
+            return AcceptMessage(WaitForMessage(typeof(StartGamePayload)));
         }
 
         private void MainLoop()
@@ -253,11 +255,16 @@ namespace Agent
             return false;
         }
 
-        public bool GiveInfo()
+        public bool GiveInfo(int respondToId = -1)
         {
             if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
-            int respondToId = waitingPlayers.Count > 0 ? waitingPlayers[0] : -1;
+            if (respondToId == -1 && waitingPlayers.Count > 0)
+            {
+                respondToId = waitingPlayers[0];
+                waitingPlayers.RemoveAt(0);
+            }
             if (respondToId == -1 && endIfUnexpectedAction) return true;
+            else if (respondToId == -1) return MakeDecisionFromStrategy();
             SetPenalty(ActionType.InformationResponse);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation())));
             return false;
@@ -295,15 +302,16 @@ namespace Agent
         private BaseMessage GetMessage()
         {
             if (injectedMessages.Count == 0) return null;
-            var message = injectedMessages[0];
-            injectedMessages.RemoveAt(0);
+            var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
+            if (message == null) message = injectedMessages[0];
+            injectedMessages.Remove(message);
             return message;
         }
 
         private BaseMessage GetMessage(Type type)
         {
-            var message = injectedMessages.FirstOrDefault(m => m is Message<EndGamePayload>);
-            if (message == null) message = injectedMessages.FirstOrDefault(m => m.GetType() == type);
+            var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
+            if (message == null) message = injectedMessages.FirstOrDefault(m => m.PayloadType == type);
             if (message != null) injectedMessages.Remove(message);
             return message;
         }
@@ -313,7 +321,7 @@ namespace Agent
             BaseMessage message = GetMessage();
             while (message == null)
             {
-                Thread.Sleep(50);
+                Thread.Sleep(sleepInterval);
                 message = GetMessage();
             }
             return message;
@@ -324,7 +332,7 @@ namespace Agent
             BaseMessage message = GetMessage(type);
             while (message == null)
             {
-                Thread.Sleep(50);
+                Thread.Sleep(sleepInterval);
                 message = GetMessage(type);
             }
             return message;
@@ -429,6 +437,7 @@ namespace Agent
             if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
             piece = null;
             board[position.Y, position.X].distToPiece = 0;
+            board[position.Y, position.X].distLearned = DateTime.Now;
             return MakeDecisionFromStrategy();
         }
 
@@ -437,7 +446,7 @@ namespace Agent
             if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
             if (message.Payload.Leader)
             {
-                return GiveInfo();
+                return GiveInfo(message.Payload.AskingAgentId);
             }
             else
             {
