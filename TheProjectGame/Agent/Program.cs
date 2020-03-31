@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace Agent
             AgentConfiguration agentConfiguration = LoadDefaultConfiguration();
             agent.CsIP = agentConfiguration.CsIP;
             agent.CsPort = agentConfiguration.CsPort;
+            agent.team = agentConfiguration.teamID == "red" ? TeamId.Red : TeamId.Blue;
             agent.JoinTheGame();
         }
     }
