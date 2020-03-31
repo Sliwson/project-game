@@ -65,8 +65,6 @@ namespace Agent
 
         public AgentState agentState;
 
-        public List<BaseMessage> messages;
-
         private static NLog.Logger logger;
 
         public string CsIP;
@@ -83,7 +81,6 @@ namespace Agent
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
             agentState = AgentState.Created;
-            messages = new List<BaseMessage>();
             logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
@@ -234,7 +231,11 @@ namespace Agent
 
         public bool Move(Direction direction)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             lastDirection = direction;
             SetPenalty(ActionType.Move);
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
@@ -243,14 +244,22 @@ namespace Agent
 
         public bool PickUp()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
             return false;
         }
 
         public bool Put()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             SetPenalty(ActionType.PutPiece);
             SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
             return false;
@@ -258,7 +267,11 @@ namespace Agent
 
         public bool BegForInfo()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             lastAskedTeammate++;
             lastAskedTeammate %= teamMates.Length;
             SetPenalty(ActionType.InformationRequest);
@@ -268,13 +281,21 @@ namespace Agent
 
         public bool GiveInfo(int respondToId = -1)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             if (respondToId == -1 && waitingPlayers.Count > 0)
             {
                 respondToId = waitingPlayers[0];
                 waitingPlayers.RemoveAt(0);
             }
-            if (respondToId == -1 && endIfUnexpectedAction) return true;
+            if (respondToId == -1 && endIfUnexpectedAction)
+            {
+                logger.Error("Respond to id -1 while give info");
+                return true;
+            }
             else if (respondToId == -1) return MakeDecisionFromStrategy();
             SetPenalty(ActionType.InformationResponse);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation())));
@@ -283,7 +304,11 @@ namespace Agent
 
         public bool CheckPiece()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             SetPenalty(ActionType.CheckForSham);
             SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
             return false;
@@ -291,7 +316,11 @@ namespace Agent
 
         public bool Discover()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             SetPenalty(ActionType.Discovery);
             SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
             return false;
@@ -299,7 +328,11 @@ namespace Agent
 
         public bool DestroyPiece()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             SetPenalty(ActionType.DestroyPiece);
             SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
             return false;
@@ -364,7 +397,11 @@ namespace Agent
 
         private bool Process(Message<CheckShamResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             if (message.Payload.Sham)
             {
                 return DestroyPiece();
@@ -378,7 +415,11 @@ namespace Agent
 
         private bool Process(Message<DestroyPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             piece = null;
             return MakeDecisionFromStrategy();
         }
@@ -405,7 +446,11 @@ namespace Agent
 
         private bool Process(Message<ExchangeInformationResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             UpdateDistances(message.Payload.Distances);
             UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
@@ -414,7 +459,11 @@ namespace Agent
 
         private bool Process(Message<MoveResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             if (message.Payload.MadeMove)
             {
                 position = message.Payload.CurrentPosition;
@@ -435,7 +484,11 @@ namespace Agent
 
         private bool Process(Message<PickUpPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             if (board[position.Y, position.X].distToPiece == 0)
             {
                 piece = new Piece();
@@ -445,7 +498,11 @@ namespace Agent
 
         private bool Process(Message<PutDownPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            {
+                logger.Info("Agent not in game");
+                return true;
+            }
             piece = null;
             board[position.Y, position.X].distToPiece = 0;
             board[position.Y, position.X].distLearned = DateTime.Now;
@@ -478,6 +535,7 @@ namespace Agent
             }
             else
             {
+                logger.Info("Join request not accepted");
                 return true;
             }
         }
@@ -528,6 +586,7 @@ namespace Agent
 
         private bool Process(Message<UndefinedError> message)
         {
+            logger.Error("Undefined error");
             return MakeDecisionFromStrategy();
         }
     }

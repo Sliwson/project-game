@@ -13,7 +13,6 @@ namespace Agent
         static void Main(string[] args)
         {
             CreateAgent();
-            AgentWork();
         }
 
         private static AgentConfiguration LoadDefaultConfiguration()
@@ -29,12 +28,6 @@ namespace Agent
             agent.CsIP = agentConfiguration.CsIP;
             agent.CsPort = agentConfiguration.CsPort;
             agent.JoinTheGame();
-        }
-
-        private static void AgentWork()
-        {
-            var message = agent.GetIncommingMessage();
-            agent.AcceptMessage(message);
         }
     }
 }
