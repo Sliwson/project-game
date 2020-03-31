@@ -7,9 +7,8 @@ namespace Agent
     public enum AgentState
     {
         Created,
-        WaitingForJoinResponse,
+        WaitingForJoin,
         WaitingForStart,
-        InGame,
-        Paused
+        InGame
     }
 }

@@ -23,7 +23,7 @@ namespace AgentTests
         {
             agent = new Agent.Agent(false);
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
+            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             agent.SetDoNothingStrategy();
             startTime = DateTime.Now;
         }
@@ -51,7 +51,7 @@ namespace AgentTests
         public void Set_agent_boardSize()
         {
             Assert.AreEqual(agent.boardSize.X, 5);
-            Assert.AreEqual(agent.boardSize.Y, 5);
+            Assert.AreEqual(agent.boardSize.Y, 6);
         }
 
         [Test]
@@ -74,10 +74,10 @@ namespace AgentTests
         }
 
         [Test]
-        public void Has_coorect_board_size()
+        public void Has_correct_board_size()
         {
-            Assert.AreEqual(agent.boardSize.X, agent.board.GetLength(0));
-            Assert.AreEqual(agent.boardSize.Y, agent.board.GetLength(1));
+            Assert.AreEqual(agent.boardSize.X, agent.board.GetLength(1));
+            Assert.AreEqual(agent.boardSize.Y, agent.board.GetLength(0));
             Assert.True(agent.position.X >= 0 && agent.position.Y >= 0 && agent.position.X < agent.boardSize.X && agent.position.Y < agent.boardSize.Y);
         }
 
@@ -112,6 +112,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_CheckShamResponse_If_Sham_Agent_Should_Destroy_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.piece = new Piece();
 
             agent.AcceptMessage(GetBaseMessage(new CheckShamResponse(true), 1));
@@ -124,6 +126,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_CheckShamResponse_If_Not_Sham_Agent_Piece_Should_Be_Discovered()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.piece = new Piece();
 
             Assert.IsFalse(agent.piece.isDiscovered);
@@ -140,6 +144,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_DiscoverResponse_Should_Update_Agent_Board_State()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.AcceptMessage(GetBaseMessage(new DiscoverResponse(new int[,] { { 1, 2, 3 }, { 2, 2, 2 }, { 3, 0, 2 } }), 1));
             var position = agent.position;
 
@@ -185,6 +191,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_ExchangeInformationPayload_If_Not_TeamLeader_Asking_Should_Be_Added_To_Waiting_List()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationPayload(2, false, Messaging.Enumerators.TeamId.Blue), 1));
 
             Assert.AreEqual(agent.waitingPlayers.Count, 1);
@@ -195,15 +203,17 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_ExchangeInformationResponse_Should_Update_Agent_Board_State()
         {
+            agent.agentState = AgentState.InGame;
+
             var blueGoalAreaInformation = new GoalInformation[,] { { GoalInformation.Goal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.NoInformation } };
             var redGoalAreaInformation = new GoalInformation[,] { { GoalInformation.NoInformation, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.Goal, GoalInformation.NoInformation } };
-            var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 } };
+            var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 }, { 2, 1, 3, 4, 1 } };
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponse(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
 
             for(int i = 0; i < agent.boardSize.Y; i++)
             {
-                for(int j = 0; j< agent.boardSize.X; j++)
+                for(int j = 0; j < agent.boardSize.X; j++)
                 {
                     Assert.AreEqual(agent.board[i, j].distToPiece, distances[i, j]);
                 }
@@ -233,6 +243,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_MoveResponse_When_Move_Made_Agent_Position_Should_Change_And_DistToPiece_Should_Update()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 2), 1));
 
             Assert.AreEqual(agent.position, new Point(1, 0));
@@ -242,6 +254,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_MoveResponse_When_DistToPiece_Equal_Zero_Agent_Should_PickUp_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 0), 1));
 
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
@@ -254,6 +268,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Not_Move_And_Update_Board_State()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(false, new Point(1, 0), 2), 1));
 
             Assert.AreEqual(agent.position, new Point(0, 0));
@@ -267,6 +283,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Zero_Agent_Should_PickUp_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
 
             Assert.IsNull(agent.piece);
@@ -279,6 +297,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Not_Zero_Agent_Should_Not_PickUp_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
 
             Assert.IsNull(agent.piece);
@@ -291,6 +311,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_PickUpPieceResponse_When_PickUpPieceError_DistToPiece_Should_Be_Set_To_Default()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
 
             Assert.IsNull(agent.piece);
@@ -309,6 +331,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_PutDownPieceResponse_DistToPiece_Should_Be_Updated_And_Agent_Should_Not_Have_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
             agent.piece = new Piece();
 
@@ -324,6 +348,8 @@ namespace AgentTests
         [Test]
         public void ProcessMessage_PutDownPieceResponse_When_PutDownPieceError_AgentNotHolding_Agent_Should_Not_Have_Piece()
         {
+            agent.agentState = AgentState.InGame;
+
             agent.piece = new Piece();
 
             Assert.IsNotNull(agent.piece);
@@ -356,43 +382,7 @@ namespace AgentTests
             agent.SetDoNothingStrategy();
             agent.JoinTheGame();
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
-            Assert.AreEqual(agent.agentState, AgentState.WaitingForJoinResponse);
-        }
-
-        [Test]
-        public void Can_Not_Stop_When_Not_In_Game()
-        {
-            var agent = new Agent.Agent(false);
-            agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
-            agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
-            Assert.AreNotEqual(agent.agentState, AgentState.InGame);
-            agent.Stop();
-            Assert.AreNotEqual(agent.agentState, AgentState.Paused);
-        }
-
-        [Test]
-        public void Can_Not_Start_When_Is_Not_Waiting_For_Start()
-        {
-            var agent = new Agent.Agent(false);
-            agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
-            agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
-            Assert.AreNotEqual(agent.agentState, AgentState.WaitingForStart);
-            agent.Start();
-            Assert.AreNotEqual(agent.agentState, AgentState.InGame);
-        }
-
-        [Test]
-        public void Can_Not_Join_When_Not_In_Initial_State()
-        {
-            var agent = new Agent.Agent(false);
-            agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
-            agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
-            Assert.AreNotEqual(agent.agentState, AgentState.Created);
-            agent.JoinTheGame();
-            Assert.AreNotEqual(agent.agentState, AgentState.WaitingForJoinResponse);
+            Assert.AreEqual(agent.agentState, AgentState.WaitingForJoin);
         }
 
         #endregion
