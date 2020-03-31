@@ -366,7 +366,6 @@ namespace Agent
         {
             if (injectedMessages.Count == 0)
             {
-                logger.Info("GetMessage: No messages to get.");
                 return null;
             }
             var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
@@ -401,7 +400,6 @@ namespace Agent
             {
                 Thread.Sleep(sleepInterval);
                 message = GetMessage(type);
-                logger.Info("WaitForMessage: Agent got message: " + type.Name.ToString());
             }
             return message;
         }
