@@ -23,11 +23,13 @@ namespace Agent
 
         private const int sleepInterval = 50;
 
+        private const int maxSkipCount = int.MaxValue;
+
         public int id;
 
         private int lastAskedTeammate;
 
-        private Direction lastDirection;
+        public Direction lastDirection;
 
         private ISender sender;
 
@@ -71,12 +73,17 @@ namespace Agent
 
         public string CsPort;
 
+        public bool deniedLastMove;
+
+        public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
+
         public Agent(bool wantsToBeLeader = false)
         {
             this.wantsToBeLeader = wantsToBeLeader;
             penaltyTime = 0;
             piece = null;
             lastAskedTeammate = 0;
+            deniedLastMove = false;
             waitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
@@ -90,7 +97,7 @@ namespace Agent
             team = teamId;
             this.boardSize = boardSize;
             board = new Field[boardSize.Y, boardSize.X];
-            for(int i = 0; i < boardSize.Y; i++)
+            for (int i = 0; i < boardSize.Y; i++)
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
@@ -104,10 +111,10 @@ namespace Agent
             this.penalties = penalties;
             averageTime = penalties.Count > 0 ? (int)penalties.Values.Max().TotalMilliseconds : 500;
             this.shamPieceProbability = shamPieceProbability;
-            logger.Info("Initialize: Agent initialized");
+            logger.Info("Initialize: Agent initialized" + " AgentID: " + id.ToString());
         }
 
-        private void Penalty() 
+        private void Penalty()
         {
             Thread.Sleep(penaltyTime);
             penaltyTime = 0;
@@ -139,7 +146,7 @@ namespace Agent
         private GoalInformation[,] GetBlueTeamGoalAreaInformation()
         {
             GoalInformation[,] goalAreaInformation = new GoalInformation[goalAreaSize, boardSize.X];
-            for (int i = 0; i < goalAreaSize ; i++)
+            for (int i = 0; i < goalAreaSize; i++)
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
@@ -180,7 +187,7 @@ namespace Agent
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
-                   if (board[i, j].goalInfo == GoalInformation.NoInformation) board[i, j].goalInfo = goalAreaInformation[i, j];
+                    if (board[i, j].goalInfo == GoalInformation.NoInformation) board[i, j].goalInfo = goalAreaInformation[i, j];
                 }
             }
         }
@@ -191,7 +198,7 @@ namespace Agent
             {
                 for (int j = 0; j < boardSize.X; j++)
                 {
-                   board[i, j].goalInfo = goalAreaInformation[i - boardSize.Y + goalAreaSize, j];
+                    board[i, j].goalInfo = goalAreaInformation[i - boardSize.Y + goalAreaSize, j];
                 }
             }
         }
@@ -200,160 +207,176 @@ namespace Agent
         {
             if (agentState != AgentState.WaitingForJoin)
             {
-                logger.Warn("Wait for join: Agent not waiting for join. Agent state: " + agentState.ToString());
+                logger.Warn("Wait for join: Agent not waiting for join. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString());
                 return true;
             }
-            return AcceptMessage(WaitForMessage(typeof(JoinResponse)));
+            return AcceptMessage(WaitForMessage(MessageId.JoinResponse));
         }
 
         private bool WaitForStart()
         {
             if (agentState != AgentState.WaitingForStart)
             {
-                logger.Warn("Wait for start: Agent not waiting for start. Agent state: " + agentState.ToString());
+                logger.Warn("Wait for start: Agent not waiting for start. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString());
                 return true;
             }
-            return AcceptMessage(WaitForMessage(typeof(StartGamePayload)));
+            return AcceptMessage(WaitForMessage(MessageId.StartGameMessage));
         }
 
         private void MainLoop()
         {
+            int skipCount = 0;
             while (true)
             {
-                BaseMessage message = WaitForMessage();
-                if (AcceptMessage(message)) break;
-                Penalty();
+                BaseMessage message = GetMessage();
+                if (message == null && skipCount < maxSkipCount)
+                {
+                    skipCount++;
+                    continue;
+                }
+                skipCount = 0;
+                bool ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
+                if (ret) break;
+                Thread.Sleep(500);
+                //Penalty();
             }
             logger.Warn("Main loop break");
         }
 
         public void JoinTheGame()
         {
-            if (agentState != AgentState.Created) { logger.Error("Join the game: Agent is not created. Not join the game. Agent state: " + agentState.ToString()); return; }
+            if (agentState != AgentState.Created) { logger.Error("Join the game: Agent is not created. Not join the game. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString()); return; }
             agentState = AgentState.WaitingForJoin;
             SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
-            if (strategy is DoNothingStrategy) { logger.Error("Join the game: Not join the game. Strategy is DoNothing."); return; }
-            if (WaitForJoin()) { logger.Error("Join the game: Not join the game."); return; }
-            if (WaitForStart()) { logger.Error("Join the game: Not join the game."); return; }
+            if (strategy is DoNothingStrategy) { logger.Error("Join the game: Not join the game. Strategy is DoNothing." + " AgentID: " + id.ToString()); return; }
+            if (WaitForJoin()) { logger.Error("Join the game: Not join the game." + " AgentID: " + id.ToString()); return; }
+            if (WaitForStart()) { logger.Error("Join the game: Not join the game." + " AgentID: " + id.ToString()); return; }
             Penalty();
             MainLoop();
         }
 
         public bool Move(Direction direction)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Move: Agent not in game");
-                return true;
+                logger.Warn("Move: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             lastDirection = direction;
             SetPenalty(ActionType.Move);
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
-            logger.Info("Move: Agent sent move request in direction " + direction.ToString());
+            logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool PickUp()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Pick up: Agent not in game");
-                return true;
+                logger.Warn("Pick up: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
-            logger.Info("Pick up: Agent sent pick up piece request.");
+            logger.Info("Pick up: Agent sent pick up piece request." + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool Put()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Put: Agent not in game");
-                return true;
+                logger.Warn("Put: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             SetPenalty(ActionType.PutPiece);
             SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
-            logger.Info("Put: Agent sent put down piece request.");
+            logger.Info("Put: Agent sent put down piece request." + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool BegForInfo()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Beg for info: Agent not in game");
-                return true;
+                logger.Warn("Beg for info: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
+                return MakeDecisionFromStrategy();
+            }
+            if (teamMates.Length == 0)
+            {
+                logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
+                return MakeDecisionFromStrategy();
             }
             lastAskedTeammate++;
             lastAskedTeammate %= teamMates.Length;
             SetPenalty(ActionType.InformationRequest);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
-            logger.Info("Beg for info: Agent sent exchange information request.");
+            logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool GiveInfo(int respondToId = -1)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Give info: Agent not in game");
-                return true;
+                logger.Warn("Give info: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             if (respondToId == -1 && waitingPlayers.Count > 0)
             {
                 respondToId = waitingPlayers[0];
                 waitingPlayers.RemoveAt(0);
-                logger.Info("Give info: ResponfdId is -1. Respond to first waiting player.");
+                logger.Info("Give info: ResponfdId is -1. Respond to first waiting player." + " AgentID: " + id.ToString());
             }
-            if (respondToId == -1 && endIfUnexpectedAction)
+            if (respondToId == -1)
             {
-                logger.Error("Give info: Respond to id -1 while give info");
-                return true;
+                logger.Error("Give info: Respond to id -1 while give info" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             else if (respondToId == -1) return MakeDecisionFromStrategy();
             SetPenalty(ActionType.InformationResponse);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, GetDistances(), GetRedTeamGoalAreaInformation(), GetBlueTeamGoalAreaInformation())));
-            logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString());
+            logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString() + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool CheckPiece()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Check piece: Agent not in game");
-                return true;
+                logger.Warn("Check piece: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             SetPenalty(ActionType.CheckForSham);
             SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
-            logger.Info("Check piece: Agent sent check scham request.");
+            logger.Info("Check piece: Agent sent check scham request." + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool Discover()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Discover: Agent not in game");
-                return true;
+                logger.Warn("Discover: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             SetPenalty(ActionType.Discovery);
             SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
-            logger.Info("Discover: Agent sent discover request.");
+            logger.Info("Discover: Agent sent discover request." + " AgentID: " + id.ToString());
             return false;
         }
 
         public bool DestroyPiece()
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedAction)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Destroy Piece: Agent not in game");
-                return true;
+                logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return true;
             }
             SetPenalty(ActionType.DestroyPiece);
             SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
-            logger.Info("Destroy Piece: Agent sent destroy piece request.");
+            logger.Info("Destroy Piece: Agent sent destroy piece request." + " AgentID: " + id.ToString());
             return false;
         }
 
@@ -374,10 +397,10 @@ namespace Agent
             return message;
         }
 
-        private BaseMessage GetMessage(Type type)
+        private BaseMessage GetMessage(MessageId messageId)
         {
-            var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
-            if (message == null) message = injectedMessages.FirstOrDefault(m => m.PayloadType == type);
+            var message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
+            if (message == null) message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
             if (message != null) injectedMessages.Remove(message);
             return message;
         }
@@ -393,13 +416,13 @@ namespace Agent
             return message;
         }
 
-        private BaseMessage WaitForMessage(Type type)
+        private BaseMessage WaitForMessage(MessageId messageId)
         {
-            BaseMessage message = GetMessage(type);
+            BaseMessage message = GetMessage(messageId);
             while (message == null)
             {
                 Thread.Sleep(sleepInterval);
-                message = GetMessage(type);
+                message = GetMessage(messageId);
             }
             return message;
         }
@@ -409,7 +432,10 @@ namespace Agent
             injectedMessages.Add(message);
         }
 
-        public void SendMessage(BaseMessage message) { }
+        public void SendMessage(BaseMessage message)
+        {
+            MockMessageSendFunction?.Invoke(this, message);
+        }
 
         public bool AcceptMessage(BaseMessage message)
         {
@@ -419,19 +445,19 @@ namespace Agent
 
         private bool Process(Message<CheckShamResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process check scham response: Agent not in game");
-                return true;
+                logger.Warn("Process check scham response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
             if (message.Payload.Sham)
             {
-                logger.Info("Process check scham response: Agent checked sham and destroy piece.");
+                logger.Info("Process check scham response: Agent checked sham and destroy piece." + " AgentID: " + id.ToString());
                 return DestroyPiece();
             }
             else
             {
-                logger.Info("Process check scham response: Agent checked not sham.");
+                logger.Info("Process check scham response: Agent checked not sham." + " AgentID: " + id.ToString());
                 piece.isDiscovered = true;
                 return MakeDecisionFromStrategy();
             }
@@ -439,10 +465,10 @@ namespace Agent
 
         private bool Process(Message<DestroyPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process destroy piece response: Agent not in game");
-                return true;
+                logger.Warn("Process destroy piece response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
             piece = null;
             return MakeDecisionFromStrategy();
@@ -450,34 +476,34 @@ namespace Agent
 
         private bool Process(Message<DiscoverResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process discover response: Agent not in game.");
-                return true;
+                logger.Warn("Process discover response: Agent not in game." + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
-            if (Common.OnBoard(new Point(position.X, position.Y), boardSize)) board[position.Y, position.X].distToPiece = message.Payload.Distances[1, 1];
-            if (Common.OnBoard(new Point(position.X, position.Y + 1), boardSize)) board[position.Y + 1, position.X].distToPiece = message.Payload.Distances[0, 1];
-            if (Common.OnBoard(new Point(position.X - 1, position.Y), boardSize)) board[position.Y, position.X - 1].distToPiece = message.Payload.Distances[1, 0];
-            if (Common.OnBoard(new Point(position.X + 1, position.Y), boardSize)) board[position.Y, position.X + 1].distToPiece = message.Payload.Distances[1, 2];
-            if (Common.OnBoard(new Point(position.X, position.Y - 1), boardSize)) board[position.Y - 1, position.X].distToPiece = message.Payload.Distances[2, 1];
-            if (Common.OnBoard(new Point(position.X + 1, position.Y + 1), boardSize)) board[position.Y + 1, position.X + 1].distToPiece = message.Payload.Distances[0, 2];
-            if (Common.OnBoard(new Point(position.X - 1, position.Y + 1), boardSize)) board[position.Y + 1, position.X - 1].distToPiece = message.Payload.Distances[0, 0];
-            if (Common.OnBoard(new Point(position.X + 1, position.Y - 1), boardSize)) board[position.Y - 1, position.X + 1].distToPiece = message.Payload.Distances[2, 2];
-            if (Common.OnBoard(new Point(position.X - 1, position.Y - 1), boardSize)) board[position.Y - 1, position.X - 1].distToPiece = message.Payload.Distances[2, 0];
             DateTime now = DateTime.Now;
-            for (int i = position.X - 1; i <= position.X + 1; i++)
-                for (int j = position.Y - 1; j <= position.Y + 1; j++)
-                    if (Common.OnBoard(new Point(i, j), boardSize))
-                        board[j, i].distLearned = now;
+            for (int y = position.Y - 1; y <= position.Y + 1; y++)
+            {
+                for (int x = position.X - 1; x <= position.X + 1; x++)
+                {
+                    int taby = y - position.Y + 1;
+                    int tabx = x - position.X + 1;
+                    if (Common.OnBoard(new Point(x, y), boardSize))
+                    {
+                        board[y, x].distToPiece = message.Payload.Distances[taby, tabx];
+                        board[y, x].distLearned = now;
+                    }
+                }
+            }
             return MakeDecisionFromStrategy();
         }
 
         private bool Process(Message<ExchangeInformationResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process exchange information response: Agent not in game");
-                return true;
+                logger.Warn("Process exchange information response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
             UpdateDistances(message.Payload.Distances);
             UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
@@ -487,41 +513,43 @@ namespace Agent
 
         private bool Process(Message<MoveResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process move response: Agent not in game");
-                return true;
+                logger.Warn("Process move response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
+            position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
-                position = message.Payload.CurrentPosition;
+                deniedLastMove = false;
                 board[position.Y, position.X].distToPiece = message.Payload.ClosestPoint;
                 board[position.Y, position.X].distLearned = DateTime.Now;
-                if (message.Payload.ClosestPoint == 0)
+                if (message.Payload.ClosestPoint == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
                 {
-                    logger.Info("Process move response: agent pick up piece.");
+                    logger.Info("Process move response: agent pick up piece." + " AgentID: " + id.ToString());
                     return PickUp();
                 }
             }
             else
             {
-                logger.Info("Process move response: agent did not move.");
-                var denied = Common.GetFieldInDirection(position, lastDirection);
-                board[denied.Y, denied.X].deniedMove = DateTime.Now;
+                deniedLastMove = true;
+                logger.Info("Process move response: agent did not move." + " AgentID: " + id.ToString());
+                var deniedField = Common.GetFieldInDirection(position, lastDirection);
+                if (Common.OnBoard(deniedField, boardSize)) board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
             }
             return MakeDecisionFromStrategy();
         }
 
         private bool Process(Message<PickUpPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process pick up piece response: Agent not in game");
-                return true;
+                logger.Warn("Process pick up piece response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
             if (board[position.Y, position.X].distToPiece == 0)
             {
-                logger.Info("Process pick up piece response: Agent picked up piece");
+                logger.Info("Process pick up piece response: Agent picked up piece" + " AgentID: " + id.ToString());
                 piece = new Piece();
             }
             return MakeDecisionFromStrategy();
@@ -529,14 +557,16 @@ namespace Agent
 
         private bool Process(Message<PutDownPieceResponse> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage)
+            if (agentState != AgentState.InGame)
             {
-                logger.Warn("Process put down piece response: Agent not in game");
-                return true;
+                logger.Warn("Process put down piece response: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
             }
             piece = null;
             board[position.Y, position.X].distToPiece = 0;
             board[position.Y, position.X].distLearned = DateTime.Now;
+            //TODO: check if goal
+            board[position.Y, position.X].goalInfo = GoalInformation.Goal;
             return MakeDecisionFromStrategy();
         }
 
@@ -545,7 +575,7 @@ namespace Agent
             if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
             if (message.Payload.Leader)
             {
-                logger.Info("Process exchange information payload: Agent give info to leader");
+                logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + id.ToString());
                 return GiveInfo(message.Payload.AskingAgentId);
             }
             else
@@ -567,7 +597,7 @@ namespace Agent
             }
             else
             {
-                logger.Info("Process join response: Join request not accepted");
+                logger.Info("Process join response: Join request not accepted" + " AgentID: " + id.ToString());
                 return true;
             }
         }
@@ -578,7 +608,7 @@ namespace Agent
             Initialize(message.Payload.LeaderId, message.Payload.TeamId, message.Payload.BoardSize, message.Payload.GoalAreaHeight, message.Payload.Position, message.Payload.AlliesIds, message.Payload.Penalties, message.Payload.ShamPieceProbability);
             if (id != message.Payload.AgentId)
             {
-                logger.Warn("Process start game payload: payload.agnetId not equal agentId");
+                logger.Warn("Process start game payload: payload.agnetId not equal agentId" + " AgentID: " + id.ToString());
             }
             agentState = AgentState.InGame;
             return MakeDecisionFromStrategy();
@@ -586,13 +616,13 @@ namespace Agent
 
         private bool Process(Message<EndGamePayload> message)
         {
-            logger.Info("Process End Game: end game");
+            logger.Info("Process End Game: end game" + " AgentID: " + id.ToString());
             return true;
         }
 
         private bool Process(Message<IgnoredDelayError> message)
         {
-            logger.Error("IgnoredDelay error");
+            logger.Error("IgnoredDelay error" + " AgentID: " + id.ToString());
             var time = message.Payload.WaitUntil - DateTime.Now;
             if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
             return MakeDecisionFromStrategy();
@@ -600,14 +630,15 @@ namespace Agent
 
         private bool Process(Message<MoveError> message)
         {
-            logger.Error("Move error");
+            logger.Error("Move error" + " AgentID: " + id.ToString());
+            deniedLastMove = true;
             position = message.Payload.Position;
             return MakeDecisionFromStrategy();
         }
 
         private bool Process(Message<PickUpPieceError> message)
         {
-            logger.Error("Pick up piece error");
+            logger.Error("Pick up piece error" + " AgentID: " + id.ToString());
             board[position.Y, position.X].distLearned = DateTime.Now;
             board[position.Y, position.X].distToPiece = int.MaxValue;
             return MakeDecisionFromStrategy();
@@ -615,14 +646,16 @@ namespace Agent
 
         private bool Process(Message<PutDownPieceError> message)
         {
-            logger.Error("Put down piece error");
+            logger.Error("Put down piece error" + " AgentID: " + id.ToString());
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) piece = null;
+            //TODO: check if goal
+            board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
             return MakeDecisionFromStrategy();
         }
 
         private bool Process(Message<UndefinedError> message)
         {
-            logger.Error("Undefined error");
+            logger.Error("Undefined error" + " AgentID: " + id.ToString());
             return MakeDecisionFromStrategy();
         }
     }
