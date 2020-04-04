@@ -17,7 +17,7 @@ namespace GameMaster
             var config = new NLog.Config.LoggingConfiguration();
 
             memoryTarget = new NLog.Targets.MemoryTarget();
-            memoryTarget.Layout = "${message}";
+            memoryTarget.Layout = "${time} [${level:}] - ${message}";
             config.AddRuleForAllLevels(memoryTarget);
             LogManager.Configuration = config;
         }
