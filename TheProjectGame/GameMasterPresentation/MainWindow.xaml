@@ -170,7 +170,7 @@
 					  Grid.Row="3" Grid.Column="1"
 					  Grid.ColumnSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" ScrollChanged="LogScrollViewer_ScrollChanged" LostFocus="LogScrollViewer_LostFocus">
                     <TextBlock Name="LogTextBlock" TextWrapping="Wrap" FontSize="14" FontFamily="Consolas">
                         
                     </TextBlock>
