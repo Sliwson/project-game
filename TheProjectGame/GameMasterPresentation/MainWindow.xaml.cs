@@ -336,18 +336,18 @@ namespace GameMasterPresentation
             {
                 //TODO: allow user to scroll
                 LogScrollViewer.ScrollToEnd();
-                IsUserScrollingLog = false;
+                //IsUserScrollingLog = false;
             }
-        }
-
-        private void LogScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {            
-            IsUserScrollingLog = true;
         }
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
         {
-            //IsUserScrollingLog = false;            
+            IsUserScrollingLog = false;            
+        }
+
+        private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = true;
         }
     }
 }
