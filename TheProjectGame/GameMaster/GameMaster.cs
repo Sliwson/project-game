@@ -15,6 +15,7 @@ namespace GameMaster
         public GameLogicComponent GameLogic { get; private set; }
         public List<Agent> Agents { get; private set; } = new List<Agent>();
 
+        public GMLogger Logger { get; private set; } = new GMLogger();
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
 
@@ -127,6 +128,8 @@ namespace GameMaster
 
         private void LoadDefaultConfiguration()
         {
+            Logger.Get().Info("Loading default configuration");
+
             var configurationProvider = new MockConfigurationProvider();
             Configuration = configurationProvider.GetConfiguration();
         }
