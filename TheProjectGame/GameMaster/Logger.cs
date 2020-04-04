@@ -31,7 +31,7 @@ namespace GameMaster
         {
             var logs = new List<string>(memoryTarget.Logs);
             logs = logs.TakeLast(logs.Count - logsRead).ToList();
-            logsRead = logs.Count;
+            logsRead += logs.Count;
             return logs;
         }
     }

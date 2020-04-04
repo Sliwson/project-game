@@ -79,8 +79,15 @@ namespace GameMasterPresentation
 
         private void Update(double dt)
         {
-            dt /= 1000.0;
             gameMaster.Update(dt);
+            FlushLogs();
+        }
+
+        private void FlushLogs()
+        {
+            var logs = gameMaster.Logger.GetPendingLogs();
+            foreach (var log in logs)
+                UpdateLog(log);
         }
 
         private void Abort()
