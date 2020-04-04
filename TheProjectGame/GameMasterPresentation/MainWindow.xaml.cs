@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,11 +30,14 @@ namespace GameMasterPresentation
 
         private bool IsStartedGamePaused = false;
 
-        DispatcherTimer timer;
+        private DispatcherTimer timer;
+        private DateTime timeDiffStart;
+        private TimeSpan timeDiff;
 
-        Random random = new Random();
+        private Random random = new Random();
 
-        StringBuilder logStringBuilder = new StringBuilder();
+        private StringBuilder logStringBuilder = new StringBuilder();
+        private bool IsUserScrollingLog = false;
 
         public MainWindow()
         {
@@ -47,9 +51,12 @@ namespace GameMasterPresentation
 
         private void TimerEvent(object sender, EventArgs e)
         {
-            Update(timer.Interval.Milliseconds);
-            UpdateLog("Twoja stara nie ma dzieci ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
+            timeDiff = DateTime.Now - timeDiffStart;
+            timeDiffStart = DateTime.Now;
+            Update(timeDiff.TotalMilliseconds);
+            UpdateLog($"Timespan: {timeDiff.TotalMilliseconds} sample looooooooooooooooggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
             //UpdateBoard();
+            
         }
 
         private void GenerateBoard(Canvas canvas)
@@ -325,7 +332,22 @@ namespace GameMasterPresentation
         {
             logStringBuilder.AppendLine(text);
             LogTextBlock.Text = logStringBuilder.ToString();
-            LogScrollViewer.ScrollToEnd();
+            if (IsUserScrollingLog == false)
+            {
+                //TODO: allow user to scroll
+                LogScrollViewer.ScrollToEnd();
+                //IsUserScrollingLog = false;
+            }
+        }
+
+        private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = false;            
+        }
+
+        private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = true;
         }
     }
 }
