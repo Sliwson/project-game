@@ -88,8 +88,6 @@ namespace AgentTests
         {
             Assert.AreEqual(agent.id, 0);
 
-            agent.JoinTheGame();
-
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
 
             Assert.AreEqual(agent.id, 1);
@@ -370,7 +368,7 @@ namespace AgentTests
         {
             var agent = new Agent.Agent(false);
             agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
+            agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
             Assert.AreEqual(agent.agentState, AgentState.WaitingForStart);
 
@@ -381,7 +379,7 @@ namespace AgentTests
         {
             var agent = new Agent.Agent(false);
             agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
+            agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
             Assert.AreEqual(agent.agentState, AgentState.WaitingForJoin);
         }

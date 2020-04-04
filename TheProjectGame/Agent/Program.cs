@@ -29,7 +29,12 @@ namespace Agent
             agent.CsIP = agentConfiguration.CsIP;
             agent.CsPort = agentConfiguration.CsPort;
             agent.team = agentConfiguration.teamID == "red" ? TeamId.Red : TeamId.Blue;
-            agent.JoinTheGame();
+            agent.Update(0);
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(500);
+                agent.Update(0.5);
+            }
         }
     }
 }

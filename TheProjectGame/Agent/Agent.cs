@@ -21,8 +21,6 @@ namespace Agent
 
         private const bool endIfUnexpectedAction = false;
 
-        private const int sleepInterval = 50;
-
         private const int maxSkipCount = int.MaxValue;
 
         private int skipCount;
@@ -38,8 +36,6 @@ namespace Agent
         private IStrategy strategy;
 
         private List<BaseMessage> injectedMessages;
-
-        public int penaltyTime;
 
         private double remainingPenalty;
 
@@ -79,14 +75,11 @@ namespace Agent
 
         public bool deniedLastMove;
 
-        private bool runningAsync = false;
-
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
         public Agent(bool wantsToBeLeader = false)
         {
             this.wantsToBeLeader = wantsToBeLeader;
-            penaltyTime = 0;
             piece = null;
             lastAskedTeammate = 0;
             deniedLastMove = false;
@@ -122,26 +115,10 @@ namespace Agent
             logger.Info("Initialize: Agent initialized" + " AgentID: " + id.ToString());
         }
 
-        private void Penalty()
-        {
-            if (!runningAsync)
-                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
-            Thread.Sleep(penaltyTime);
-            penaltyTime = 0;
-        }
-
         private void SetPenalty(ActionType action)
         {
             var ret = penalties.TryGetValue(action, out TimeSpan span);
-            if (ret)
-            {
-                penaltyTime = (int)span.TotalMilliseconds;
-                remainingPenalty += span.TotalSeconds;
-            }
-            else
-            {
-                penaltyTime = 0;
-            }
+            if (ret) remainingPenalty += span.TotalSeconds;
         }
 
         public void SetDoNothingStrategy()
@@ -222,63 +199,8 @@ namespace Agent
             }
         }
 
-        private bool WaitForJoin()
-        {
-            if (agentState != AgentState.WaitingForJoin)
-            {
-                logger.Warn("Wait for join: Agent not waiting for join. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString());
-                return true;
-            }
-            return AcceptMessage(WaitForMessage(MessageId.JoinResponse));
-        }
-
-        private bool WaitForStart()
-        {
-            if (agentState != AgentState.WaitingForStart)
-            {
-                logger.Warn("Wait for start: Agent not waiting for start. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString());
-                return true;
-            }
-            return AcceptMessage(WaitForMessage(MessageId.StartGameMessage));
-        }
-
-        private void MainLoop()
-        {
-            while (true)
-            {
-                BaseMessage message = GetMessage();
-                if (message == null && skipCount < maxSkipCount)
-                {
-                    skipCount++;
-                    continue;
-                }
-                skipCount = 0;
-                bool ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
-                if (ret) break;
-                Thread.Sleep(500);
-                //Penalty();
-            }
-            logger.Warn("Main loop break");
-        }
-
-        public void JoinTheGame()
-        {
-            if (agentState != AgentState.Created) { logger.Error("Join the game: Agent is not created. Not join the game. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString()); return; }
-            runningAsync = true;
-            agentState = AgentState.WaitingForJoin;
-            SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
-            if (strategy is DoNothingStrategy) { logger.Error("Join the game: Not join the game. Strategy is DoNothing." + " AgentID: " + id.ToString()); return; }
-            if (WaitForJoin()) { logger.Error("Join the game: Not join the game." + " AgentID: " + id.ToString()); return; }
-            if (WaitForStart()) { logger.Error("Join the game: Not join the game." + " AgentID: " + id.ToString()); return; }
-            Penalty();
-            MainLoop();
-        }
-
         public void Update(double dt)
         {
-            if (runningAsync)
-                logger.Error("Running update in multi threaded process, id: " + " AgentID: " + id.ToString());
-            runningAsync = false;
             if (remainingPenalty == double.MaxValue) return;
             remainingPenalty = Math.Max(0.0, remainingPenalty - dt);
             if (remainingPenalty > 0.0) return;
@@ -477,32 +399,6 @@ namespace Agent
             return message;
         }
 
-        private BaseMessage WaitForMessage()
-        {
-            if (!runningAsync)
-                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
-            BaseMessage message = GetMessage();
-            while (message == null)
-            {
-                Thread.Sleep(sleepInterval);
-                message = GetMessage();
-            }
-            return message;
-        }
-
-        private BaseMessage WaitForMessage(MessageId messageId)
-        {
-            if (!runningAsync)
-                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
-            BaseMessage message = GetMessage(messageId);
-            while (message == null)
-            {
-                Thread.Sleep(sleepInterval);
-                message = GetMessage(messageId);
-            }
-            return message;
-        }
-
         public void InjectMessage(BaseMessage message)
         {
             injectedMessages.Add(message);
@@ -648,7 +544,11 @@ namespace Agent
 
         private bool Process(Message<ExchangeInformationPayload> message)
         {
-            if (agentState != AgentState.InGame && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.InGame)
+            {
+                logger.Warn("Process exchange information payload: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
+            }
             if (message.Payload.Leader)
             {
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + id.ToString());
@@ -663,7 +563,11 @@ namespace Agent
 
         private bool Process(Message<JoinResponse> message)
         {
-            if (agentState != AgentState.WaitingForJoin && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.WaitingForJoin)
+            {
+                logger.Warn("Process join response: Agent not waiting for join" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
+            }
             if (message.Payload.Accepted)
             {
                 bool wasWaiting = agentState == AgentState.WaitingForJoin;
@@ -680,7 +584,11 @@ namespace Agent
 
         private bool Process(Message<StartGamePayload> message)
         {
-            if (agentState != AgentState.WaitingForStart && endIfUnexpectedMessage) return true;
+            if (agentState != AgentState.WaitingForStart)
+            {
+                logger.Warn("Process start game payload: Agent not waiting for startjoin" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedMessage) return true;
+            }
             Initialize(message.Payload.LeaderId, message.Payload.TeamId, message.Payload.BoardSize, message.Payload.GoalAreaHeight, message.Payload.Position, message.Payload.AlliesIds, message.Payload.Penalties, message.Payload.ShamPieceProbability);
             if (id != message.Payload.AgentId)
             {
@@ -699,18 +607,9 @@ namespace Agent
         private bool Process(Message<IgnoredDelayError> message)
         {
             logger.Error("IgnoredDelay error" + " AgentID: " + id.ToString());
-            if (runningAsync)
-            {
-                var time = message.Payload.RemainingDelay;
-                if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
-                return MakeDecisionFromStrategy();
-            }
-            else
-            {
-                var time = message.Payload.RemainingDelay;
-                if (remainingPenalty != double.MaxValue) remainingPenalty = Math.Max(0.0, time.TotalSeconds);
-                return false;
-            }
+            var time = message.Payload.RemainingDelay;
+            if (remainingPenalty != double.MaxValue) remainingPenalty = Math.Max(0.0, time.TotalSeconds);
+            return false;
         }
 
         private bool Process(Message<MoveError> message)
