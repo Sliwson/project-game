@@ -53,6 +53,7 @@ namespace GameMaster
             BoardLogic.GenerateGoals();
 
             //TODO: send
+            Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             GameLogic.GetStartGameMessages();
         }
 
@@ -61,6 +62,7 @@ namespace GameMaster
             state = GameMasterState.Paused;
 
             //TODO: send
+            Logger.Get().Info("[GM] Pausing game");
             GameLogic.GetPauseMessages();
         }
 
@@ -69,6 +71,7 @@ namespace GameMaster
             state = GameMasterState.InGame;
 
             //TODO: send
+            Logger.Get().Info("[GM] Resuming game");
             GameLogic.GetResumeMessages();
         }
 
@@ -85,6 +88,9 @@ namespace GameMaster
                 agent.Update(dt);
 
             var messages = GetIncomingMessages();
+            if (messages.Count > 0)
+                Logger.Get().Info("[GM] {count} messages in queue", messages.Count);
+
             foreach (var message in messages)
             {
                 var response = currentMessageProcessor.ProcessMessage(message);
@@ -97,6 +103,7 @@ namespace GameMaster
                 state = GameMasterState.Summary;
 
                 //TODO: send
+                Logger.Get().Info("[GM] Ending game");
                 GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
             }
         }
@@ -128,7 +135,7 @@ namespace GameMaster
 
         private void LoadDefaultConfiguration()
         {
-            Logger.Get().Info("Loading default configuration");
+            Logger.Get().Info("[GM] Loading default configuration");
 
             var configurationProvider = new MockConfigurationProvider();
             Configuration = configurationProvider.GetConfiguration();
