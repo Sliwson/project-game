@@ -90,12 +90,15 @@ namespace GameMaster
 
             var messages = GetIncomingMessages();
             if (messages.Count > 0)
-                Logger.Get().Info("[GM] {count} messages in queue", messages.Count);
-
-            foreach (var message in messages)
             {
-                var response = currentMessageProcessor.ProcessMessage(message);
-                //TODO: send response
+                Logger.Get().Info("[GM] Processing {n} messages", messages.Count);
+                NLog.NestedDiagnosticsContext.Push("\t");
+                foreach (var message in messages)
+                {
+                    var response = currentMessageProcessor.ProcessMessage(message);
+                    //TODO: send response
+                }
+                NLog.NestedDiagnosticsContext.Pop();
             }
 
             var result = ScoreComponent.GetGameResult();
