@@ -15,6 +15,7 @@ namespace GameMaster
         public GameLogicComponent GameLogic { get; private set; }
         public List<Agent> Agents { get; private set; } = new List<Agent>();
 
+        public GMLogger Logger { get; private set; } = new GMLogger();
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
 
@@ -23,6 +24,7 @@ namespace GameMaster
 
         public GameMaster()
         {
+            Logger.Get().Info("[GM] Creating GameMaster");
             LoadDefaultConfiguration();
 
             ConnectionLogic = new ConnectionLogicComponent(this);
@@ -52,6 +54,7 @@ namespace GameMaster
             BoardLogic.GenerateGoals();
 
             //TODO: send
+            Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             GameLogic.GetStartGameMessages();
         }
 
@@ -60,6 +63,7 @@ namespace GameMaster
             state = GameMasterState.Paused;
 
             //TODO: send
+            Logger.Get().Info("[GM] Pausing game");
             GameLogic.GetPauseMessages();
         }
 
@@ -68,6 +72,7 @@ namespace GameMaster
             state = GameMasterState.InGame;
 
             //TODO: send
+            Logger.Get().Info("[GM] Resuming game");
             GameLogic.GetResumeMessages();
         }
 
@@ -84,10 +89,16 @@ namespace GameMaster
                 agent.Update(dt);
 
             var messages = GetIncomingMessages();
-            foreach (var message in messages)
+            if (messages.Count > 0)
             {
-                var response = currentMessageProcessor.ProcessMessage(message);
-                //TODO: send response
+                Logger.Get().Info("[GM] Processing {n} messages", messages.Count);
+                NLog.NestedDiagnosticsContext.Push("    ");
+                foreach (var message in messages)
+                {
+                    var response = currentMessageProcessor.ProcessMessage(message);
+                    //TODO: send response
+                }
+                NLog.NestedDiagnosticsContext.Pop();
             }
 
             var result = ScoreComponent.GetGameResult();
@@ -96,6 +107,7 @@ namespace GameMaster
                 state = GameMasterState.Summary;
 
                 //TODO: send
+                Logger.Get().Info("[GM] Ending game");
                 GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
             }
         }
@@ -103,6 +115,11 @@ namespace GameMaster
         public Agent GetAgent(int agentId)
         {
             return Agents.FirstOrDefault(a => a.Id == agentId);
+        }
+
+        public void OnDestroy()
+        {
+            Logger.OnDestroy();
         }
 
         //TODO: move to messaging system
@@ -127,6 +144,8 @@ namespace GameMaster
 
         private void LoadDefaultConfiguration()
         {
+            Logger.Get().Info("[GM] Loading default configuration");
+
             var configurationProvider = new MockConfigurationProvider();
             Configuration = configurationProvider.GetConfiguration();
         }
