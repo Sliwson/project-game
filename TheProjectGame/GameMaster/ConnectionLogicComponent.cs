@@ -17,14 +17,17 @@ namespace GameMaster
         private GameMaster gameMaster;
         private List<int> bannedIds = new List<int>();
         private List<Agent> lobby = new List<Agent>();
+        private NLog.Logger logger;
 
         public ConnectionLogicComponent(GameMaster gameMaster)
         {
             this.gameMaster = gameMaster;
+            logger = gameMaster.Logger.Get();
         }
 
         public List<Agent> FlushLobby()
         {
+            logger.Info("[Conection] Flushing lobby with {count} agents", lobby.Count);
             var returnLobby = new List<Agent>();
             foreach (var a in lobby)
                 returnLobby.Add(a);
@@ -35,11 +38,17 @@ namespace GameMaster
 
         public BaseMessage ProcessMessage(BaseMessage message)
         {
+            logger.Info("[Connection] Received message {type} from id {id}", message.MessageId, message.AgentId);
+
             if (bannedIds.Contains(message.AgentId))
+            {
+                logger.Warn("[Connection] Rejecting - agent is banned");
                 return MessageFactory.GetMessage(new UndefinedError(new System.Drawing.Point(-1, -1), false), message.AgentId);
+            }
 
             if (message.MessageId != MessageId.JoinRequest)
             {
+                logger.Warn("[Connection] Banning agent - message other than join sent in connection phase");
                 bannedIds.Add(message.AgentId);
                 return MessageFactory.GetMessage(new UndefinedError(new System.Drawing.Point(-1, -1), false), message.AgentId);
             }
@@ -53,15 +62,22 @@ namespace GameMaster
 
             //check limits
             if (!CanAddAgentForTeam(payload.TeamId))
+            {
+                logger.Warn("[Connection] Rejecting - team {team} is full", payload.TeamId);
                 return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId));
+            }
 
             if (payload.IsTeamLeader && !CanAddTeamLeader(payload.TeamId))
+            {
+                logger.Warn("[Connection] Rejecting - team {team} already has a team leader", payload.TeamId);
                 return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId));
+            }
 
             //create new agent
             var agent = new Agent(message.AgentId, payload.TeamId, gameMaster.BoardLogic.GetRandomPositionForAgent(payload.TeamId), payload.IsTeamLeader);
             gameMaster.BoardLogic.PlaceAgent(agent);
             lobby.Add(agent);
+            logger.Info("[Connection] Accepting - agent placed on position {pos}", agent.Position);
             return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId));
         } 
 

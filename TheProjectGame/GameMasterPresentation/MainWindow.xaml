@@ -8,113 +8,114 @@
 		Title="Game Master" Height="720" Width="1280"
 		WindowStartupLocation="CenterScreen"
 		WindowState="Maximized"
-		Loaded="Window_Loaded">
-	<Window.Resources>
-		<Style TargetType="Window">
-			<Setter Property="FontSize" Value="18"/>
-		</Style>
-		<Style x:Key="GridRows" TargetType="Grid">
-			<Setter Property="Margin" Value="8,8,8,0"/>
-		</Style>
-		<Style x:Key="GroupBoxBasic" TargetType="GroupBox">
-			<Setter Property="BorderThickness" Value="2"/>
-			<Setter Property="FontSize" Value="18"/>
-		</Style>
-		<Style x:Key="GroupBoxGridRows" TargetType="GroupBox" BasedOn="{StaticResource GroupBoxBasic}">
-			<Setter Property="Margin" Value="16,15,16,0"/>
-			<Setter Property="BorderThickness" Value="2"/>
-			<Setter Property="FontSize" Value="18"/>
-		</Style>
-		<Style x:Key="GroupBoxInGrid" TargetType="GroupBox" BasedOn="{StaticResource GroupBoxBasic}">
-			<Setter Property="Margin" Value="8,8,8,8"/>
-		</Style>
-		<Style x:Key="ScrollViewerBoard" TargetType="ScrollViewer">
-			<Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-			<Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
-			<Setter Property="Margin" Value="8,8,8,8"/>
-		</Style>
-		<Style x:Key="CanvasBoard" TargetType="Canvas">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="Width" Value="auto"/>
-			<Setter Property="Height" Value="auto"/>
-			<Setter Property="MinWidth" Value="400"/>
-			<Setter Property="MinHeight" Value="400"/>
-			<Setter Property="VerticalAlignment" Value="Stretch"/>
-			<Setter Property="HorizontalAlignment" Value="Stretch"/>
-		</Style>
-		<Style x:Key="GridConfiguration" TargetType="Grid">
-			<Setter Property="Margin" Value="20,0,20,0"/>
-			<Setter Property="VerticalAlignment" Value="Center"/>
-		</Style>
-		<Style x:Key="ButtonConfiguration" TargetType="Button">
-			<Setter Property="Width" Value="80"/>
-			<Setter Property="Height" Value="40"/>
-			<Setter Property="Margin" Value="5,0,5,0"/>
-			<Setter Property="VerticalContentAlignment" Value="Center"/>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-		</Style>
-		<Style x:Key="ButtonGame" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-			<Setter Property="Height" Value="30"/>
-			<Setter Property="Width" Value="100"/>
-			<Setter Property="Margin" Value="0,5,0,5"/>
-			<Setter Property="VerticalContentAlignment" Value="Center"/>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="GroupName" Value="Radio"/>
-			<Setter Property="FontSize" Value="20"/>
-		</Style>
-	</Window.Resources>
+		Loaded="Window_Loaded"
+		Closing="Window_Closing">
+    <Window.Resources>
+        <Style TargetType="Window">
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style x:Key="GridRows" TargetType="Grid">
+            <Setter Property="Margin" Value="8,8,8,0" />
+        </Style>
+        <Style x:Key="GroupBoxBasic" TargetType="GroupBox">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style x:Key="GroupBoxGridRows" TargetType="GroupBox" BasedOn="{StaticResource GroupBoxBasic}">
+            <Setter Property="Margin" Value="16,15,16,0" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style x:Key="GroupBoxInGrid" TargetType="GroupBox" BasedOn="{StaticResource GroupBoxBasic}">
+            <Setter Property="Margin" Value="8,8,8,8" />
+        </Style>
+        <Style x:Key="ScrollViewerBoard" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Margin" Value="8,8,8,8" />
+        </Style>
+        <Style x:Key="CanvasBoard" TargetType="Canvas">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="auto" />
+            <Setter Property="Height" Value="auto" />
+            <Setter Property="MinWidth" Value="400" />
+            <Setter Property="MinHeight" Value="400" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+        <Style x:Key="GridConfiguration" TargetType="Grid">
+            <Setter Property="Margin" Value="20,0,20,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ButtonConfiguration" TargetType="Button">
+            <Setter Property="Width" Value="80" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="5,0,5,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ButtonGame" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Margin" Value="0,5,0,5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="GroupName" Value="Radio" />
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="30"/>
+            <RowDefinition />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <!--MainGrid-->
         <Grid Name="MainGrid" Grid.Row="0" Style="{StaticResource GridRows}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="7*" MinWidth="200"/>
-                <ColumnDefinition Width="2*" MinWidth="200"/>
-                <ColumnDefinition Width="2*" MinWidth="200"/>
+                <ColumnDefinition Width="7*" MinWidth="200" />
+                <ColumnDefinition Width="2*" MinWidth="200" />
+                <ColumnDefinition Width="2*" MinWidth="200" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="4*"/>
-                <RowDefinition Height="4*"/>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="4*" />
+                <RowDefinition Height="4*" />
             </Grid.RowDefinitions>
-            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration" 
+            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration"
 					  Grid.Row="0" Grid.Column="0"
 					  Style="{StaticResource GroupBoxInGrid}">
                 <Grid Style="{StaticResource GridConfiguration}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="Game Configuration:" FontSize="25" VerticalAlignment="Center"/>
-                    <Label Grid.Column="1" Content="game_config.json" FontSize="20" VerticalAlignment="Center" ClipToBounds="True"/>
-                    <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}"/>
-                    <Label Grid.Column="3" Content="OK" Foreground="Green" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Label Grid.Column="0" Content="Game Configuration:" FontSize="25" VerticalAlignment="Center" />
+                    <Label Grid.Column="1" Content="game_config.json" FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
+                    <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" />
+                    <Label Grid.Column="3" Content="OK" Foreground="Green" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
             </GroupBox>
-            <GroupBox Header="Score" 
-					  Grid.Row="0" Grid.Column="1" 
+            <GroupBox Header="Score"
+					  Grid.Row="0" Grid.Column="1"
 					  Grid.RowSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
                 <Grid Style="{StaticResource GridConfiguration}">
                     <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
                     </Grid.ColumnDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="Red:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Red"/>
-                    <Label Grid.Row="1" Grid.Column="0" Content="Blue:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Blue"/>
-                    <Label Grid.Row="0" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30"/>
-                    <Label Grid.Row="1" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="Red:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Red" />
+                    <Label Grid.Row="1" Grid.Column="0" Content="Blue:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Blue" />
+                    <Label Grid.Row="0" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="RedTeamScoreLabel"/>
+                    <Label Grid.Row="1" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="BlueTeamScoreLabel"/>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Game"
@@ -123,20 +124,26 @@
 					  Style="{StaticResource GroupBoxInGrid}">
                 <Grid Style="{StaticResource GridConfiguration}">
                     <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
                     <RadioButton Content="Connect"
 							 Grid.Row="0"
-							 Style="{StaticResource ButtonGame}"/>
+							 Style="{StaticResource ButtonGame}"
+                             Name="ConnectRadioButton"
+                             Checked="ConnectRadioButton_Checked" />
                     <RadioButton Content="Start"
 							 Grid.Row="1"
-							 Style="{StaticResource ButtonGame}"/>
+							 Style="{StaticResource ButtonGame}"
+                             Name="StartRadioButton"
+                             Checked="StartRadioButton_Checked" />
                     <RadioButton Content="Pause"
 							 Grid.Row="2"
-							 Style="{StaticResource ButtonGame}"/>
-
+							 Style="{StaticResource ButtonGame}"
+                             Name="PauseRadioButton"
+                             Checked="PauseRadioButton_Checked"
+                             IsEnabled="False"/>
                 </Grid>
             </GroupBox>
             <ScrollViewer Style="{StaticResource ScrollViewerBoard}"
@@ -145,34 +152,39 @@
                 <Label VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
 				   HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                     <Canvas x:Name="BoardCanvas" Style="{StaticResource CanvasBoard}">
-
                     </Canvas>
                 </Label>
             </ScrollViewer>
 
-            <GroupBox Name="AgentsGroupBox" Header="Connected Agents" 
+            <GroupBox Name="AgentsGroupBox" Header="Connected Agents"
 					  Grid.Row="2" Grid.Column="1"
 					  Grid.ColumnSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
-
+                <StackPanel>
+                    <Label Content="Agents Count:"/>
+                    <Label Name="AgentsCountLabel" Content="0"/>
+                    <Button Content="Breakpoint" Click="BreakpointButton_Click"/>
+                </StackPanel>
             </GroupBox>
-            <GroupBox Name="LogsGroupBox" Header="Logs" 
+            <GroupBox Name="LogsGroupBox" Header="Logs"
 					  Grid.Row="3" Grid.Column="1"
 					  Grid.ColumnSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" GotFocus="LogScrollViewer_GotFocus" LostFocus="LogScrollViewer_LostFocus">
+                    <TextBlock Name="LogTextBlock" TextWrapping="Wrap" FontSize="14" FontFamily="Consolas">
+                        
+                    </TextBlock>
+                </ScrollViewer>
             </GroupBox>
-            
-
         </Grid>
         <!--/MainGrid-->
         <Border BorderThickness="0,2,0,0" BorderBrush="DarkGray"
 				Grid.Row="1">
-            <Label 
+            <Label
 				Content="Current State"
 				Padding="20,0,20,5"
 				VerticalAlignment="Center"
-				FontSize="15"/>
+				FontSize="15" />
         </Border>
     </Grid>
-	
 </Window>
