@@ -91,11 +91,14 @@ namespace GameMaster
         public BaseMessage ProcessMessage(BaseMessage message)
         {
             logger.Info("[Logic] Received message {type} from id {id}", message.MessageId, message.AgentId);
+            NLog.NestedDiagnosticsContext.Push("\t");
             var agent = gameMaster.GetAgent(message.AgentId);
 
             if (agent == null)
             {
                 logger.Warn("[Logic] Cannot find agent");
+                NLog.NestedDiagnosticsContext.Pop();
+
                 if (message.MessageId != MessageId.JoinRequest)
                     return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), message.AgentId);
                 else
@@ -105,12 +108,16 @@ namespace GameMaster
             if (!agent.CanPerformAction())
             {
                 logger.Info("[Logic] Agent delayed ({time})", agent.Timeout);
+                NLog.NestedDiagnosticsContext.Pop();
+
                 return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);
             }
 
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
             {
                 logger.Info("[Logic] Agent has to exchange information");
+                NLog.NestedDiagnosticsContext.Pop();
+
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
             }
 
@@ -118,12 +125,14 @@ namespace GameMaster
             {
                 var timeout = gameMaster.Configuration.GetTimeouts();
                 var time = timeout[message.MessageId.ToActionType()].TotalSeconds;
-                logger.Info("[Logic] Adding timeout for request ({time})", time);
+                logger.Info("[Logic] Adding timeout for request ({time}s)", time);
                 agent.AddTimeout(time);
             }
 
             dynamic dynamicMessage = message;
-            return Process(dynamicMessage, agent);
+            var response = Process(dynamicMessage, agent);
+            NLog.NestedDiagnosticsContext.Pop();
+            return response;
         }
 
         private BaseMessage Process(Message<CheckShamRequest> message, Agent agent)
@@ -193,8 +202,11 @@ namespace GameMaster
             bool canMove = board.CanMove(agent, message.Payload.Direction);
             if (canMove)
             {
-                logger.Info("[Logic] Agent can move from {pos} in direction {dir}", agent.Position, message.Payload.Direction);
                 board.MoveAgent(agent, message.Payload.Direction);
+            }
+            else
+            {
+                logger.Info("[Logic] Agent can't move from {pos} in direction {dir}", agent.Position, message.Payload.Direction);
             }
 
             return MessageFactory.GetMessage(new MoveResponse(canMove, agent.Position, board.CalculateDistanceToNearestPiece(agent.Position)), agent.Id);
