@@ -30,6 +30,8 @@ namespace GameMaster
 
         public void GenerateGoals()
         {
+            gameMaster.Logger.Get().Info("[Board] Generating goals");
+
             var conf = gameMaster.Configuration;
 
             //blue
@@ -58,6 +60,9 @@ namespace GameMaster
 
                     treshold--;
                 }
+
+                if (treshold == 0)
+                    gameMaster.Logger.Get().Error("[Board] Cannot generate goal {nr} in rectangle {rectangle}", i, rectangle);
             }
         }
         
@@ -93,8 +98,10 @@ namespace GameMaster
 
         public void PlaceAgent(Agent a)
         {
-            //TODO: check errors
             var f = GetField(a.Position);
+            if (f.Agent != null)
+                gameMaster.Logger.Get().Error("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
+
             f.Agent = a;
         }
 
@@ -144,7 +151,7 @@ namespace GameMaster
             var agentPoint = GetPointWhere(f => f.Agent == agent);
             if (!agentPoint.HasValue)
             {
-                //TODO: log error
+                gameMaster.Logger.Get().Error("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
                 return false;
             }
 
@@ -189,8 +196,9 @@ namespace GameMaster
             var isSham = random.NextDouble() < gameMaster.Configuration.ShamProbability;
             var piece = new Piece(isSham);
             fields[point.Y, point.X].Pieces.Push(piece);
-
             piecesDropped++;
+
+            gameMaster.Logger.Get().Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
@@ -199,6 +207,9 @@ namespace GameMaster
             field.Agent = null;
             var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
+            
+            gameMaster.Logger.Get().Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint); 
+           
             newField.Agent = agent;
             agent.Position = newPoint;
         }
