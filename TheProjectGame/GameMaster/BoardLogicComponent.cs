@@ -15,6 +15,7 @@ namespace GameMaster
         private Random random = new Random();
         private GameMaster gameMaster;
         private double timeFromLastDrop = 0;
+        private NLog.Logger logger;
 
         public BoardLogicComponent(GameMaster gameMaster, Point size)
         {
@@ -25,12 +26,14 @@ namespace GameMaster
 
             this.size = size;
             this.gameMaster = gameMaster;
+            logger = gameMaster.Logger.Get();
+
             piecesDropped = 0;
         }
 
         public void GenerateGoals()
         {
-            gameMaster.Logger.Get().Info("[Board] Generating goals");
+            logger.Info("[Board] Generating goals");
 
             var conf = gameMaster.Configuration;
 
@@ -62,7 +65,7 @@ namespace GameMaster
                 }
 
                 if (treshold == 0)
-                    gameMaster.Logger.Get().Error("[Board] Cannot generate goal {nr} in rectangle {rectangle}", i, rectangle);
+                    logger.Error("[Board] Cannot generate goal {nr} in rectangle {rectangle}", i, rectangle);
             }
         }
         
@@ -100,7 +103,7 @@ namespace GameMaster
         {
             var f = GetField(a.Position);
             if (f.Agent != null)
-                gameMaster.Logger.Get().Error("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
+                logger.Error("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
 
             f.Agent = a;
         }
@@ -151,7 +154,7 @@ namespace GameMaster
             var agentPoint = GetPointWhere(f => f.Agent == agent);
             if (!agentPoint.HasValue)
             {
-                gameMaster.Logger.Get().Error("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
+                logger.Error("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
                 return false;
             }
 
@@ -198,7 +201,7 @@ namespace GameMaster
             fields[point.Y, point.X].Pieces.Push(piece);
             piecesDropped++;
 
-            gameMaster.Logger.Get().Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
+            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
@@ -208,7 +211,7 @@ namespace GameMaster
             var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
             
-            gameMaster.Logger.Get().Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint); 
+            logger.Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint); 
            
             newField.Agent = agent;
             agent.Position = newPoint;
