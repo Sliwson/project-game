@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -32,6 +33,8 @@ namespace GameMasterPresentation
 
         Random random = new Random();
 
+        StringBuilder logStringBuilder = new StringBuilder();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -45,6 +48,7 @@ namespace GameMasterPresentation
         private void TimerEvent(object sender, EventArgs e)
         {
             Update(timer.Interval.Milliseconds);
+            UpdateLog("Twoja stara nie ma dzieci ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
             //UpdateBoard();
         }
 
@@ -315,6 +319,13 @@ namespace GameMasterPresentation
 
             RedTeamScoreLabel.Content = scoreRed.ToString();
             BlueTeamScoreLabel.Content = scoreBlue.ToString();
+        }
+
+        private void UpdateLog(string text)
+        {
+            logStringBuilder.AppendLine(text);
+            LogTextBlock.Text = logStringBuilder.ToString();
+            LogScrollViewer.ScrollToEnd();
         }
     }
 }
