@@ -90,7 +90,7 @@ namespace GameMaster
 
         public BaseMessage ProcessMessage(BaseMessage message)
         {
-            logger.Info("[Logic] Received message {type} from id {id}", message.MessageId, message.AgentId);
+            logger.Info("[Logic] Received message {type} from Agent {id}", message.MessageId, message.AgentId);
             NLog.NestedDiagnosticsContext.Push("    ");
             var agent = gameMaster.GetAgent(message.AgentId);
 
@@ -121,7 +121,7 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
             }
 
-            if (agent != null && message.MessageId != MessageId.JoinRequest && message.MessageId != MessageId.PickUpPieceRequest)
+            if (message.MessageId != MessageId.JoinRequest && message.MessageId != MessageId.PickUpPieceRequest)
             {
                 var timeout = gameMaster.Configuration.GetTimeouts();
                 var time = timeout[message.MessageId.ToActionType()].TotalSeconds;
