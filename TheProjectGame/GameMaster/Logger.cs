@@ -15,10 +15,18 @@ namespace GameMaster
         public GMLogger()
         {
             var config = new NLog.Config.LoggingConfiguration();
+            var layout = "${time} [${level:}] - ${message}";
 
             memoryTarget = new NLog.Targets.MemoryTarget();
-            memoryTarget.Layout = "${time} [${level:}] - ${message}";
+            memoryTarget.Layout = layout;
+
+            var fileTarget = new NLog.Targets.FileTarget();
+            fileTarget.FileName = "gm-log.txt";
+            fileTarget.Layout = layout;
+
             config.AddRuleForAllLevels(memoryTarget);
+            config.AddRuleForAllLevels(fileTarget);
+
             LogManager.Configuration = config;
         }
 
