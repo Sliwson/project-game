@@ -8,13 +8,14 @@ namespace GameMasterTests
 {
     public class BoardLogicTest
     {
+        private GameMaster.GameMaster gameMaster;
         private BoardLogicComponent boardLogicComponent;
         private Point size;
 
         [SetUp]
         public void Setup()
         {
-            var gameMaster = new GameMaster.GameMaster();
+            gameMaster = new GameMaster.GameMaster();
             boardLogicComponent = gameMaster.BoardLogic;
             size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
@@ -67,6 +68,56 @@ namespace GameMasterTests
             for (int y = 0; y < 3; y++)
                 for (int x = 0; x < 3; x++)
                     Assert.AreEqual(schema[y, x], result[y, x]);
+        }
+
+        [Test]
+        public void IsFieldInGoalArea_ShouldReturnTrueForBlueTeam()
+        {
+            var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
+            for (int y = 0; y < goalAreaHeight; y++)
+                for (int x = 0; x < size.X; x++)
+                    Assert.IsTrue(boardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
+        }
+        
+        [Test]
+        public void IsFieldInGoalArea_ShouldReturnTrueForRedTeam()
+        {
+            var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
+            for (int y = size.Y - 1; y >= size.Y - goalAreaHeight; y--)
+                for (int x = 0; x < size.X; x++)
+                    Assert.IsTrue(boardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
+        }
+
+        [Test]
+        public void IsFieldInTaskArea_ShouldReturnTrueForTaskArea()
+        {
+            var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
+            for (int y = goalAreaHeight; y < size.Y - goalAreaHeight; y++)
+                for (int x = 0; x < size.X; x++)
+                    Assert.IsTrue(boardLogicComponent.IsFieldInTaskArea(new Point(x, y)));
+        }
+
+        [Test]
+        public void AllFieldsShouldBeCoveredInTaskGoalAreaTests()
+        {
+            var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
+            var wasCovered = new bool[size.Y, size.X];
+
+            for (int y = 0; y < goalAreaHeight; y++)
+                for (int x = 0; x < size.X; x++)
+                    wasCovered[y, x] = true;
+
+            for (int y = size.Y - 1; y >= size.Y - goalAreaHeight; y--)
+                for (int x = 0; x < size.X; x++)
+                    wasCovered[y, x] = true;
+
+            for (int y = goalAreaHeight; y < size.Y - goalAreaHeight; y++)
+                for (int x = 0; x < size.X; x++)
+                    wasCovered[y, x] = true;
+
+            for (int y = 0; y < size.Y; y++)
+                for (int x = 0; x < size.X; x++)
+                    Assert.IsTrue(wasCovered[y, x]);
         }
 
         private bool IsFieldClean(Field f)
