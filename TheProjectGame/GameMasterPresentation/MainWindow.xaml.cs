@@ -48,7 +48,7 @@ namespace GameMasterPresentation
         private void TimerEvent(object sender, EventArgs e)
         {
             Update(timer.Interval.Milliseconds);
-            UpdateLog("Twoja stara nie ma dzieci ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
+            UpdateLog("sample looooooooooooooooggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
             //UpdateBoard();
         }
 
