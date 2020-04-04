@@ -510,7 +510,7 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
-            MockMessageSendFunction(this, message);
+            MockMessageSendFunction?.Invoke(this, message);
         }
 
         public bool AcceptMessage(BaseMessage message)
