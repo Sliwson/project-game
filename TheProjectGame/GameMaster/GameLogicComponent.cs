@@ -91,7 +91,7 @@ namespace GameMaster
         public BaseMessage ProcessMessage(BaseMessage message)
         {
             logger.Info("[Logic] Received message {type} from id {id}", message.MessageId, message.AgentId);
-            NLog.NestedDiagnosticsContext.Push("\t");
+            NLog.NestedDiagnosticsContext.Push("    ");
             var agent = gameMaster.GetAgent(message.AgentId);
 
             if (agent == null)
