@@ -38,6 +38,7 @@ namespace Agent
         {
             Point target = Common.GetFieldInDirection(agent.position, direction);
             return OnBoard(target, agent.boardSize) &&
+                !InGoalArea(agent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.boardSize, agent.goalAreaSize) &&
                 DateTime.Now - agent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.averageTime);
         }
 
@@ -45,7 +46,7 @@ namespace Agent
         {
             if (agent.team == TeamId.Red)
             {
-                foreach (var direction in new [] { Direction.North, Direction.West, Direction.East })
+                foreach (var direction in new[] { Direction.North, Direction.West, Direction.East })
                     if (CouldMove(agent, direction, shortTime)) return direction;
                 return Direction.North;
             }
@@ -72,7 +73,7 @@ namespace Agent
 
         public static bool DoesAgentKnowGoalInfo(Agent agent)
         {
-            return agent.board[agent.position.Y, agent.position.X].goalInfo == GoalInformation.NoInformation;
+            return agent.board[agent.position.Y, agent.position.X].goalInfo != GoalInformation.NoInformation;
         }
 
         public static int FindClosest(Agent agent, int shortTime, out Direction direction)

@@ -110,7 +110,7 @@ namespace GameMaster
                 logger.Info("[Logic] Agent delayed ({time})", agent.Timeout);
                 NLog.NestedDiagnosticsContext.Pop();
 
-                return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);
+                return MessageFactory.GetMessage(new IgnoredDelayError(TimeSpan.FromSeconds(agent.Timeout)), agent.Id);
             }
 
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
