@@ -226,6 +226,17 @@ namespace GameMaster
             return pieces.Min(p => GetDistance(p, from));
         }
 
+        public bool IsFieldInGoalArea(Point position)
+        {
+            var goalSize = gameMaster.Configuration.GoalAreaHeight;
+            return position.Y < goalSize || position.Y >= size.Y - goalSize;
+        }
+
+        public bool IsFieldInTaskArea(Point position)
+        {
+            return !IsFieldInGoalArea(position);
+        }
+
         private int GetDistance(Point p1, Point p2)
         {
             return Math.Abs(p1.X - p2.X) +  Math.Abs(p1.Y - p2.Y);
