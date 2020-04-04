@@ -54,7 +54,7 @@ namespace GameMasterTests
         {
             boardLogicComponent.Clean();
             ChangeBoard();
-            Assert.AreEqual(2, boardLogicComponent.GetPointsWhere(p => p.State == FieldState.FakeGoal).Count);
+            Assert.AreEqual(2, boardLogicComponent.GetPointsWhere(p => p.State == FieldState.CompletedGoal).Count);
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace GameMasterTests
         {
             Action<Field, Point> changeField = (Field f, Point position) => {
                 f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
-                f.State = FieldState.FakeGoal;
+                f.State = FieldState.CompletedGoal;
                 f.Pieces.Push(new Piece(false));
             };
 
