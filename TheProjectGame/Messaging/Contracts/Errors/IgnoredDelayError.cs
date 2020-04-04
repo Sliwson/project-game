@@ -7,11 +7,11 @@ namespace Messaging.Contracts.Errors
     {
         public MessageId GetMessageId() => MessageId.IgnoredDelayError;
 
-        public DateTime WaitUntil { get; private set; }
+        public TimeSpan RemainingDelay { get; private set; }
 
-        public IgnoredDelayError(DateTime waitUntil)
+        public IgnoredDelayError(TimeSpan remainingDelay)
         {
-            WaitUntil = waitUntil;
+            RemainingDelay = remainingDelay;
         }
     }
 }
