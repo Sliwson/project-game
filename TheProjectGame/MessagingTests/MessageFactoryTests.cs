@@ -114,7 +114,7 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new MoveError(new Point(3,3))),
                 MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere)),
                 MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding)),
-                MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(5.0))),
+                MessageFactory.GetMessage(new IgnoredDelayError(TimeSpan.FromSeconds(5.0))),
                 MessageFactory.GetMessage(new UndefinedError(new Point(3,3), false))
             };
         }

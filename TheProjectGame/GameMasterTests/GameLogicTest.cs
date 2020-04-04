@@ -42,7 +42,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             agent.AddTimeout(10.0);
-            var startTime = DateTime.Now.AddSeconds(10);
+            var initialDelay = TimeSpan.FromSeconds(10.0);
 
             gameMaster.Agents.Add(agent);
 
@@ -51,7 +51,7 @@ namespace GameMasterTests
             Assert.AreEqual(MessageId.IgnoredDelayError, response.MessageId);
 
             var payload = response.Payload as IgnoredDelayError;
-            var timeDiff = startTime - payload.WaitUntil;
+            var timeDiff = initialDelay - payload.RemainingDelay;
             Assert.AreEqual(0, (int)timeDiff.TotalSeconds);
         }
 
@@ -247,7 +247,6 @@ namespace GameMasterTests
 
         #endregion
 
-
         #region Exchange information (response)
 
         [Test]
@@ -287,7 +286,6 @@ namespace GameMasterTests
         }
 
         #endregion
-
 
         #region Join
 

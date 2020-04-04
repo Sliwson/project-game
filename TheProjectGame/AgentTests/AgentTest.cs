@@ -146,41 +146,41 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.AcceptMessage(GetBaseMessage(new DiscoverResponse(new int[,] { { 1, 2, 3 }, { 2, 2, 2 }, { 3, 0, 2 } }), 1));
+            agent.AcceptMessage(GetBaseMessage(new DiscoverResponse(new int[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }), 1));
             var position = agent.position;
 
-            Assert.AreEqual(agent.board[position.Y, position.X].distToPiece, 2);
+            Assert.AreEqual(agent.board[position.Y, position.X].distToPiece, 5);
             if (position.Y + 1 < agent.boardSize.Y)
             {
-                Assert.AreEqual(agent.board[position.Y + 1, position.X].distToPiece, 2);
+                Assert.AreEqual(agent.board[position.Y + 1, position.X].distToPiece, 8);
                 if (position.X + 1 < agent.boardSize.X)
                 {
-                    Assert.AreEqual(agent.board[position.Y + 1, position.X + 1].distToPiece, 3);
+                    Assert.AreEqual(agent.board[position.Y + 1, position.X + 1].distToPiece, 9);
                 }
                 if (position.X - 1 >= 0)
                 {
-                    Assert.AreEqual(agent.board[position.Y + 1, position.X - 1].distToPiece, 1);
+                    Assert.AreEqual(agent.board[position.Y + 1, position.X - 1].distToPiece, 7);
                 }
             }
             if (position.X - 1 >= 0)
             {
-                Assert.AreEqual(agent.board[position.Y, position.X - 1].distToPiece, 2);
+                Assert.AreEqual(agent.board[position.Y, position.X - 1].distToPiece, 4);
                 if (position.Y - 1 >= 0)
                 {
-                    Assert.AreEqual(agent.board[position.Y - 1, position.X - 1].distToPiece, 3);
+                    Assert.AreEqual(agent.board[position.Y - 1, position.X - 1].distToPiece, 1);
                 }
             }
             if (position.Y - 1 >= 0)
             {
-                Assert.AreEqual(agent.board[position.Y - 1, position.X].distToPiece, 0);
+                Assert.AreEqual(agent.board[position.Y - 1, position.X].distToPiece, 2);
                 if (position.X + 1 < agent.boardSize.X)
                 {
-                    Assert.AreEqual(agent.board[position.Y - 1, position.X + 1].distToPiece, 2);
+                    Assert.AreEqual(agent.board[position.Y - 1, position.X + 1].distToPiece, 3);
                 }
             }
             if (position.X + 1 < agent.boardSize.X)
             {
-                Assert.AreEqual(agent.board[position.Y, position.X + 1].distToPiece, 2);
+                Assert.AreEqual(agent.board[position.Y, position.X + 1].distToPiece, 6);
             }
         }
 
@@ -266,13 +266,14 @@ namespace AgentTests
         }
 
         [Test]
-        public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Not_Move_And_Update_Board_State()
+        public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Update_Position_And_Board_State()
         {
             agent.agentState = AgentState.InGame;
+            agent.position = new Point(0, 0);
 
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(false, new Point(1, 0), 2), 1));
 
-            Assert.AreEqual(agent.position, new Point(0, 0));
+            Assert.AreEqual(agent.position, new Point(1, 0));
             Assert.AreNotEqual(agent.board[agent.position.Y, agent.position.X].deniedMove, startTime);
         }
 

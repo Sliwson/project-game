@@ -98,7 +98,7 @@ namespace GameMaster
             }
 
             if (!agent.CanPerformAction())
-                return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);
+                return MessageFactory.GetMessage(new IgnoredDelayError(TimeSpan.FromSeconds(agent.Timeout)), agent.Id);
 
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
