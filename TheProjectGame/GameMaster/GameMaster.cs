@@ -24,6 +24,7 @@ namespace GameMaster
 
         public GameMaster()
         {
+            Logger.Get().Info("[GM] Creating GameMaster");
             LoadDefaultConfiguration();
 
             ConnectionLogic = new ConnectionLogicComponent(this);
