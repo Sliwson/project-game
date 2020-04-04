@@ -25,6 +25,8 @@ namespace Agent
 
         private const int maxSkipCount = int.MaxValue;
 
+        private int skipCount;
+
         public int id;
 
         private int lastAskedTeammate;
@@ -38,6 +40,8 @@ namespace Agent
         private List<BaseMessage> injectedMessages;
 
         public int penaltyTime;
+
+        private DateTime waitUntil;
 
         public TeamId team;
 
@@ -75,6 +79,8 @@ namespace Agent
 
         public bool deniedLastMove;
 
+        private bool runningAsync = false;
+
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
         public Agent(bool wantsToBeLeader = false)
@@ -84,6 +90,8 @@ namespace Agent
             piece = null;
             lastAskedTeammate = 0;
             deniedLastMove = false;
+            waitUntil = DateTime.MinValue;
+            skipCount = 0;
             waitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
@@ -116,13 +124,25 @@ namespace Agent
 
         private void Penalty()
         {
+            if (!runningAsync)
+                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
             Thread.Sleep(penaltyTime);
             penaltyTime = 0;
         }
 
         private void SetPenalty(ActionType action)
         {
-            penaltyTime = penalties.TryGetValue(action, out TimeSpan span) ? (int)span.TotalMilliseconds : 0;
+            var ret = penalties.TryGetValue(action, out TimeSpan span);
+            if (ret)
+            {
+                penaltyTime = (int)span.TotalMilliseconds;
+                waitUntil = DateTime.Now + span;
+            }
+            else
+            {
+                penaltyTime = 0;
+                waitUntil = DateTime.Now;
+            }
         }
 
         public void SetDoNothingStrategy()
@@ -225,7 +245,6 @@ namespace Agent
 
         private void MainLoop()
         {
-            int skipCount = 0;
             while (true)
             {
                 BaseMessage message = GetMessage();
@@ -246,6 +265,7 @@ namespace Agent
         public void JoinTheGame()
         {
             if (agentState != AgentState.Created) { logger.Error("Join the game: Agent is not created. Not join the game. Agent state: " + agentState.ToString() + " AgentID: " + id.ToString()); return; }
+            runningAsync = true;
             agentState = AgentState.WaitingForJoin;
             SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
             if (strategy is DoNothingStrategy) { logger.Error("Join the game: Not join the game. Strategy is DoNothing." + " AgentID: " + id.ToString()); return; }
@@ -253,6 +273,58 @@ namespace Agent
             if (WaitForStart()) { logger.Error("Join the game: Not join the game." + " AgentID: " + id.ToString()); return; }
             Penalty();
             MainLoop();
+        }
+
+        public void Update(double dt)
+        {
+            if (runningAsync)
+                logger.Error("Running update in multi threaded process, id: " + " AgentID: " + id.ToString());
+            runningAsync = false;
+            var time = waitUntil - DateTime.Now;
+            if (time.CompareTo(TimeSpan.Zero) > 0) return;
+            switch (agentState)
+            {
+                case AgentState.Created:
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
+                    agentState = AgentState.WaitingForJoin;
+                    break;
+                case AgentState.WaitingForJoin:
+                    var joinResponse = GetMessage(MessageId.JoinResponse);
+                    if (joinResponse == null) return;
+                    if (AcceptMessage(joinResponse))
+                    {
+                        waitUntil = DateTime.MaxValue;
+                        return;
+                    }
+                    break;
+                case AgentState.WaitingForStart:
+                    var startResponse = GetMessage(MessageId.StartGameMessage);
+                    if (startResponse == null) return;
+                    if (AcceptMessage(startResponse))
+                    {
+                        waitUntil = DateTime.MaxValue;
+                        return;
+                    }
+                    break;
+                case AgentState.InGame:
+                    BaseMessage message = GetMessage();
+                    if (message == null && skipCount < maxSkipCount)
+                    {
+                        skipCount++;
+                        return;
+                    }
+                    skipCount = 0;
+                    bool ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
+                    if (ret)
+                    {
+                        waitUntil = DateTime.MaxValue;
+                        return;
+                    }
+                    break;
+                default:
+                    logger.Error("Agent in unknown state: " + agentState.ToString() + " AgentID: " + id.ToString());
+                    break;
+            }
         }
 
         public bool Move(Direction direction)
@@ -407,6 +479,8 @@ namespace Agent
 
         private BaseMessage WaitForMessage()
         {
+            if (!runningAsync)
+                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
             BaseMessage message = GetMessage();
             while (message == null)
             {
@@ -418,6 +492,8 @@ namespace Agent
 
         private BaseMessage WaitForMessage(MessageId messageId)
         {
+            if (!runningAsync)
+                logger.Error("Running sleep in single threaded process, id: " + " AgentID: " + id.ToString());
             BaseMessage message = GetMessage(messageId);
             while (message == null)
             {
@@ -434,7 +510,7 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
-            MockMessageSendFunction?.Invoke(this, message);
+            MockMessageSendFunction(this, message);
         }
 
         public bool AcceptMessage(BaseMessage message)
@@ -623,9 +699,19 @@ namespace Agent
         private bool Process(Message<IgnoredDelayError> message)
         {
             logger.Error("IgnoredDelay error" + " AgentID: " + id.ToString());
-            var time = message.Payload.WaitUntil - DateTime.Now;
-            if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
-            return MakeDecisionFromStrategy();
+            if (runningAsync)
+            {
+                var time = message.Payload.WaitUntil - DateTime.Now;
+                if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
+                return MakeDecisionFromStrategy();
+            }
+            else
+            {
+                if (waitUntil != DateTime.MaxValue) waitUntil = message.Payload.WaitUntil;
+                var time = waitUntil - DateTime.Now;
+                if (time.CompareTo(TimeSpan.Zero) > 0) return false;
+                else return MakeDecisionFromStrategy();
+            }
         }
 
         private bool Process(Message<MoveError> message)
