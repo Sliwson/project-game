@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace GameMasterPresentation
 {
@@ -18,16 +20,36 @@ namespace GameMasterPresentation
         private List<Label> BoardGoalAreas;
 
         private BoardField[,] BoardFields;
+
+        private BoardField[] AgentFields;
         private int BoardRows;
         private int BoardColumns;
         private int BoardGoalAreaRows;
+        private double FieldSize;
+
+        private bool IsStartedGamePaused = false;
+
+        DispatcherTimer timer;
+
+        Random random = new Random();
+
+        StringBuilder logStringBuilder = new StringBuilder();
 
         public MainWindow()
         {
-            BoardRows = 12;
-            BoardColumns = 7;
-            BoardGoalAreaRows = 3;
             InitializeComponent();
+            gameMaster = new GameMaster.GameMaster();
+            timer = new DispatcherTimer();
+            //33-> 30FPS
+            timer.Interval = TimeSpan.FromMilliseconds(33);
+            timer.Tick += TimerEvent;
+        }
+
+        private void TimerEvent(object sender, EventArgs e)
+        {
+            Update(timer.Interval.Milliseconds);
+            UpdateLog("Twoja stara nie ma dzieci ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
+            //UpdateBoard();
         }
 
         private void GenerateBoard(Canvas canvas)
@@ -44,6 +66,7 @@ namespace GameMasterPresentation
                 heightStep = 20;
 
             double min = Math.Min(heightStep, widthStep);
+            FieldSize = min;
             heightStep = min;
             widthStep = min;
             canvas.Width = widthStep * BoardColumns;
@@ -177,6 +200,36 @@ namespace GameMasterPresentation
             }
         }
 
+        private void GetGameMasterConfiguration()
+        {
+            BoardRows = gameMaster.Configuration.BoardY;
+            BoardColumns = gameMaster.Configuration.BoardX;
+            BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
+        }
+
+        private void SetAgentFields(Canvas canvas)
+        {
+            AgentFields = new BoardField[gameMaster.Agents.Count];
+            for (int i = 0; i < AgentFields.Length; i++)
+            {
+                AgentFields[i] = new BoardField(canvas, FieldSize, FieldSize, 0, 0, Colors.Transparent);
+                SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
+            }
+        }
+
+        private void SetSingleAgent(GameMaster.Agent agent, BoardField boardField)
+        {
+            var pos = agent.Position;
+            //for testing
+            //double pointX2 = random.Next(0, BoardColumns * (int)FieldSize);
+            double pointX = FieldSize * pos.X;
+            double pointY = FieldSize * (BoardRows - 1 - pos.Y);
+            bool isRed = agent.Team == Messaging.Enumerators.TeamId.Red ? true : false;
+            bool hasPiece = agent.Piece == null ? false : true;
+            boardField.Move(pointX, pointY);
+            BoardField.SetAgentBoardField(boardField, agent.Id, isRed, hasPiece);
+        }
+
         private void MockBoard()
         {
             BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
@@ -202,8 +255,77 @@ namespace GameMasterPresentation
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            InitPresentation();
+            GetGameMasterConfiguration();
             GenerateBoard(BoardCanvas);
-            MockBoard();
+            //MockBoard();            
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Abort();
+        }
+
+        private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            ConnectRadioButton.IsEnabled = false;
+            StartRadioButton.Content = "In Game";
+            if (IsStartedGamePaused == true)
+            {
+                //resume game
+                ResumeGame();
+                timer.Start();
+                IsStartedGamePaused = false;
+                PauseRadioButton.Content = "Pause";
+            }
+            else
+            {
+                StartGame();
+                SetAgentFields(BoardCanvas);
+                //TODO:
+                //do it better
+                AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
+
+                timer.Start();
+                PauseRadioButton.IsEnabled = true;
+            }
+        }
+
+        private void PauseRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            StartRadioButton.Content = "Resume";
+            PauseRadioButton.Content = "Paused";
+            IsStartedGamePaused = true;
+
+            //pause game in game master
+            timer.Stop();
+            PauseGame();
+        }
+
+        private void BreakpointButton_Click(object sender, RoutedEventArgs e)
+        {
+            ;
+        }
+
+        private void SetScore()
+        {
+            int scoreRed = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Red);
+            int scoreBlue = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Blue);
+
+            RedTeamScoreLabel.Content = scoreRed.ToString();
+            BlueTeamScoreLabel.Content = scoreBlue.ToString();
+        }
+
+        private void UpdateLog(string text)
+        {
+            logStringBuilder.AppendLine(text);
+            LogTextBlock.Text = logStringBuilder.ToString();
+            LogScrollViewer.ScrollToEnd();
         }
     }
 }
