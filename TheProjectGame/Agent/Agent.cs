@@ -41,7 +41,7 @@ namespace Agent
 
         public int penaltyTime;
 
-        private DateTime waitUntil;
+        private double remainingPenalty;
 
         public TeamId team;
 
@@ -90,7 +90,7 @@ namespace Agent
             piece = null;
             lastAskedTeammate = 0;
             deniedLastMove = false;
-            waitUntil = DateTime.MinValue;
+            remainingPenalty = 0.0;
             skipCount = 0;
             waitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
@@ -136,12 +136,11 @@ namespace Agent
             if (ret)
             {
                 penaltyTime = (int)span.TotalMilliseconds;
-                waitUntil = DateTime.Now + span;
+                remainingPenalty += span.TotalSeconds;
             }
             else
             {
                 penaltyTime = 0;
-                waitUntil = DateTime.Now;
             }
         }
 
@@ -275,13 +274,14 @@ namespace Agent
             MainLoop();
         }
 
-        public void Update()
+        public void Update(double dt)
         {
             if (runningAsync)
                 logger.Error("Running update in multi threaded process, id: " + " AgentID: " + id.ToString());
             runningAsync = false;
-            var time = waitUntil - DateTime.Now;
-            if (time.CompareTo(TimeSpan.Zero) > 0) return;
+            if (remainingPenalty == double.MaxValue) return;
+            remainingPenalty = Math.Max(0.0, remainingPenalty - dt);
+            if (remainingPenalty > 0.0) return;
             switch (agentState)
             {
                 case AgentState.Created:
@@ -293,7 +293,7 @@ namespace Agent
                     if (joinResponse == null) return;
                     if (AcceptMessage(joinResponse))
                     {
-                        waitUntil = DateTime.MaxValue;
+                        remainingPenalty = double.MaxValue;
                         return;
                     }
                     break;
@@ -302,7 +302,7 @@ namespace Agent
                     if (startResponse == null) return;
                     if (AcceptMessage(startResponse))
                     {
-                        waitUntil = DateTime.MaxValue;
+                        remainingPenalty = double.MaxValue;
                         return;
                     }
                     break;
@@ -317,7 +317,7 @@ namespace Agent
                     bool ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
                     if (ret)
                     {
-                        waitUntil = DateTime.MaxValue;
+                        remainingPenalty = double.MaxValue;
                         return;
                     }
                     break;
@@ -708,9 +708,8 @@ namespace Agent
             else
             {
                 var time = message.Payload.RemainingDelay;
-                if (waitUntil != DateTime.MaxValue) waitUntil = DateTime.Now + time;
-                if (time.CompareTo(TimeSpan.Zero) > 0) return false;
-                else return MakeDecisionFromStrategy();
+                if (remainingPenalty != double.MaxValue) remainingPenalty = Math.Max(0.0, time.TotalSeconds);
+                return false;
             }
         }
 
