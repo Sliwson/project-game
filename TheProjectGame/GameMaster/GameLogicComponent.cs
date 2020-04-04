@@ -16,14 +16,17 @@ namespace GameMaster
     public class GameLogicComponent : IMessageProcessor
     {
         private GameMaster gameMaster;
+        private NLog.Logger logger;
         
         public GameLogicComponent(GameMaster gameMaster)
         {
             this.gameMaster = gameMaster;
+            logger = gameMaster.Logger.Get();
         }
 
         public List<BaseMessage> GetStartGameMessages()
         {
+            //TODO: refactor
             var agents = gameMaster.Agents;
             var config = gameMaster.Configuration;
             var messages = new List<BaseMessage>();
@@ -87,10 +90,12 @@ namespace GameMaster
 
         public BaseMessage ProcessMessage(BaseMessage message)
         {
+            logger.Info("[Logic] Received message {type} from id {id}", message.MessageId, message.AgentId);
             var agent = gameMaster.GetAgent(message.AgentId);
 
             if (agent == null)
             {
+                logger.Warn("[Logic] Cannot find agent");
                 if (message.MessageId != MessageId.JoinRequest)
                     return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), message.AgentId);
                 else
@@ -98,15 +103,23 @@ namespace GameMaster
             }
 
             if (!agent.CanPerformAction())
+            {
+                logger.Info("[Logic] Agent delayed ({time})", agent.Timeout);
                 return MessageFactory.GetMessage(new IgnoredDelayError(DateTime.Now.AddSeconds(agent.Timeout)), agent.Id);
+            }
 
             if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
+            {
+                logger.Info("[Logic] Agent has to exchange information");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+            }
 
             if (agent != null && message.MessageId != MessageId.JoinRequest && message.MessageId != MessageId.PickUpPieceRequest)
             {
                 var timeout = gameMaster.Configuration.GetTimeouts();
-                agent.AddTimeout(timeout[message.MessageId.ToActionType()].TotalSeconds);
+                var time = timeout[message.MessageId.ToActionType()].TotalSeconds;
+                logger.Info("[Logic] Adding timeout for request ({time})", time);
+                agent.AddTimeout(time);
             }
 
             dynamic dynamicMessage = message;
@@ -117,7 +130,10 @@ namespace GameMaster
         {
             //TODO: check error type
             if (agent.Piece == null)
+            {
+                logger.Info("[Logic] Check sham requested without a piece");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+            }
 
             return MessageFactory.GetMessage(new CheckShamResponse(agent.Piece.IsSham), agent.Id);
         }
@@ -125,7 +141,10 @@ namespace GameMaster
         private BaseMessage Process(Message<DestroyPieceRequest> message, Agent agent)
         {
             if (agent.Piece == null)
+            {
+                logger.Info("[Logic] DestroyPiece requested without a piece");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+            }
 
             agent.RemovePiece();
             return MessageFactory.GetMessage(new DestroyPieceResponse(), agent.Id);
@@ -141,7 +160,10 @@ namespace GameMaster
         {
             var targetAgent = gameMaster.GetAgent(message.Payload.AskedAgentId);
             if (targetAgent == null)
+            {
+                logger.Info("[Logic] ExchangeRequest for non-existent agent");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
+            }
 
             targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
             return MessageFactory.GetMessage(new ExchangeInformationPayload(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
@@ -150,7 +172,10 @@ namespace GameMaster
         private BaseMessage Process(Message<ExchangeInformationResponse> message, Agent agent)
         {
             if (!agent.CanExchange())
+            {
+                logger.Info("[Logic] Exchange response sent without permission");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
+            }
 
             agent.ClearExchangeState();
             return MessageFactory.GetMessage(message.Payload, message.Payload.RespondToId);
@@ -158,7 +183,7 @@ namespace GameMaster
 
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)
         {
-            // do not accept new agents during the game
+            logger.Info("[Logic] Rejecting join response");
             return MessageFactory.GetMessage(new JoinResponse(false, agent.Id), agent.Id);
         }
         
@@ -167,7 +192,10 @@ namespace GameMaster
             var board = gameMaster.BoardLogic;
             bool canMove = board.CanMove(agent, message.Payload.Direction);
             if (canMove)
+            {
+                logger.Info("[Logic] Agent can move from {pos} in direction {dir}", agent.Position, message.Payload.Direction);
                 board.MoveAgent(agent, message.Payload.Direction);
+            }
 
             return MessageFactory.GetMessage(new MoveResponse(canMove, agent.Position, board.CalculateDistanceToNearestPiece(agent.Position)), agent.Id);
         }
@@ -175,11 +203,17 @@ namespace GameMaster
         private BaseMessage Process(Message<PickUpPieceRequest> message, Agent agent)
         {
             if (agent.Piece != null)
+            {
+                logger.Info("[Logic] Agent cannot pick up a piece - it is already holding one");
                 return MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.Other), agent.Id);
+            }
 
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             if (field.Pieces.Count == 0)
+            {
+                logger.Info("[Logic] Agent cannot pick up a piece - field is empty");
                 return MessageFactory.GetMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere), agent.Id);
+            }
 
             agent.PickUpPiece(field.Pieces.Pop());
             return MessageFactory.GetMessage(new PickUpPieceResponse(), agent.Id);
@@ -188,7 +222,10 @@ namespace GameMaster
         private BaseMessage Process(Message<PutDownPieceRequest> message, Agent agent)
         {
             if (agent.Piece == null)
+            {
+                logger.Info("[Logic] Agent cannot put down a piece - it is not holding one");
                 return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), agent.Id);
+            }
 
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             if (field.State == FieldState.Empty)
@@ -198,14 +235,17 @@ namespace GameMaster
             else 
             {
                 //TODO: changes in specification? send information about result and add tests
+                //TODO: add new state to field state, do not leave pieces on  board. Hereby no log yet
                 if (field.Pieces.Count == 0)
                 {
                     field.Pieces.Push(agent.RemovePiece());
                     if (field.State == FieldState.Goal)
                         gameMaster.ScoreComponent.TeamScored(agent.Team);
                 }
-                else 
+                else
+                {
                     return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.CannotPutThere), agent.Id);
+                }
             }
 
             return MessageFactory.GetMessage(new PutDownPieceResponse(), agent.Id);
