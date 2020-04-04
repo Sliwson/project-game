@@ -275,7 +275,7 @@ namespace Agent
             MainLoop();
         }
 
-        public void Update(double dt)
+        public void Update()
         {
             if (runningAsync)
                 logger.Error("Running update in multi threaded process, id: " + " AgentID: " + id.ToString());

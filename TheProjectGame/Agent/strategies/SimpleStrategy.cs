@@ -90,7 +90,7 @@ namespace Agent.strategies
             discovered = false;
             Common.FindClosest(agent, shortTime, out Direction direction);
             if (agent.deniedLastMove && direction == agent.lastDirection)
-                direction = Common.GetOppositeDirection(direction);
+                direction = direction.GetOppositeDirection();
             return agent.Move(direction);
         }
 

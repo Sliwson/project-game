@@ -34,22 +34,6 @@ namespace Agent
             return position.X >= 0 && position.Y >= 0 && position.X < boardSize.X && position.Y < boardSize.Y;
         }
 
-        public static Direction GetOppositeDirection(Direction direction)
-        {
-            switch (direction)
-            {
-                case Direction.North:
-                    return Direction.South;
-                case Direction.South:
-                    return Direction.North;
-                case Direction.West:
-                    return Direction.East;
-                case Direction.East:
-                    return Direction.West;
-            }
-            return Direction.North;
-        }
-
         public static bool CouldMove(Agent agent, Direction direction, int shortTime)
         {
             Point target = Common.GetFieldInDirection(agent.position, direction);
