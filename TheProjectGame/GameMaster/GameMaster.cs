@@ -117,6 +117,11 @@ namespace GameMaster
             return Agents.FirstOrDefault(a => a.Id == agentId);
         }
 
+        public void OnDestroy()
+        {
+            Logger.OnDestroy();
+        }
+
         //TODO: move to messaging system
 #if DEBUG
         private List<BaseMessage> injectedMessages = new List<BaseMessage>();

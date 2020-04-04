@@ -42,5 +42,10 @@ namespace GameMaster
             logsRead += logs.Count;
             return logs;
         }
+
+        public void OnDestroy()
+        {
+            NLog.LogManager.Shutdown();
+        }
     }
 }
