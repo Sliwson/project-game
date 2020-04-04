@@ -701,14 +701,14 @@ namespace Agent
             logger.Error("IgnoredDelay error" + " AgentID: " + id.ToString());
             if (runningAsync)
             {
-                var time = message.Payload.WaitUntil - DateTime.Now;
+                var time = message.Payload.RemainingDelay;
                 if (time.CompareTo(TimeSpan.Zero) > 0) Thread.Sleep(time);
                 return MakeDecisionFromStrategy();
             }
             else
             {
-                if (waitUntil != DateTime.MaxValue) waitUntil = message.Payload.WaitUntil;
-                var time = waitUntil - DateTime.Now;
+                var time = message.Payload.RemainingDelay;
+                if (waitUntil != DateTime.MaxValue) waitUntil = DateTime.Now + time;
                 if (time.CompareTo(TimeSpan.Zero) > 0) return false;
                 else return MakeDecisionFromStrategy();
             }
