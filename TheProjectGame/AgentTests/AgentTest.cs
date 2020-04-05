@@ -328,7 +328,7 @@ namespace AgentTests
         #region PutDown
 
         [Test]
-        public void ProcessMessage_PutDownPieceResponse_DistToPiece_Should_Be_Updated_And_Agent_Should_Not_Have_Piece()
+        public void ProcessMessage_PutDownPieceResponse_Agent_Should_Not_Have_Piece()
         {
             agent.agentState = AgentState.InGame;
 
@@ -336,12 +336,10 @@ namespace AgentTests
             agent.piece = new Piece();
 
             Assert.IsNotNull(agent.piece);
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 1);
 
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
 
             Assert.IsNull(agent.piece);
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
         }
 
         [Test]
