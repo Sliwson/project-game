@@ -535,10 +535,27 @@ namespace Agent
                 if (endIfUnexpectedMessage) return ActionResult.Finish;
             }
             piece = null;
-            board[position.Y, position.X].distToPiece = 0;
-            board[position.Y, position.X].distLearned = DateTime.Now;
-            //TODO: check if goal
-            board[position.Y, position.X].goalInfo = GoalInformation.Goal;
+            switch (message.Payload.Result)
+            {
+                case PutDownPieceResult.NormalOnGoalField:
+                    board[position.Y, position.X].goalInfo = GoalInformation.Goal;
+                    break;
+                case PutDownPieceResult.NormalOnNonGoalField:
+                    board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
+                    //TODO: if not destroyed: pick up and update board
+                    //board[position.Y, position.X].distToPiece = 0;
+                    //board[position.Y, position.X].distLearned = DateTime.Now;
+                    break;
+                case PutDownPieceResult.ShamOnGoalArea:
+                    //TODO: if not destroyed: pick up and destroy
+                    break;
+                case PutDownPieceResult.TaskField:
+                    board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
+                    //TODO: if not destroyed: pick up and update board
+                    //board[position.Y, position.X].distToPiece = 0;
+                    //board[position.Y, position.X].distLearned = DateTime.Now;
+                    break;
+            }
             return MakeDecisionFromStrategy();
         }
 
@@ -657,8 +674,6 @@ namespace Agent
             }
             logger.Warn("Put down piece error" + " AgentID: " + id.ToString());
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) piece = null;
-            //TODO: check if goal
-            board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
             return MakeDecisionFromStrategy();
         }
 
