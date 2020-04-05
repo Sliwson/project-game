@@ -93,7 +93,7 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new JoinResponse(false, 333)),
                 MessageFactory.GetMessage(new MoveResponse(false, new Point(3,3), 2)),
                 MessageFactory.GetMessage(new PickUpPieceResponse()),
-                MessageFactory.GetMessage(new PutDownPieceResponse()),
+                MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea)),
                 MessageFactory.GetMessage(new StartGamePayload(
                                                     333,
                                                     new int[] { 666 },

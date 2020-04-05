@@ -40,7 +40,7 @@ namespace GameMaster
             //blue
             var rectangle = GetGoalAreaRectangle(TeamId.Blue);
             GenerateGoalFieldsInRectangle(rectangle, FieldState.Goal, conf.NumberOfGoals);
-            GenerateGoalFieldsInRectangle(rectangle, FieldState.FakeGoal, conf.NumberOfFakeGoals);
+            GenerateGoalFieldsInRectangle(rectangle, FieldState.CompletedGoal, conf.NumberOfFakeGoals);
             
             //red
             MirrorBlueGoalArea();
@@ -224,6 +224,17 @@ namespace GameMaster
                 return -1;
 
             return pieces.Min(p => GetDistance(p, from));
+        }
+
+        public bool IsFieldInGoalArea(Point position)
+        {
+            var goalSize = gameMaster.Configuration.GoalAreaHeight;
+            return position.Y < goalSize || position.Y >= size.Y - goalSize;
+        }
+
+        public bool IsFieldInTaskArea(Point position)
+        {
+            return !IsFieldInGoalArea(position);
         }
 
         private int GetDistance(Point p1, Point p2)

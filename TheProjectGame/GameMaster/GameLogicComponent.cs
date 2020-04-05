@@ -239,28 +239,33 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), agent.Id);
             }
 
+            var isTaskArea = gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position);
             var field = gameMaster.BoardLogic.GetField(agent.Position);
-            if (field.State == FieldState.Empty)
+            var piece = agent.RemovePiece();
+
+            // Field is in task area
+            if (isTaskArea)
             {
-                field.Pieces.Push(agent.RemovePiece());
-            }
-            else 
-            {
-                //TODO: changes in specification? send information about result and add tests
-                //TODO: add new state to field state, do not leave pieces on  board. Hereby no log yet
-                if (field.Pieces.Count == 0)
-                {
-                    field.Pieces.Push(agent.RemovePiece());
-                    if (field.State == FieldState.Goal)
-                        gameMaster.ScoreComponent.TeamScored(agent.Team);
-                }
-                else
-                {
-                    return MessageFactory.GetMessage(new PutDownPieceError(PutDownPieceErrorSubtype.CannotPutThere), agent.Id);
-                }
+                field.Pieces.Push(piece);
+                return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), agent.Id);
             }
 
-            return MessageFactory.GetMessage(new PutDownPieceResponse(), agent.Id);
+            // Sham in goal area
+            if(piece.IsSham)
+            {
+                return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea), agent.Id);
+            }
+
+            // Normal on goal
+            if (field.State == FieldState.Goal)
+            {
+                gameMaster.ScoreComponent.TeamScored(agent.Team);
+                field.State = FieldState.CompletedGoal;
+                return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnGoalField), agent.Id);
+            }
+
+            // Normal on NonGoal / CompletedGoal
+            return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnNonGoalField), agent.Id);
         }
     }
 }
