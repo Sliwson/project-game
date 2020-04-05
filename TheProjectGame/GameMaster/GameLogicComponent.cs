@@ -241,24 +241,30 @@ namespace GameMaster
 
             var isTaskArea = gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position);
             var field = gameMaster.BoardLogic.GetField(agent.Position);
+            var piece = agent.RemovePiece();
 
-            field.Pieces.Push(agent.RemovePiece());
-            
+            // Field is in task area
             if (isTaskArea)
+            {
+                field.Pieces.Push(piece);
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), agent.Id);
+            }
 
-            var piece = field.Pieces.Pop();
-
+            // Sham in goal area
             if(piece.IsSham)
+            {
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea), agent.Id);
+            }
 
-            if(field.State == FieldState.Goal)
+            // Normal on goal
+            if (field.State == FieldState.Goal)
             {
                 gameMaster.ScoreComponent.TeamScored(agent.Team);
                 field.State = FieldState.CompletedGoal;
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnGoalField), agent.Id);
             }
 
+            // Normal on NonGoal / CompletedGoal
             return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnNonGoalField), agent.Id);
         }
     }

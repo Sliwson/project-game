@@ -483,7 +483,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_PutDownPieceRequest_ShouldDestroyNormalPieceInGoalArea()
         {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             // Make sure the field is in goal area - if test fails here, change position / configuration
             Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
@@ -511,7 +511,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_PutDownPieceRequest_ShouldDestroyShamInGoalArea()
         {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             // Make sure the field is in goal area - if test fails here, change position / configuration
             Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
@@ -539,7 +539,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_PutDownPieceRequest_ShouldCompleteGoalIfPieceIsNormal()
         {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             // Make sure the field is in goal area - if test fails here, change position / configuration
             Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
@@ -569,7 +569,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_PutDownPieceRequest_ShouldNotCompleteGoalIfPieceIsSham()
         {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             // Make sure the field is in goal area - if test fails here, change position / configuration
             Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
