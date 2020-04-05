@@ -138,7 +138,7 @@ namespace GameMasterPresentation
                     //define when goal is completed
                     BoardField.SetGoalBoardField(boardField, hasPiece, true);
                     break;
-                case GameMaster.FieldState.FakeGoal:
+                case GameMaster.FieldState.CompletedGoal:
                     BoardField.SetGoalBoardField(boardField, hasPiece, false);
                     break;
                 default:

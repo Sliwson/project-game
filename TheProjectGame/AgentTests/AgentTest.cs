@@ -340,7 +340,7 @@ namespace AgentTests
             Assert.IsNotNull(agent.piece);
             Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 1);
 
-            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
 
             Assert.IsNull(agent.piece);
             Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
@@ -355,7 +355,7 @@ namespace AgentTests
 
             Assert.IsNotNull(agent.piece);
 
-            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), 1));
 
             Assert.IsNull(agent.piece);

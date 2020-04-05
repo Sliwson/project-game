@@ -40,7 +40,7 @@ namespace GameMaster
             //blue
             var rectangle = GetGoalAreaRectangle(TeamId.Blue);
             GenerateGoalFieldsInRectangle(rectangle, FieldState.Goal, conf.NumberOfGoals);
-            GenerateGoalFieldsInRectangle(rectangle, FieldState.FakeGoal, conf.NumberOfFakeGoals);
+            GenerateGoalFieldsInRectangle(rectangle, FieldState.CompletedGoal, conf.NumberOfFakeGoals);
             
             //red
             MirrorBlueGoalArea();
