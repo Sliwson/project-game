@@ -542,18 +542,13 @@ namespace Agent
                     break;
                 case PutDownPieceResult.NormalOnNonGoalField:
                     board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
-                    //TODO: if not destroyed: pick up and update board
-                    //board[position.Y, position.X].distToPiece = 0;
-                    //board[position.Y, position.X].distLearned = DateTime.Now;
                     break;
                 case PutDownPieceResult.ShamOnGoalArea:
-                    //TODO: if not destroyed: pick up and destroy
                     break;
                 case PutDownPieceResult.TaskField:
                     board[position.Y, position.X].goalInfo = GoalInformation.NoGoal;
-                    //TODO: if not destroyed: pick up and update board
-                    //board[position.Y, position.X].distToPiece = 0;
-                    //board[position.Y, position.X].distLearned = DateTime.Now;
+                    board[position.Y, position.X].distToPiece = 0;
+                    board[position.Y, position.X].distLearned = DateTime.Now;
                     break;
             }
             return MakeDecisionFromStrategy();
