@@ -9,6 +9,7 @@ namespace Agent
         Created,
         WaitingForJoin,
         WaitingForStart,
-        InGame
+        InGame,
+        Finished
     }
 }
