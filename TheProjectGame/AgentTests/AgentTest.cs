@@ -23,7 +23,7 @@ namespace AgentTests
         {
             agent = new Agent.Agent(false);
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
+            agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             agent.SetDoNothingStrategy();
             startTime = DateTime.Now;
         }
@@ -33,7 +33,7 @@ namespace AgentTests
         {
             agent = new Agent.Agent(false);
             agent.id = 1;
-            agent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 }, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
+            agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 }, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             Assert.AreEqual(agent.isLeader, true);
         }
 
@@ -43,7 +43,7 @@ namespace AgentTests
             var agent = new Agent.Agent(true);
             agent.id = 1;
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, System.TimeSpan>(), 0.5f);
+            agent.initializeComponent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, System.TimeSpan>(), 0.5f);
             Assert.AreEqual(agent.isLeader, false);
         }
 
