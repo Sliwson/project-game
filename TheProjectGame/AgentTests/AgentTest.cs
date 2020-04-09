@@ -21,7 +21,7 @@ namespace AgentTests
         [SetUp]
         public void Setup()
         {
-            agent = new Agent.Agent(false);
+            agent = new Agent.Agent(TeamId.Blue, false);
             var teamMates = new int[3] { 2, 3, 4 };
             agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             agent.SetDoNothingStrategy();
@@ -31,7 +31,7 @@ namespace AgentTests
         [Test]
         public void Set_agent_TeamLeader()
         {
-            agent = new Agent.Agent(false);
+            agent = new Agent.Agent(TeamId.Blue, false);
             agent.id = 1;
             agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 }, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
             Assert.AreEqual(agent.isLeader, true);
@@ -40,7 +40,7 @@ namespace AgentTests
         [Test]
         public void Set_other_agent_TeamLeader()
         {
-            var agent = new Agent.Agent(true);
+            var agent = new Agent.Agent(TeamId.Blue, true);
             agent.id = 1;
             var teamMates = new int[3] { 2, 3, 4 };
             agent.initializeComponent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, System.TimeSpan>(), 0.5f);
@@ -364,7 +364,7 @@ namespace AgentTests
         [Test]
         public void Joins_When_Accepted()
         {
-            var agent = new Agent.Agent(false);
+            var agent = new Agent.Agent(TeamId.Blue, false);
             agent.SetDoNothingStrategy();
             agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
@@ -375,7 +375,7 @@ namespace AgentTests
         [Test]
         public void Does_Not_Join_When_Rejected()
         {
-            var agent = new Agent.Agent(false);
+            var agent = new Agent.Agent(TeamId.Blue, false);
             agent.SetDoNothingStrategy();
             agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));

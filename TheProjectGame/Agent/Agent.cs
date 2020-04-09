@@ -83,7 +83,7 @@ namespace Agent
 
         public InitializeComponent initializeComponent;
 
-        public Agent(bool wantsToBeLeader = false)
+        public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {
             this.wantsToBeLeader = wantsToBeLeader;
             piece = null;
@@ -95,6 +95,7 @@ namespace Agent
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
             agentState = AgentState.Created;
+            team = teamId;
             logger = NLog.LogManager.GetCurrentClassLogger();
             initializeComponent = new InitializeComponent(this);
         }      
