@@ -28,8 +28,6 @@ namespace GameMaster
                     }
                     return new PresentationField(hasPiece, isSham, State);
 
-                case FieldState.Goal:
-                case FieldState.CompletedGoal:
                 default:
                     return new PresentationField(false, false, State);
             }

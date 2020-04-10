@@ -1,14 +1,13 @@
-﻿using Messaging.Contracts;
+﻿using GameMaster.Interfaces;
+using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
-using Messaging.Implementation;
-using Messaging.Enumerators;
 using Messaging.Contracts.GameMaster;
+using Messaging.Enumerators;
+using Messaging.Implementation;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
-using GameMaster.Interfaces;
 using System.Linq;
 
 namespace GameMaster
@@ -17,7 +16,7 @@ namespace GameMaster
     {
         private GameMaster gameMaster;
         private NLog.Logger logger;
-        
+
         public GameLogicComponent(GameMaster gameMaster)
         {
             this.gameMaster = gameMaster;
@@ -195,7 +194,7 @@ namespace GameMaster
             logger.Info("[Logic] Rejecting join response");
             return MessageFactory.GetMessage(new JoinResponse(false, agent.Id), agent.Id);
         }
-        
+
         private BaseMessage Process(Message<MoveRequest> message, Agent agent)
         {
             var board = gameMaster.BoardLogic;
@@ -211,7 +210,7 @@ namespace GameMaster
 
             return MessageFactory.GetMessage(new MoveResponse(canMove, agent.Position, board.CalculateDistanceToNearestPiece(agent.Position)), agent.Id);
         }
-        
+
         private BaseMessage Process(Message<PickUpPieceRequest> message, Agent agent)
         {
             if (agent.Piece != null)
@@ -251,7 +250,7 @@ namespace GameMaster
             }
 
             // Sham in goal area
-            if(piece.IsSham)
+            if (piece.IsSham)
             {
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea), agent.Id);
             }
@@ -264,7 +263,14 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnGoalField), agent.Id);
             }
 
-            // Normal on NonGoal / CompletedGoal
+            // Normal on CompletedGoal
+            if (field.State == FieldState.CompletedGoal)
+            {
+                return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnNonGoalField), agent.Id);
+            }
+
+            // Normal on NonGoal
+            field.State = FieldState.DiscoveredNonGoal;
             return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.NormalOnNonGoalField), agent.Id);
         }
     }

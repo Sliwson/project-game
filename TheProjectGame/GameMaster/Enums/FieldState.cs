@@ -8,6 +8,7 @@ namespace GameMaster
     {
         Empty,
         Goal,
-        CompletedGoal
+        CompletedGoal,
+        DiscoveredNonGoal
     }
 }
