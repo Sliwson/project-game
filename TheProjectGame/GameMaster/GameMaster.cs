@@ -76,6 +76,11 @@ namespace GameMaster
             GameLogic.GetResumeMessages();
         }
 
+        public PresentationField[,] GetPresentationData()
+        {
+            return BoardLogic.GetPresentationData();
+        }
+
         //called from window system each frame, updates all components
         public void Update(double dt)
         {

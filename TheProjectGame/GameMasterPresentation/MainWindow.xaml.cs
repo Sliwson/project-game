@@ -31,7 +31,7 @@ namespace GameMasterPresentation
         private bool IsStartedGamePaused = false;
 
         private DispatcherTimer timer;
-        private DateTime timeDiffStart;
+        private Stopwatch stopwatch;
         private TimeSpan timeDiff;
 
         private Random random = new Random();
@@ -51,9 +51,9 @@ namespace GameMasterPresentation
 
         private void TimerEvent(object sender, EventArgs e)
         {
-            timeDiff = DateTime.Now - timeDiffStart;
-            timeDiffStart = DateTime.Now;
-            Update(timeDiff.TotalMilliseconds / 1000.0);
+            stopwatch.Stop();
+            Update((double)stopwatch.ElapsedMilliseconds / 1000.0);
+            stopwatch.Start();
         }
 
         private void GenerateBoard(Canvas canvas)

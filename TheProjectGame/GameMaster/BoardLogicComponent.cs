@@ -236,6 +236,19 @@ namespace GameMaster
         {
             return !IsFieldInGoalArea(position);
         }
+        
+        public PresentationField[,] GetPresentationData()
+        {
+            var result = new PresentationField[fields.GetLength(0), fields.GetLength(1)];
+            for (int i = 0; i < fields.GetLength(0); i++)
+            {
+                for (int j = 0; j < fields.GetLength(1); j++)
+                {
+                    result[i, j] = fields[i, j].GetPresentationField();
+                }
+            }
+            return result;
+        }
 
         private int GetDistance(Point p1, Point p2)
         {
