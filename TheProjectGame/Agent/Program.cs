@@ -25,7 +25,7 @@ namespace Agent
      
         private static void CreateAgent()
         {
-            agent = new Agent();
+            agent = new Agent(TeamId.Blue);
             AgentConfiguration agentConfiguration = LoadDefaultConfiguration();
             agent.CsIP = agentConfiguration.CsIP;
             agent.CsPort = agentConfiguration.CsPort;
