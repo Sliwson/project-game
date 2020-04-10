@@ -6,9 +6,9 @@ namespace Agent.strategies
 {
     public class DoNothingStrategy : IStrategy
     {
-        public bool MakeDecision(Agent agent)
+        public ActionResult MakeDecision(Agent agent)
         {
-            return false;
+            return ActionResult.Continue;
         }
     }
 }

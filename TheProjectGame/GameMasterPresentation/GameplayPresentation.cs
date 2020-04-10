@@ -79,8 +79,15 @@ namespace GameMasterPresentation
 
         private void Update(double dt)
         {
-            dt /= 1000.0;
             gameMaster.Update(dt);
+            FlushLogs();
+        }
+
+        private void FlushLogs()
+        {
+            var logs = gameMaster.Logger.GetPendingLogs();
+            foreach (var log in logs)
+                UpdateLog(log);
         }
 
         private void Abort()
@@ -131,7 +138,7 @@ namespace GameMasterPresentation
                     //define when goal is completed
                     BoardField.SetGoalBoardField(boardField, hasPiece, true);
                     break;
-                case GameMaster.FieldState.FakeGoal:
+                case GameMaster.FieldState.CompletedGoal:
                     BoardField.SetGoalBoardField(boardField, hasPiece, false);
                     break;
                 default:

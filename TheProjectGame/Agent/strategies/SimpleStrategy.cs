@@ -42,7 +42,7 @@ namespace Agent.strategies
         private bool discovered = false;
         public Point target;
         public Random random = new Random();
-        private bool MoveSomewhere(Agent agent)
+        private ActionResult MoveSomewhere(Agent agent)
         {
             if (agent.piece != null && Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
             {
@@ -80,7 +80,7 @@ namespace Agent.strategies
             return agent.Move(Common.GetGoalDirection(agent, shortTime));
         }
 
-        private bool DiscoverAndMove(Agent agent)
+        private ActionResult DiscoverAndMove(Agent agent)
         {
             if (!discovered)
             {
@@ -94,7 +94,7 @@ namespace Agent.strategies
             return agent.Move(direction);
         }
 
-        public bool MakeDecision(Agent agent)
+        public ActionResult MakeDecision(Agent agent)
         {
             if (!Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize)) stayInLineCount = 0;
             if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationResponse, agent.penalties))

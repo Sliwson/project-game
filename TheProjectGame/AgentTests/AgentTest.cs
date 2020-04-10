@@ -88,8 +88,6 @@ namespace AgentTests
         {
             Assert.AreEqual(agent.id, 0);
 
-            agent.JoinTheGame();
-
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
 
             Assert.AreEqual(agent.id, 1);
@@ -330,7 +328,7 @@ namespace AgentTests
         #region PutDown
 
         [Test]
-        public void ProcessMessage_PutDownPieceResponse_DistToPiece_Should_Be_Updated_And_Agent_Should_Not_Have_Piece()
+        public void ProcessMessage_PutDownPieceResponse_Agent_Should_Not_Have_Piece()
         {
             agent.agentState = AgentState.InGame;
 
@@ -338,12 +336,10 @@ namespace AgentTests
             agent.piece = new Piece();
 
             Assert.IsNotNull(agent.piece);
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 1);
 
-            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
 
             Assert.IsNull(agent.piece);
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
         }
 
         [Test]
@@ -355,7 +351,7 @@ namespace AgentTests
 
             Assert.IsNotNull(agent.piece);
 
-            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(), 1));
+            agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceError(PutDownPieceErrorSubtype.AgentNotHolding), 1));
 
             Assert.IsNull(agent.piece);
@@ -370,7 +366,7 @@ namespace AgentTests
         {
             var agent = new Agent.Agent(false);
             agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
+            agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
             Assert.AreEqual(agent.agentState, AgentState.WaitingForStart);
 
@@ -381,7 +377,7 @@ namespace AgentTests
         {
             var agent = new Agent.Agent(false);
             agent.SetDoNothingStrategy();
-            agent.JoinTheGame();
+            agent.agentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
             Assert.AreEqual(agent.agentState, AgentState.WaitingForJoin);
         }

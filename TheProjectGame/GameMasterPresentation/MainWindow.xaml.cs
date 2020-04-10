@@ -53,10 +53,7 @@ namespace GameMasterPresentation
         {
             timeDiff = DateTime.Now - timeDiffStart;
             timeDiffStart = DateTime.Now;
-            Update(timeDiff.TotalMilliseconds);
-            UpdateLog($"Timespan: {timeDiff.TotalMilliseconds} sample looooooooooooooooggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg");
-            //UpdateBoard();
-            
+            Update(timeDiff.TotalMilliseconds / 1000.0);
         }
 
         private void GenerateBoard(Canvas canvas)

@@ -15,6 +15,7 @@ namespace GameMaster
         private Random random = new Random();
         private GameMaster gameMaster;
         private double timeFromLastDrop = 0;
+        private NLog.Logger logger;
 
         public BoardLogicComponent(GameMaster gameMaster, Point size)
         {
@@ -25,17 +26,21 @@ namespace GameMaster
 
             this.size = size;
             this.gameMaster = gameMaster;
+            logger = gameMaster.Logger.Get();
+
             piecesDropped = 0;
         }
 
         public void GenerateGoals()
         {
+            logger.Info("[Board] Generating goals");
+
             var conf = gameMaster.Configuration;
 
             //blue
             var rectangle = GetGoalAreaRectangle(TeamId.Blue);
             GenerateGoalFieldsInRectangle(rectangle, FieldState.Goal, conf.NumberOfGoals);
-            GenerateGoalFieldsInRectangle(rectangle, FieldState.FakeGoal, conf.NumberOfFakeGoals);
+            GenerateGoalFieldsInRectangle(rectangle, FieldState.CompletedGoal, conf.NumberOfFakeGoals);
             
             //red
             MirrorBlueGoalArea();
@@ -58,6 +63,9 @@ namespace GameMaster
 
                     treshold--;
                 }
+
+                if (treshold == 0)
+                    logger.Error("[Board] Cannot generate goal {nr} in rectangle {rectangle}", i, rectangle);
             }
         }
         
@@ -93,8 +101,10 @@ namespace GameMaster
 
         public void PlaceAgent(Agent a)
         {
-            //TODO: check errors
             var f = GetField(a.Position);
+            if (f.Agent != null)
+                logger.Error("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
+
             f.Agent = a;
         }
 
@@ -144,7 +154,7 @@ namespace GameMaster
             var agentPoint = GetPointWhere(f => f.Agent == agent);
             if (!agentPoint.HasValue)
             {
-                //TODO: log error
+                logger.Error("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
                 return false;
             }
 
@@ -189,8 +199,9 @@ namespace GameMaster
             var isSham = random.NextDouble() < gameMaster.Configuration.ShamProbability;
             var piece = new Piece(isSham);
             fields[point.Y, point.X].Pieces.Push(piece);
-
             piecesDropped++;
+
+            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
@@ -199,6 +210,9 @@ namespace GameMaster
             field.Agent = null;
             var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
+            
+            logger.Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint); 
+           
             newField.Agent = agent;
             agent.Position = newPoint;
         }
@@ -210,6 +224,17 @@ namespace GameMaster
                 return -1;
 
             return pieces.Min(p => GetDistance(p, from));
+        }
+
+        public bool IsFieldInGoalArea(Point position)
+        {
+            var goalSize = gameMaster.Configuration.GoalAreaHeight;
+            return position.Y < goalSize || position.Y >= size.Y - goalSize;
+        }
+
+        public bool IsFieldInTaskArea(Point position)
+        {
+            return !IsFieldInGoalArea(position);
         }
 
         private int GetDistance(Point p1, Point p2)

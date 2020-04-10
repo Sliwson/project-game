@@ -27,6 +27,7 @@ namespace GameMaster
 
         public void TeamScored(TeamId team)
         {
+            gameMaster.Logger.Get().Info("[Score] Team {team} scored", team);
             scores[team] += 1;
         }
 
