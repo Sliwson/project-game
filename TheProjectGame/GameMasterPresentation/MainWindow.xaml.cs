@@ -16,17 +16,8 @@ namespace GameMasterPresentation
     public partial class MainWindow : Window
     {
         //properties
-        private List<Line> BoardMesh;
-
-        private List<Label> BoardGoalAreas;
-
-        private BoardField[,] BoardFields;
-
-        private BoardField[] AgentFields;
-        private int BoardRows;
-        private int BoardColumns;
-        private int BoardGoalAreaRows;
-        private double FieldSize;
+        
+        
 
         private bool IsStartedGamePaused = false;
 
@@ -44,6 +35,7 @@ namespace GameMasterPresentation
             InitializeComponent();
             gameMaster = new GameMaster.GameMaster();
             timer = new DispatcherTimer();
+            stopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
