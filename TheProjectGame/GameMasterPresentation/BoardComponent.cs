@@ -67,12 +67,19 @@ namespace GameMasterPresentation
                 double point2X = 0d;
                 double point2Y = 0d;
                 int lineThickness;
+                int lineZIndex;
                 // k = 0 vertical
                 // k = 1 horizontal
                 if (k % 2 == 0)
+                {
                     point2Y = FieldSize * BoardRows;
+                    lineZIndex = VerticalLineZIndex;
+                }
                 else
+                {
                     point2X = FieldSize * BoardColumns;
+                    lineZIndex = HorizontalLineZIndex;
+                }
 
                 for (int i = 0; i < BoardColumns + 1; i++)
                 {
@@ -92,7 +99,7 @@ namespace GameMasterPresentation
                         Stroke = new SolidColorBrush(Colors.Black)
                     };
                     BoardMesh.Add(line);
-                    Panel.SetZIndex(line, VerticalLineZIndex);
+                    Panel.SetZIndex(line, lineZIndex);
                     canvas.Children.Add(line);
                     if (k % 2 == 0)
                     {

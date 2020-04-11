@@ -23,22 +23,24 @@ namespace GameMasterPresentation
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
-        private TimeSpan timeDiff;
 
         private Random random = new Random();
 
+        //log
         private StringBuilder logStringBuilder = new StringBuilder();
         private bool IsUserScrollingLog = false;
 
         public MainWindow()
         {
             InitializeComponent();
+
             gameMaster = new GameMaster.GameMaster();
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
+            timer.Start();
         }
 
         private void TimerEvent(object sender, EventArgs e)
@@ -116,7 +118,6 @@ namespace GameMasterPresentation
             {
                 //resume game
                 ResumeGame();
-                timer.Start();
                 IsStartedGamePaused = false;
                 PauseRadioButton.Content = "Pause";
             }
@@ -128,7 +129,6 @@ namespace GameMasterPresentation
                 //do it better
                 AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
 
-                timer.Start();
                 PauseRadioButton.IsEnabled = true;
             }
         }
@@ -140,7 +140,6 @@ namespace GameMasterPresentation
             IsStartedGamePaused = true;
 
             //pause game in game master
-            timer.Stop();
             PauseGame();
         }
 
