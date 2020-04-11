@@ -6,7 +6,9 @@ namespace CommunicationServer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            CommunicationServer server = new CommunicationServer();
+
+            server.Run();
         }
     }
 }
