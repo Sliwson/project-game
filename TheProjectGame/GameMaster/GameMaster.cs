@@ -18,6 +18,7 @@ namespace GameMaster
         public GMLogger Logger { get; private set; } = new GMLogger();
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
+        public PresentationComponent PresentationComponent { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
@@ -31,6 +32,7 @@ namespace GameMaster
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            PresentationComponent = new PresentationComponent(this);
 
             //try to connect to communciation server
         }
@@ -74,11 +76,6 @@ namespace GameMaster
             //TODO: send
             Logger.Get().Info("[GM] Resuming game");
             GameLogic.GetResumeMessages();
-        }
-
-        public PresentationField[,] GetPresentationData()
-        {
-            return BoardLogic.GetPresentationData();
         }
 
         //called from window system each frame, updates all components

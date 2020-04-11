@@ -14,23 +14,5 @@ namespace GameMaster
             Agent = null;
             Pieces.Clear();
         }
-
-        public PresentationField GetPresentationField()
-        {
-            switch (State)
-            {
-                case FieldState.Empty:
-                    bool hasPiece = Pieces.Count != 0;
-                    bool isSham = false;
-                    if (hasPiece)
-                    {
-                        isSham = Pieces.Peek().IsSham;
-                    }
-                    return new PresentationField(hasPiece, isSham, State);
-
-                default:
-                    return new PresentationField(false, false, State);
-            }
-        }
     }
 }
