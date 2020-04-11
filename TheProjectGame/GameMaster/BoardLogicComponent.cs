@@ -39,16 +39,14 @@ namespace GameMaster
 
             //blue
             var rectangle = GetGoalAreaRectangle(TeamId.Blue);
-            GenerateGoalFieldsInRectangle(rectangle, FieldState.Goal, conf.NumberOfGoals);
-            GenerateGoalFieldsInRectangle(rectangle, FieldState.CompletedGoal, conf.NumberOfFakeGoals);
+            GenerateGoalFieldsInRectangle(rectangle, conf.NumberOfGoals);
             
             //red
             MirrorBlueGoalArea();
         }
 
-        private void GenerateGoalFieldsInRectangle(Rectangle rectangle, FieldState state, int count)
+        private void GenerateGoalFieldsInRectangle(Rectangle rectangle, int count)
         {
-            //TODO: log error on failure
             for (int i = 0; i < count; i++)
             {
                 int treshold = 1000;
@@ -57,7 +55,7 @@ namespace GameMaster
                     var point = GetRandomPointInRectangle(rectangle);
                     if (fields[point.Y, point.X].State == FieldState.Empty)
                     {
-                        fields[point.Y, point.X].State = state;
+                        fields[point.Y, point.X].State = FieldState.Goal;
                         break;
                     }
 
