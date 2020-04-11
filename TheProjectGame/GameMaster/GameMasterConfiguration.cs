@@ -24,7 +24,6 @@ namespace GameMaster
         public TimeSpan GeneratePieceDelay { get; set; }
         public int AgentsLimit { get; set; }
         public float ShamProbability { get; set; }
-        public int NumberOfFakeGoals { get; set; }
         // csIP
         // csPort
 

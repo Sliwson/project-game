@@ -24,7 +24,6 @@ namespace GameMaster
                 NumberOfPieces = 20,
                 GeneratePieceDelay = new TimeSpan(5000),
                 ShamProbability = 0.3f,
-                NumberOfFakeGoals = 3,
                 AgentsLimit = 5,
                 DestroyPiecePenalty = new TimeSpan(700)
             };
