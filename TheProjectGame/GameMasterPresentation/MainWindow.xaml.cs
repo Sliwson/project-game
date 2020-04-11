@@ -16,8 +16,8 @@ namespace GameMasterPresentation
     public partial class MainWindow : Window
     {
         //properties
-        
-        
+
+        private GameMaster.GameMaster gameMaster;
 
         private bool IsStartedGamePaused = false;
 
@@ -58,45 +58,45 @@ namespace GameMasterPresentation
 
         
 
-        private void GetGameMasterConfiguration()
-        {
-            BoardRows = gameMaster.Configuration.BoardY;
-            BoardColumns = gameMaster.Configuration.BoardX;
-            BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
-        }
+        //private void GetGameMasterConfiguration()
+        //{
+        //    BoardRows = gameMaster.Configuration.BoardY;
+        //    BoardColumns = gameMaster.Configuration.BoardX;
+        //    BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
+        //}
 
         
 
         
 
-        private void MockBoard()
-        {
-            BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
-            BoardField.SetGoalBoardField(BoardFields[1, 2], false, true);
-            BoardField.SetGoalBoardField(BoardFields[1, 4], true, true);
-            BoardField.SetGoalBoardField(BoardFields[2, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[2, 4], true, false);
+        //private void MockBoard()
+        //{
+        //    BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
+        //    BoardField.SetGoalBoardField(BoardFields[1, 2], false, true);
+        //    BoardField.SetGoalBoardField(BoardFields[1, 4], true, true);
+        //    BoardField.SetGoalBoardField(BoardFields[2, 3], false, true);
+        //    BoardField.SetGoalBoardField(BoardFields[2, 4], true, false);
 
-            BoardField.SetGoalBoardField(BoardFields[9, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 2], false, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 4], true, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 5], true, false);
-            BoardField.SetGoalBoardField(BoardFields[11, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[11, 4], true, false);
+        //    BoardField.SetGoalBoardField(BoardFields[9, 3], false, true);
+        //    BoardField.SetGoalBoardField(BoardFields[10, 2], false, true);
+        //    BoardField.SetGoalBoardField(BoardFields[10, 4], true, true);
+        //    BoardField.SetGoalBoardField(BoardFields[10, 5], true, false);
+        //    BoardField.SetGoalBoardField(BoardFields[11, 3], false, true);
+        //    BoardField.SetGoalBoardField(BoardFields[11, 4], true, false);
 
-            BoardField.SetAgentBoardField(BoardFields[4, 2], 1, false, false);
-            BoardField.SetAgentBoardField(BoardFields[7, 4], 2, false, true);
-            BoardField.SetAgentBoardField(BoardFields[6, 5], 3, true, false);
-            BoardField.SetAgentBoardField(BoardFields[8, 3], 4, true, false);
+        //    BoardField.SetAgentBoardField(BoardFields[4, 2], 1, false, false);
+        //    BoardField.SetAgentBoardField(BoardFields[7, 4], 2, false, true);
+        //    BoardField.SetAgentBoardField(BoardFields[6, 5], 3, true, false);
+        //    BoardField.SetAgentBoardField(BoardFields[8, 3], 4, true, false);
 
-            BoardField.SetPieceBoardField(BoardFields[5, 1], false);
-        }
+        //    BoardField.SetPieceBoardField(BoardFields[5, 1], false);
+        //}
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            InitPresentation();
-            GetGameMasterConfiguration();
-            GenerateBoard(BoardCanvas);
+            //InitPresentation();
+            //GetGameMasterConfiguration();
+            //GenerateBoard(BoardCanvas);
             //MockBoard();            
         }
 
@@ -124,7 +124,7 @@ namespace GameMasterPresentation
             else
             {
                 StartGame();
-                SetAgentFields(BoardCanvas);
+                //SetAgentFields(BoardCanvas);
                 //TODO:
                 //do it better
                 AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
@@ -178,5 +178,51 @@ namespace GameMasterPresentation
         {
             IsUserScrollingLog = true;
         }
+
+        private void StartGame()
+        {
+            //logger.Debug("Game Started!");
+            gameMaster.StartGame();
+        }
+
+        private void PauseGame()
+        {
+            //logger.Debug("Game Paused!");
+            gameMaster.PauseGame();
+        }
+
+        private void ResumeGame()
+        {
+            //logger.Debug("Resume Game");
+            gameMaster.ResumeGame();
+        }
+
+        private void Update(double dt)
+        {
+            gameMaster.Update(dt);
+            FlushLogs();
+        }
+
+        private void FlushLogs()
+        {
+            var logs = gameMaster.Logger.GetPendingLogs();
+            foreach (var log in logs)
+                UpdateLog(log);
+        }
+        private void Abort()
+        {
+            //TODO:
+            //fix
+            //foreach (var t in threads)
+            //    t.Abort();
+        }
+
+        //private void UpdateAgents()
+        //{
+        //    for (int i = 0; i < AgentFields.Length; i++)
+        //    {
+        //        SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
+        //    }
+        //}
     }
 }

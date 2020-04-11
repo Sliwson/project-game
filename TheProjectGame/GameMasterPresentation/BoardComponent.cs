@@ -257,5 +257,31 @@ namespace GameMasterPresentation
             boardField.Move(pointX, pointY);
             BoardField.SetAgentBoardField(boardField, agent.Id, isRed, hasPiece);
         }
+
+        private void SetSingleBoardField(GameMaster.Field field, BoardField boardField)
+        {
+            boardField.Reset();
+            bool hasPiece = field.Pieces.Count == 0 ? false : true;
+            switch (field.State)
+            {
+                case GameMaster.FieldState.Empty:
+                    if (hasPiece == true)
+                    {
+                        var piece = field.Pieces.Peek();
+                        BoardField.SetPieceBoardField(boardField, piece.IsSham);
+                    }
+                    break;
+                case GameMaster.FieldState.Goal:
+                    //TODO:
+                    //define when goal is completed
+                    BoardField.SetGoalBoardField(boardField, hasPiece, true);
+                    break;
+                case GameMaster.FieldState.CompletedGoal:
+                    BoardField.SetGoalBoardField(boardField, hasPiece, false);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

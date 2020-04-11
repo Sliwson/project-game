@@ -8,10 +8,10 @@ namespace GameMasterPresentation
 {
     public partial class MainWindow
     {
-        private GameMaster.GameMaster gameMaster;
+        
 
-        private void InitPresentation()
-        {
+        //private void InitPresentation()
+        //{
             //gameMaster.MockMessageSendFunction = OnMessageSentFromGameMaster;
 
             //gameMaster.ApplyConfiguration();
@@ -38,7 +38,7 @@ namespace GameMasterPresentation
 
             //Thread.Sleep(1000);
             //gameMaster.Update(0);
-        }
+        //}
 
         //private void OnMessageSentFromAgent(Agent.Agent agent, BaseMessage message)
         //{
@@ -59,52 +59,9 @@ namespace GameMasterPresentation
         //    agents[message.AgentId].InjectMessage(message);
         //}
 
-        private void StartGame()
-        {
-            //logger.Debug("Game Started!");
-            gameMaster.StartGame();
-        }
+       
 
-        private void PauseGame()
-        {
-            //logger.Debug("Game Paused!");
-            gameMaster.PauseGame();
-        }
-
-        private void ResumeGame()
-        {
-            //logger.Debug("Resume Game");
-            gameMaster.ResumeGame();
-        }
-
-        private void Update(double dt)
-        {
-            gameMaster.Update(dt);
-            FlushLogs();
-        }
-
-        private void FlushLogs()
-        {
-            var logs = gameMaster.Logger.GetPendingLogs();
-            foreach (var log in logs)
-                UpdateLog(log);
-        }
-
-        private void Abort()
-        {
-            //TODO:
-            //fix
-            //foreach (var t in threads)
-            //    t.Abort();
-        }
-
-        private void UpdateAgents()
-        {
-            for (int i = 0; i < AgentFields.Length; i++)
-            {
-                SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
-            }
-        }
+        
 
         //private void UpdateBoard()
         //{
@@ -120,30 +77,6 @@ namespace GameMasterPresentation
         //    SetScore();
         //}
 
-        private void SetSingleBoardField(GameMaster.Field field, BoardField boardField)
-        {
-            boardField.Reset();
-            bool hasPiece = field.Pieces.Count == 0 ? false : true;
-            switch (field.State)
-            {
-                case GameMaster.FieldState.Empty:
-                    if (hasPiece == true)
-                    {
-                        var piece = field.Pieces.Peek();
-                        BoardField.SetPieceBoardField(boardField, piece.IsSham);
-                    }
-                    break;
-                case GameMaster.FieldState.Goal:
-                    //TODO:
-                    //define when goal is completed
-                    BoardField.SetGoalBoardField(boardField, hasPiece, true);
-                    break;
-                case GameMaster.FieldState.CompletedGoal:
-                    BoardField.SetGoalBoardField(boardField, hasPiece, false);
-                    break;
-                default:
-                    break;
-            }
-        }
+        
     }
 }
