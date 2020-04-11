@@ -50,14 +50,6 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void GetPointWhere_ShouldReturnAllFakeGoalsThatExist()
-        {
-            boardLogicComponent.Clean();
-            ChangeBoard();
-            Assert.AreEqual(2, boardLogicComponent.GetPointsWhere(p => p.State == FieldState.CompletedGoal).Count);
-        }
-
-        [Test]
         public void GetDiscoverArray_ShouldCalculateDistancesCorrectly()
         {
             boardLogicComponent.Clean();
@@ -120,6 +112,18 @@ namespace GameMasterTests
                     Assert.IsTrue(wasCovered[y, x]);
         }
 
+        [Test]
+        public void GenerateBoard_ShouldInitializeAllGoalFields()
+        {
+            var config = gameMaster.Configuration;
+
+            boardLogicComponent.Clean();
+            boardLogicComponent.GenerateGoals();
+
+            var goalsCount = boardLogicComponent.GetPointsWhere(p => p.State == FieldState.Goal).Count;
+            Assert.AreEqual(config.NumberOfGoals * 2, goalsCount);
+        }
+
         private bool IsFieldClean(Field f)
         {
             return f.Agent == null && f.Pieces.Count == 0 && f.State == FieldState.Empty;
@@ -129,7 +133,6 @@ namespace GameMasterTests
         {
             Action<Field, Point> changeField = (Field f, Point position) => {
                 f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
-                f.State = FieldState.CompletedGoal;
                 f.Pieces.Push(new Piece(false));
             };
 
