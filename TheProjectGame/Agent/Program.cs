@@ -9,7 +9,7 @@ namespace Agent
 {
     class Program
     {
-        public AgentConfiguration Configuration { get; private set; }
+        public static AgentConfiguration Configuration { get; private set; }
         public static Agent agent { get; set; }
         private const int updateInterval = 10;
         static void Main(string[] args)
@@ -19,17 +19,15 @@ namespace Agent
 
         private static AgentConfiguration LoadDefaultConfiguration()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            return agentConfiguration.GetConfiguration();
+            Configuration = new AgentConfiguration();
+            return Configuration.GetConfiguration();
         }
      
         private static void CreateAgent()
         {
-            agent = new Agent(TeamId.Blue);
-            AgentConfiguration agentConfiguration = LoadDefaultConfiguration();
-            agent.CsIP = agentConfiguration.CsIP;
-            agent.CsPort = agentConfiguration.CsPort;
-            agent.team = agentConfiguration.teamID == "red" ? TeamId.Red : TeamId.Blue;
+            LoadDefaultConfiguration();
+            agent = new Agent(Configuration.teamID == "Red" ? TeamId.Red : TeamId.Blue, Configuration.wantsToBeTeamLeader);
+            agent.agentConfiguration = Configuration;
             Stopwatch stopwatch = new Stopwatch();
             double timeElapsed = 0.0;
             ActionResult actionResult = ActionResult.Continue;

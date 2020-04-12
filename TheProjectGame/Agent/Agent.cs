@@ -45,15 +45,9 @@ namespace Agent
 
         public bool wantsToBeLeader;
 
-        public Field[,] board;
-
-        public Point boardSize;
-
-        public int goalAreaSize;
-
         public Point position;
 
-        public List<int> waitingPlayers;
+        public List<int> waitingPlayers { get; private set; }
 
         public int[] teamMates;
 
@@ -69,10 +63,6 @@ namespace Agent
 
         private static NLog.Logger logger;
 
-        public string CsIP;
-
-        public string CsPort;
-
         public bool deniedLastMove;
 
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
@@ -82,6 +72,8 @@ namespace Agent
         public BoardLogicComponent boardLogicComponent;
 
         public InitializeComponent initializeComponent;
+
+        public AgentConfiguration agentConfiguration;
 
         public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {

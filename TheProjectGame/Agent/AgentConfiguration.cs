@@ -13,6 +13,7 @@ namespace Agent
         public string CsPort { get; set; }
         public string teamID { get; set; }
         public int strategy { get; set; }
+        public bool wantsToBeTeamLeader { get; set; }
 
         public AgentConfiguration GetConfiguration()
         {

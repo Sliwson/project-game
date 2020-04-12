@@ -13,7 +13,7 @@ namespace Agent
     public class ProcessMessages
     {
         private Agent agent;
-        private static NLog.Logger logger;
+        private static NLog.Logger logger; 
 
         public ProcessMessages(Agent agent)
         {
@@ -66,10 +66,10 @@ namespace Agent
                 {
                     int taby = y - agent.position.Y + 1;
                     int tabx = x - agent.position.X + 1;
-                    if (Common.OnBoard(new Point(x, y), agent.boardSize))
+                    if (Common.OnBoard(new Point(x, y), agent.boardLogicComponent.boardSize))
                     {
-                        agent.board[y, x].distToPiece = message.Payload.Distances[taby, tabx];
-                        agent.board[y, x].distLearned = now;
+                        agent.boardLogicComponent.board[y, x].distToPiece = message.Payload.Distances[taby, tabx];
+                        agent.boardLogicComponent.board[y, x].distLearned = now;
                     }
                 }
             }
@@ -100,8 +100,8 @@ namespace Agent
             if (message.Payload.MadeMove)
             {
                 agent.deniedLastMove = false;
-                agent.board[agent.position.Y, agent.position.X].distToPiece = message.Payload.ClosestPoint;
-                agent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
+                agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distToPiece = message.Payload.ClosestPoint;
+                agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
                 if (message.Payload.ClosestPoint == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
                 {
                     logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.id.ToString());
@@ -113,7 +113,7 @@ namespace Agent
                 agent.deniedLastMove = true;
                 logger.Info("Process move response: agent did not move." + " AgentID: " + agent.id.ToString());
                 var deniedField = Common.GetFieldInDirection(agent.position, agent.lastDirection);
-                if (Common.OnBoard(deniedField, agent.boardSize)) agent.board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
+                if (Common.OnBoard(deniedField, agent.boardLogicComponent.boardSize)) agent.boardLogicComponent.board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
             }
             return agent.MakeDecisionFromStrategy();
         }
@@ -125,7 +125,7 @@ namespace Agent
                 logger.Warn("Process pick up piece response: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            if (agent.board[agent.position.Y, agent.position.X].distToPiece == 0)
+            if (agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distToPiece == 0)
             {
                 logger.Info("Process pick up piece response: Agent picked up piece" + " AgentID: " + agent.id.ToString());
                 agent.piece = new Piece();
@@ -144,17 +144,17 @@ namespace Agent
             switch (message.Payload.Result)
             {
                 case PutDownPieceResult.NormalOnGoalField:
-                    agent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.Goal;
+                    agent.boardLogicComponent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.Goal;
                     break;
                 case PutDownPieceResult.NormalOnNonGoalField:
-                    agent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.NoGoal;
+                    agent.boardLogicComponent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.NoGoal;
                     break;
                 case PutDownPieceResult.ShamOnGoalArea:
                     break;
                 case PutDownPieceResult.TaskField:
-                    agent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.NoGoal;
-                    agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
-                    agent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
+                    agent.boardLogicComponent.board[agent.position.Y, agent.position.X].goalInfo = GoalInformation.NoGoal;
+                    agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distToPiece = 0;
+                    agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
                     break;
             }
             return agent.MakeDecisionFromStrategy();
@@ -207,7 +207,7 @@ namespace Agent
                 logger.Warn("Process start game payload: Agent not waiting for startjoin" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            agent.initializeComponent.Initialize(message.Payload.LeaderId, message.Payload.TeamId, message.Payload.BoardSize, message.Payload.GoalAreaHeight, message.Payload.Position, message.Payload.AlliesIds, message.Payload.Penalties, message.Payload.ShamPieceProbability);
+            agent.initializeComponent.Initialize(message.Payload);
             if (agent.id != message.Payload.AgentId)
             {
                 logger.Warn("Process start game payload: payload.agnetId not equal agentId" + " AgentID: " + agent.id.ToString());
@@ -261,8 +261,8 @@ namespace Agent
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Pick up piece error" + " AgentID: " + agent.id.ToString());
-            agent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
-            agent.board[agent.position.Y, agent.position.X].distToPiece = int.MaxValue;
+            agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
+            agent.boardLogicComponent.board[agent.position.Y, agent.position.X].distToPiece = int.MaxValue;
             return agent.MakeDecisionFromStrategy();
         }
 
