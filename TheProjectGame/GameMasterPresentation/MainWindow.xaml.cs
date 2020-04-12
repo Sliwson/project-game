@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace GameMasterPresentation
@@ -13,11 +11,26 @@ namespace GameMasterPresentation
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         //properties
 
         private GameMaster.GameMaster gameMaster;
+
+        private BoardComponent board;
+
+        public BoardComponent Board
+        {
+            get
+            {
+                return board;
+            }
+            set
+            {
+                board = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private bool IsStartedGamePaused = false;
 
@@ -28,13 +41,22 @@ namespace GameMasterPresentation
 
         //log
         private StringBuilder logStringBuilder = new StringBuilder();
+
         private bool IsUserScrollingLog = false;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public MainWindow()
         {
             InitializeComponent();
 
             gameMaster = new GameMaster.GameMaster();
+
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
             //33-> 30FPS
@@ -48,15 +70,8 @@ namespace GameMasterPresentation
             stopwatch.Stop();
             Update((double)stopwatch.ElapsedMilliseconds / 1000.0);
             stopwatch.Start();
+            Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
-
-        
-
-        
-
-        
-
-        
 
         //private void GetGameMasterConfiguration()
         //{
@@ -64,10 +79,6 @@ namespace GameMasterPresentation
         //    BoardColumns = gameMaster.Configuration.BoardX;
         //    BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
         //}
-
-        
-
-        
 
         //private void MockBoard()
         //{
@@ -94,10 +105,11 @@ namespace GameMasterPresentation
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            Board = new BoardComponent(BoardCanvas);
             //InitPresentation();
             //GetGameMasterConfiguration();
             //GenerateBoard(BoardCanvas);
-            //MockBoard();            
+            //MockBoard();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -107,7 +119,6 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -124,6 +135,9 @@ namespace GameMasterPresentation
             else
             {
                 StartGame();
+
+                var configuration = gameMaster.Configuration;
+                Board.InitializeBoard(gameMaster.Agents.Count, configuration.BoardY, configuration.BoardX, configuration.GoalAreaHeight);
                 //SetAgentFields(BoardCanvas);
                 //TODO:
                 //do it better
@@ -171,7 +185,7 @@ namespace GameMasterPresentation
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
         {
-            IsUserScrollingLog = false;            
+            IsUserScrollingLog = false;
         }
 
         private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
@@ -209,6 +223,7 @@ namespace GameMasterPresentation
             foreach (var log in logs)
                 UpdateLog(log);
         }
+
         private void Abort()
         {
             //TODO:

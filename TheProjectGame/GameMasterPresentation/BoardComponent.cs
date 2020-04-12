@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace GameMasterPresentation
 {
-    internal class BoardComponent
+    public class BoardComponent : INotifyPropertyChanged
     {
         private List<Line> BoardMesh;
         private List<Label> BoardAreas;
@@ -15,10 +17,42 @@ namespace GameMasterPresentation
 
         private Canvas canvas;
 
+        private bool IsInitialized;
+
         private int BoardRows;
         private int BoardColumns;
         private int BoardGoalAreaRows;
         private double FieldSize;
+
+        private int redTeamScore;
+
+        public int RedTeamScore
+        {
+            get
+            {
+                return redTeamScore;
+            }
+            set
+            {
+                redTeamScore = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private int blueTeamScore;
+
+        public int BlueTeamScore
+        {
+            get
+            {
+                return blueTeamScore;
+            }
+            set
+            {
+                blueTeamScore = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         //maybe move these to another class
         private int HorizontalLineZIndex = 50;
@@ -26,16 +60,62 @@ namespace GameMasterPresentation
         private int VerticalLineZIndex = 50;
         private int BackgroundZIndex = 10;
 
-        public BoardComponent()
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public void InitializeBoard()
+        public BoardComponent(Canvas canvas)
         {
+            this.canvas = canvas;
+            IsInitialized = false;
+            BoardRows = -1;
+            BoardColumns = -1;
+            BoardGoalAreaRows = -1;
+            FieldSize = -1d;
+            BlueTeamScore = 0;
+            RedTeamScore = 0;
+        }
+
+        public void InitializeBoard(int AgentsCount, int BoardRows, int BoardColumns, int BoardGoalAreaRows)
+        {
+            this.BoardRows = BoardRows;
+            this.BoardColumns = BoardColumns;
+            this.BoardGoalAreaRows = BoardGoalAreaRows;
             CalculateBoardSize();
             SetBoardMesh();
             SetAreasBackgrounds();
             SetBoardFields();
+            SetAgentFields(AgentsCount);
+            IsInitialized = true;
+        }
+
+        public void UpdateBoard(GameMaster.PresentationData data)
+        {
+            if (IsInitialized)
+            {
+                if (data.Agents.Count != AgentFields.Length)
+                    ;//error something
+                int i = 0;
+                foreach (var agent in data.Agents)
+                {
+                    SetSingleAgent(agent, AgentFields[i]);
+                    i++;
+                }
+
+                for (int y = 0; y < BoardRows; y++)
+                {
+                    for (int x = 0; x < BoardColumns; x++)
+                    {
+                        SetSingleBoardField(data.BoardFields[y, x], BoardFields[y, x]);
+                    }
+                }
+
+                RedTeamScore = data.Score.RedTeamScore;
+                BlueTeamScore = data.Score.BlueTeamScore;
+            }
         }
 
         private void CalculateBoardSize()
@@ -59,111 +139,51 @@ namespace GameMasterPresentation
         private void SetBoardMesh()
         {
             BoardMesh = new List<Line>();
-            //lines            
-            for (int k = 0; k < 2; k++)
+            //lines
+            //vertical
+            double pointX = 0d;
+            double pointY = 0d;
+            double point2X = 0d;
+            double point2Y = FieldSize * BoardRows;
+            for (int i = 0; i < BoardColumns + 1; i++)
             {
-                double pointX = 0d;
-                double pointY = 0d;
-                double point2X = 0d;
-                double point2Y = 0d;
-                int lineThickness;
-                int lineZIndex;
-                // k = 0 vertical
-                // k = 1 horizontal
-                if (k % 2 == 0)
-                {
-                    point2Y = FieldSize * BoardRows;
-                    lineZIndex = VerticalLineZIndex;
-                }
-                else
-                {
-                    point2X = FieldSize * BoardColumns;
-                    lineZIndex = HorizontalLineZIndex;
-                }
-
-                for (int i = 0; i < BoardColumns + 1; i++)
-                {
-                    lineThickness = 1;
-                    if (k % 2 == 0 && (i == 0 || i == BoardColumns))
-                        lineThickness = 3;
-                    if (k % 2 == 1 && (i == 0 || i == BoardRows || i == BoardGoalAreaRows || i == BoardRows - BoardGoalAreaRows))
-                        lineThickness = 3;
-
-                    Line line = new Line
-                    {
-                        X1 = pointX,
-                        Y1 = pointY,
-                        X2 = point2X,
-                        Y2 = point2Y,
-                        StrokeThickness = lineThickness,
-                        Stroke = new SolidColorBrush(Colors.Black)
-                    };
-                    BoardMesh.Add(line);
-                    Panel.SetZIndex(line, lineZIndex);
-                    canvas.Children.Add(line);
-                    if (k % 2 == 0)
-                    {
-                        pointX += FieldSize;
-                        point2X += FieldSize;
-                    }
-                    else
-                    {
-                        pointY += FieldSize;
-                        point2Y += FieldSize;
-                    }
-                }
+                int lineThickness = 1;
+                if (i == 0 || i == BoardColumns)
+                    lineThickness = 3;
+                CreateLine(pointX, pointY, point2X, point2Y, lineThickness, VerticalLineZIndex);
+                pointX += FieldSize;
+                point2X += FieldSize;
             }
+            //horizontal
+            pointX = 0d;
+            pointY = 0d;
+            point2X = FieldSize * BoardColumns;
+            point2Y = 0d;
+            for (int i = 0; i < BoardRows + 1; i++)
+            {
+                int lineThickness = 1;
+                if (i == 0 || i == BoardRows || i == BoardGoalAreaRows || i == BoardRows - BoardGoalAreaRows)
+                    lineThickness = 3;
+                CreateLine(pointX, pointY, point2X, point2Y, lineThickness, HorizontalLineZIndex);
+                pointY += FieldSize;
+                point2Y += FieldSize;
+            }
+        }
 
-            //double pointX = 0d;
-            //double pointY = 0d;
-            //double point2X = 0d;
-            //double point2Y = FieldSize * BoardRows;
-            //for (int i = 0; i < BoardColumns + 1; i++)
-            //{
-            //    int lineThickness = 1;
-            //    if (i == 0 || i == BoardColumns)
-            //        lineThickness = 3;
-
-            //    Line line = new Line
-            //    {
-            //        X1 = pointX,
-            //        Y1 = pointY,
-            //        X2 = point2X,
-            //        Y2 = point2Y,
-            //        StrokeThickness = lineThickness,
-            //        Stroke = new SolidColorBrush(Colors.Black)
-            //    };
-            //    BoardMesh.Add(line);
-            //    Panel.SetZIndex(line, VerticalLineZIndex);
-            //    canvas.Children.Add(line);
-            //    pointX += FieldSize;
-            //    point2X += FieldSize;
-            //}
-            ////horizontal
-            //pointX = 0d;
-            //pointY = 0d;
-            //point2X = FieldSize * BoardColumns;
-            //point2Y = 0d;
-            //for (int i = 0; i < BoardRows + 1; i++)
-            //{
-            //    int lineThickness = 1;
-            //    if (i == 0 || i == BoardRows || i == BoardGoalAreaRows || i == BoardRows - BoardGoalAreaRows)
-            //        lineThickness = 3;
-            //    Line line = new Line
-            //    {
-            //        X1 = pointX,
-            //        Y1 = pointY,
-            //        X2 = point2X,
-            //        Y2 = point2Y,
-            //        StrokeThickness = lineThickness,
-            //        Stroke = new SolidColorBrush(Colors.Black)
-            //    };
-            //    BoardMesh.Add(line);
-            //    Panel.SetZIndex(line, HorizontalLineZIndex);
-            //    canvas.Children.Add(line);
-            //    pointY += FieldSize;
-            //    point2Y += FieldSize;
-            //}
+        private void CreateLine(double pointX, double pointY, double point2X, double point2Y, int lineThickness, int lineZIndex)
+        {
+            Line line = new Line
+            {
+                X1 = pointX,
+                Y1 = pointY,
+                X2 = point2X,
+                Y2 = point2Y,
+                StrokeThickness = lineThickness,
+                Stroke = new SolidColorBrush(Colors.Black)
+            };
+            BoardMesh.Add(line);
+            Panel.SetZIndex(line, lineZIndex);
+            canvas.Children.Add(line);
         }
 
         private void SetAreasBackgrounds()
@@ -235,17 +255,17 @@ namespace GameMasterPresentation
             }
         }
 
-        private void SetAgentFields(List<GameMaster.Agent> Agents)
+        private void SetAgentFields(int AgentsCount)
         {
-            AgentFields = new BoardField[Agents.Count];
+            AgentFields = new BoardField[AgentsCount];
             for (int i = 0; i < AgentFields.Length; i++)
             {
                 AgentFields[i] = new BoardField(canvas, FieldSize, FieldSize, 0, 0, Colors.Transparent);
-                SetSingleAgent(Agents[i], AgentFields[i]);
+                //SetSingleAgent(Agents[i], AgentFields[i]);
             }
         }
 
-        private void SetSingleAgent(GameMaster.Agent agent, BoardField boardField)
+        private void SetSingleAgent(GameMaster.PresentationAgent agent, BoardField boardField)
         {
             var pos = agent.Position;
             //for testing
@@ -253,32 +273,34 @@ namespace GameMasterPresentation
             double pointX = FieldSize * pos.X;
             double pointY = FieldSize * (BoardRows - 1 - pos.Y);
             bool isRed = agent.Team == Messaging.Enumerators.TeamId.Red ? true : false;
-            bool hasPiece = agent.Piece == null ? false : true;
             boardField.Move(pointX, pointY);
-            BoardField.SetAgentBoardField(boardField, agent.Id, isRed, hasPiece);
+            BoardField.SetAgentBoardField(boardField, agent.Id, isRed, agent.HasPiece);
         }
 
-        private void SetSingleBoardField(GameMaster.Field field, BoardField boardField)
+        private void SetSingleBoardField(GameMaster.PresentationField field, BoardField boardField)
         {
             boardField.Reset();
-            bool hasPiece = field.Pieces.Count == 0 ? false : true;
             switch (field.State)
             {
                 case GameMaster.FieldState.Empty:
-                    if (hasPiece == true)
-                    {
-                        var piece = field.Pieces.Peek();
-                        BoardField.SetPieceBoardField(boardField, piece.IsSham);
-                    }
+                    if (field.HasPiece)
+                        BoardField.SetPieceBoardField(boardField, field.IsSham);
                     break;
+
                 case GameMaster.FieldState.Goal:
                     //TODO:
                     //define when goal is completed
-                    BoardField.SetGoalBoardField(boardField, hasPiece, true);
+                    BoardField.SetGoalBoardField(boardField, false, true);
                     break;
+
                 case GameMaster.FieldState.CompletedGoal:
-                    BoardField.SetGoalBoardField(boardField, hasPiece, false);
+                    BoardField.SetGoalBoardField(boardField, true, true);
                     break;
+
+                case GameMaster.FieldState.DiscoveredNonGoal:
+                    BoardField.SetGoalBoardField(boardField, true, false);
+                    break;
+
                 default:
                     break;
             }
