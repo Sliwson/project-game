@@ -4,6 +4,7 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:GameMasterPresentation"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
 		mc:Ignorable="d"
 		Title="Game Master" Height="720" Width="1280"
 		WindowStartupLocation="CenterScreen"
@@ -11,6 +12,7 @@
 		Loaded="Window_Loaded"
 		Closing="Window_Closing">
     <Window.Resources>
+        <local:DebugConverter x:Key="DebugConverter" />
         <Style TargetType="Window">
             <Setter Property="FontSize" Value="18" />
         </Style>
@@ -114,8 +116,8 @@
 
                     <Label Grid.Row="0" Grid.Column="0" Content="Red:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Red" />
                     <Label Grid.Row="1" Grid.Column="0" Content="Blue:" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Foreground="Blue" />
-                    <Label Grid.Row="0" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="RedTeamScoreLabel"/>
-                    <Label Grid.Row="1" Grid.Column="1" Content="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="BlueTeamScoreLabel"/>
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding Board.RedTeamScore, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="RedTeamScoreLabel"/>
+                    <Label Grid.Row="1" Grid.Column="1" Content="{Binding Board.BlueTeamScore, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" Name="BlueTeamScoreLabel"/>
                 </Grid>
             </GroupBox>
             <GroupBox Header="Game"
