@@ -3,7 +3,6 @@ using Messaging.Contracts;
 using System.Collections.Generic;
 using Messaging.Enumerators;
 using System;
-using Messaging.Contracts.Errors;
 using System.Linq;
 
 namespace MessagingTests
@@ -36,7 +35,7 @@ namespace MessagingTests
             foreach (var message in messages)
             {
                 dynamic dynamicMessage = message;
-                Assert.IsTrue(IsMessagePayloadDerived(dynamicMessage));
+                Assert.IsTrue(MessagingTestHelper.IsMessagePayloadDerived(dynamicMessage));
             }
         }
 
@@ -46,7 +45,7 @@ namespace MessagingTests
             foreach (var message in messages.TakeLast(errorMessagesCount))
             {
                 dynamic dynamicMessage = message;
-                Assert.IsTrue(IsMessagePayloadError(dynamicMessage));
+                Assert.IsTrue(MessagingTestHelper.IsMessagePayloadError(dynamicMessage));
             }
         }
 
@@ -56,23 +55,8 @@ namespace MessagingTests
             foreach (var message in messages.SkipLast(errorMessagesCount))
             {
                 dynamic dynamicMessage = message;
-                Assert.IsFalse(IsMessagePayloadError(dynamicMessage));
+                Assert.IsFalse(MessagingTestHelper.IsMessagePayloadError(dynamicMessage));
             }
-        }
-
-        private bool IsMessagePayloadDerived<T>(Message<T> message) where T:IPayload
-        {
-            return message != null;
-        }
-
-        private bool IsMessagePayloadDerived(BaseMessage message)
-        {
-            return false;
-        }
-
-        private bool IsMessagePayloadError<T>(Message<T> message) where T:IPayload
-        {
-            return message.Payload is IErrorPayload && message != null;
         }
     }
 }
