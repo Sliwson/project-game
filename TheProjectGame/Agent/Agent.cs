@@ -39,23 +39,9 @@ namespace Agent
 
         public double remainingPenalty;
 
-        public TeamId team;
-
-        public bool isLeader;
-
-        public bool wantsToBeLeader;
-
-        public Point position;
+        public bool wantsToBeLeader { get; private set; }
 
         public List<int> waitingPlayers { get; private set; }
-
-        public int[] teamMates;
-
-        public Dictionary<ActionType, TimeSpan> penalties;
-
-        public int averageTime;
-
-        public float shamPieceProbability;
 
         public Piece piece;
 
@@ -77,6 +63,7 @@ namespace Agent
 
         public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {
+            initializeComponent = new InitializeComponent(this);
             this.wantsToBeLeader = wantsToBeLeader;
             piece = null;
             lastAskedTeammate = 0;
@@ -87,14 +74,13 @@ namespace Agent
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
             agentState = AgentState.Created;
-            team = teamId;
             logger = NLog.LogManager.GetCurrentClassLogger();
-            initializeComponent = new InitializeComponent(this);
-        }      
+            processMessages = new ProcessMessages(this);
+        }
 
         private void SetPenalty(ActionType action)
         {
-            var ret = penalties.TryGetValue(action, out TimeSpan span);
+            var ret =  initializeComponent.penalties.TryGetValue(action, out TimeSpan span);
             if (ret) remainingPenalty += span.TotalSeconds;
         }
 
@@ -111,7 +97,7 @@ namespace Agent
             switch (agentState)
             {
                 case AgentState.Created:
-                    SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(initializeComponent.team, wantsToBeLeader)));
                     agentState = AgentState.WaitingForJoin;
                     return ActionResult.Continue;
                 case AgentState.WaitingForJoin:
@@ -200,16 +186,16 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            if (teamMates.Length == 0)
+            if (initializeComponent.teamMates.Length == 0)
             {
                 logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
             lastAskedTeammate++;
-            lastAskedTeammate %= teamMates.Length;
+            lastAskedTeammate %= initializeComponent.teamMates.Length;
             SetPenalty(ActionType.InformationRequest);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(initializeComponent.teamMates[lastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }

@@ -12,6 +12,19 @@ namespace Agent
     {
         private Agent agent;
         private static NLog.Logger logger;
+        public int[] teamMates { get; private set; }
+
+        public Dictionary<ActionType, TimeSpan> penalties { get; private set; }
+
+        public int averageTime { get; private set; }
+
+        public float shamPieceProbability { get; private set; }
+
+        public TeamId team { get; private set; }
+
+        public Point position { get; set; }
+
+        public bool isLeader { get; private set; }
 
         public InitializeComponent(Agent agent)
         {
@@ -21,14 +34,14 @@ namespace Agent
 
         public void Initialize(StartGamePayload startGamePayload)
         {
-            agent.isLeader = agent.id == startGamePayload.LeaderId ? true : false;
-            agent.team = startGamePayload.TeamId;
-            agent.position = startGamePayload.Position;
-            agent.teamMates = new int[startGamePayload.AlliesIds.Length];
-            agent.teamMates = startGamePayload.AlliesIds;
-            agent.penalties = startGamePayload.Penalties;
-            agent.averageTime = startGamePayload.Penalties.Count > 0 ? (int)startGamePayload.Penalties.Values.Max().TotalMilliseconds : 500;
-            agent.shamPieceProbability = startGamePayload.ShamPieceProbability;
+            isLeader = agent.id == startGamePayload.LeaderId ? true : false;
+            team = startGamePayload.TeamId;
+            position = startGamePayload.Position;
+            teamMates = new int[startGamePayload.AlliesIds.Length];
+            teamMates = startGamePayload.AlliesIds;
+            penalties = startGamePayload.Penalties;
+            averageTime = startGamePayload.Penalties.Count > 0 ? (int)startGamePayload.Penalties.Values.Max().TotalMilliseconds : 500;
+            shamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
             agent.boardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight);
             agent.processMessages = new ProcessMessages(agent);
