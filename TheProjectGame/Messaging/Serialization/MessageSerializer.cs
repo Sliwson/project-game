@@ -1,4 +1,6 @@
 ﻿using Messaging.Contracts;
+using Messaging.Contracts.Agent;
+using Messaging.Serialization.JsonConverters;
 using Newtonsoft.Json;
 
 namespace Messaging.Serialization
@@ -12,7 +14,12 @@ namespace Messaging.Serialization
 
         public static BaseMessage DeserializeMessage(string serializedMessage)
         {
-            return null;
+            var settings = new JsonSerializerSettings
+            {
+                Converters = { new PayloadTypeConverter() },
+            };
+            
+            return JsonConvert.DeserializeObject<BaseMessage>(serializedMessage, settings);
         }
 
     }

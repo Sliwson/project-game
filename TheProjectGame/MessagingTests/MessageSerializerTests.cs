@@ -21,6 +21,7 @@ namespace MessagingTests
             foreach (var message in messages)
             {
                 var serialized = MessageSerializer.SerializeMessage(message);
+                var deserialized = MessageSerializer.DeserializeMessage(serialized);
             }
 
             Assert.Pass();
