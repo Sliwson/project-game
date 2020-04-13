@@ -297,7 +297,7 @@ namespace Agent
             {
                 return null;
             }
-            var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
+            var message = injectedMessages.FirstOrDefault(m => m.MessageId == MessageId.EndGameMessage);
             if (message == null) message = injectedMessages[0];
             injectedMessages.Remove(message);
             return message;

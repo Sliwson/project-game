@@ -1,5 +1,4 @@
 ﻿using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 using Messaging.Serialization.JsonConverters;
 using Newtonsoft.Json;
 
