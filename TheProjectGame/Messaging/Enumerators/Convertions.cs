@@ -21,9 +21,8 @@ namespace Messaging.Enumerators
                 case MessageId.PutDownPieceRequest:
                     return ActionType.PutPiece;
                 case MessageId.ExchangeInformationRequest:
-                    return ActionType.InformationRequest;
                 case MessageId.ExchangeInformationResponse:
-                    return ActionType.InformationResponse;
+                    return ActionType.InformationExchange;
                 default:
                     throw new ArgumentException();
             }
