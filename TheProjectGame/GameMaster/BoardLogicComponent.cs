@@ -74,8 +74,9 @@ namespace GameMaster
             {
                 for (int x = 0; x < size.X; x++)
                 {
+                    var x1 = size.X - x - 1;
                     var y1 = size.Y - y - 1;
-                    fields[y1, x].State = fields[y, x].State;
+                    fields[y1, x1].State = fields[y, x].State;
                 }
             }
         }
