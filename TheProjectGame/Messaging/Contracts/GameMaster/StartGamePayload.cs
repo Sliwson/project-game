@@ -1,4 +1,6 @@
 ﻿using Messaging.Enumerators;
+using Messaging.Serialization.JsonConverters;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,19 +11,59 @@ namespace Messaging.Contracts.GameMaster
     {
         public MessageId GetMessageId() => MessageId.StartGameMessage;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "agentID")]
         public int AgentId { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "alliesIDs")]
         public int[] AlliesIds { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "leaderID")]
         public int LeaderId { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "enemiesIDs")]
         public int[] EnemiesIds { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "teamID")]
         public TeamId TeamId { get; set; }
+
+        [JsonRequired]
+        [JsonConverter(typeof(PointJsonConverter))]
+        [JsonProperty(PropertyName = "boardSize")]
         public Point BoardSize { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "goalAreaSize")]
         public int GoalAreaHeight { get; set; }
-        public int NumberOfAllies { get; set; }
-        public int NumberOfEnemies { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "numberOfPlayers")]
+        public NumberOfPlayers NumberOfPlayers { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "numberOfPieces")]
         public int NumberOfPieces { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "numberOfGoals")]
         public int NumberOfGoals { get; set; }
+
+        [JsonRequired]
+        [JsonConverter(typeof(ActionPenaltiesJsonConverter))]
+        [JsonProperty(PropertyName = "penalties")]
         public Dictionary<ActionType, TimeSpan> Penalties { get; set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "shamPieceProbability")]
         public float ShamPieceProbability { get; set; }
+
+        [JsonRequired]
+        [JsonConverter(typeof(PointJsonConverter))]
+        [JsonProperty(PropertyName = "position")]
         public Point Position { get; set; }
 
         public StartGamePayload(int agentId, 
@@ -39,6 +81,8 @@ namespace Messaging.Contracts.GameMaster
                                 float shamPieceProbability, 
                                 Point position)
         {
+            NumberOfPlayers = new NumberOfPlayers();
+
             AgentId = agentId;
             AlliesIds = alliesIds;
             LeaderId = leaderId;
@@ -46,8 +90,8 @@ namespace Messaging.Contracts.GameMaster
             TeamId = teamId;
             BoardSize = boardSize;
             GoalAreaHeight = goalAreaHeight;
-            NumberOfAllies = numberOfAllies;
-            NumberOfEnemies = numberOfEnemies;
+            NumberOfPlayers.Allies = numberOfAllies;
+            NumberOfPlayers.Enemies = numberOfEnemies;
             NumberOfPieces = numberOfPieces;
             NumberOfGoals = numberOfGoals;
             Penalties = penalties;

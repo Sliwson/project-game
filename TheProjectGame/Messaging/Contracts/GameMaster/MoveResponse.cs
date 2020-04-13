@@ -1,4 +1,6 @@
 ﻿using Messaging.Enumerators;
+using Messaging.Serialization.JsonConverters;
+using Newtonsoft.Json;
 using System.Drawing;
 
 namespace Messaging.Contracts.GameMaster
@@ -7,15 +9,24 @@ namespace Messaging.Contracts.GameMaster
     {
         public MessageId GetMessageId() => MessageId.MoveResponse;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "madeMove")]
         public bool MadeMove { get; private set; }
-        public Point CurrentPosition { get; private set; }
-        public int ClosestPoint { get; private set; }
 
-        public MoveResponse(bool madeMove, Point currentPosition, int closestPoint)
+        [JsonRequired]
+        [JsonConverter(typeof(PointJsonConverter))]
+        [JsonProperty(PropertyName = "currentPosition")]
+        public Point CurrentPosition { get; private set; }
+
+        [JsonRequired]
+        [JsonProperty(PropertyName = "closestPiece")]
+        public int ClosestPiece { get; private set; }
+
+        public MoveResponse(bool madeMove, Point currentPosition, int closestPiece)
         {
             MadeMove = madeMove;
             CurrentPosition = currentPosition;
-            ClosestPoint = closestPoint;
+            ClosestPiece = closestPiece;
         }
     }
 }
