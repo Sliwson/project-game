@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Messaging.Serialization.Extensions
 {
-    public static class DiscoverResponseJObjectExtensions
+    internal static class DiscoverResponseJObjectExtensions
     {
         private enum DiscoveryDirection
         {
@@ -21,7 +21,7 @@ namespace Messaging.Serialization.Extensions
             NW
         }
 
-        public static JObject ToJObject(this DiscoverResponse payload)
+        internal static JObject ToJObject(this DiscoverResponse payload)
         {
             JObject result = new JObject();
             foreach (DiscoveryDirection direction in Enum.GetValues(typeof(DiscoveryDirection)))
@@ -38,7 +38,7 @@ namespace Messaging.Serialization.Extensions
             return result;
         }
 
-        public static DiscoverResponse ToDiscoverResponse(this JObject jObject)
+        internal static DiscoverResponse ToDiscoverResponse(this JObject jObject)
         {
             var resultDistances = new int[3, 3];
 

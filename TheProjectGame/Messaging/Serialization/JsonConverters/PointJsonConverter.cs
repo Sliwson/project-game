@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace Messaging.Serialization.JsonConverters
 {
-    class PointJsonConverter : JsonConverter
+    internal class PointJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

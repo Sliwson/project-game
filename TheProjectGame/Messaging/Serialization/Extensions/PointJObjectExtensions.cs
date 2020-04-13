@@ -4,16 +4,16 @@ using System.Drawing;
 
 namespace Messaging.Serialization.Extensions
 {
-    static class PointJObjectExtensions
+    internal static class PointJObjectExtensions
     {
-        public static JObject ToJObject(this Point point)
+        internal static JObject ToJObject(this Point point)
         {
             return new JObject(
                 new JProperty("x", point.X),
                 new JProperty("y", point.Y));
         }
 
-        public static Point ToPoint(this JObject jObject)
+        internal static Point ToPoint(this JObject jObject)
         {
             int resultX, resultY;
 

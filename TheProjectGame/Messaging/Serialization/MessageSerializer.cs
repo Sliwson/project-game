@@ -1,4 +1,5 @@
 ﻿using Messaging.Contracts;
+using Newtonsoft.Json;
 
 namespace Messaging.Serialization
 {
@@ -6,7 +7,7 @@ namespace Messaging.Serialization
     {
         public static string SerializeMessage(BaseMessage message)
         {
-            return null;
+            return JsonConvert.SerializeObject(message);
         }
 
         public static BaseMessage DeserializeMessage(string serializedMessage)

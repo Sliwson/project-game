@@ -6,7 +6,7 @@ using System;
 
 namespace Messaging.Serialization.JsonConverters
 {
-    class DiscoverResponseJsonConverter : JsonConverter
+    internal class DiscoverResponseJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Messaging.Serialization.JsonConverters
 {
-    class ActionPenaltiesJsonConverter : JsonConverter
+    internal class ActionPenaltiesJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

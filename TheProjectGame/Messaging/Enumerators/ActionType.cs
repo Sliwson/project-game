@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Messaging.Enumerators
+﻿namespace Messaging.Enumerators
 {
     // Important: ALL these types must be required in penalties in StartGamePayload
     // It means you should not add anything here unless you know it is necessary

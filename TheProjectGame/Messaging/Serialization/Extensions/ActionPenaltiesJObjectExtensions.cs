@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace Messaging.Serialization.Extensions
 {
-    public static class ActionPenaltiesJObjectExtensions
+    internal static class ActionPenaltiesJObjectExtensions
     {
-        public static JObject ToJObject(this Dictionary<ActionType, TimeSpan> penalties)
+        internal static JObject ToJObject(this Dictionary<ActionType, TimeSpan> penalties)
         {
             JObject result = new JObject();
             foreach (ActionType actionType in Enum.GetValues(typeof(ActionType)))
@@ -20,7 +20,7 @@ namespace Messaging.Serialization.Extensions
             return result;            
         }
 
-        public static Dictionary<ActionType, TimeSpan> ToActionPenaltiesDictionary(this JObject jObject)
+        internal static Dictionary<ActionType, TimeSpan> ToActionPenaltiesDictionary(this JObject jObject)
         {
             var result = new Dictionary<ActionType, TimeSpan>();
 
