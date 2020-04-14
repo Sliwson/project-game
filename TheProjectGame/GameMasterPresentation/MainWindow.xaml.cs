@@ -36,6 +36,23 @@ namespace GameMasterPresentation
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
+        private Stopwatch frameStopwatch;
+
+        private int frameCount = 0;
+        private long previousTime = 0;
+        private int fps = 0;
+        public int FPS
+        {
+            get
+            {
+                return fps;
+            }
+            set
+            {
+                fps = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private Random random = new Random();
 
@@ -59,16 +76,29 @@ namespace GameMasterPresentation
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
+            frameStopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
+            stopwatch.Start();
+            frameStopwatch.Start();
             timer.Start();
+            
         }
 
         private void TimerEvent(object sender, EventArgs e)
         {
+            long currentFrame = frameStopwatch.ElapsedMilliseconds;
+            frameCount++;
+            if (currentFrame - previousTime >= 1000)
+            {
+                FPS = frameCount;
+                frameCount = 0;
+                previousTime = currentFrame;
+            }
             stopwatch.Stop();
             Update((double)stopwatch.ElapsedMilliseconds / 1000.0);
+            stopwatch.Reset();
             stopwatch.Start();
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
@@ -160,15 +190,6 @@ namespace GameMasterPresentation
         private void BreakpointButton_Click(object sender, RoutedEventArgs e)
         {
             ;
-        }
-
-        private void SetScore()
-        {
-            int scoreRed = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Red);
-            int scoreBlue = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Blue);
-
-            RedTeamScoreLabel.Content = scoreRed.ToString();
-            BlueTeamScoreLabel.Content = scoreBlue.ToString();
         }
 
         private void UpdateLog(string text)
