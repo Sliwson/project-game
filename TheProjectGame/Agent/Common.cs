@@ -36,15 +36,15 @@ namespace Agent
 
         public static bool CouldMove(Agent agent, Direction direction, int shortTime)
         {
-            Point target = Common.GetFieldInDirection(agent.initializeComponent.position, direction);
+            Point target = Common.GetFieldInDirection(agent.startGameComponent.position, direction);
             return OnBoard(target, agent.boardLogicComponent.boardSize) &&
-                !InGoalArea(agent.initializeComponent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.boardLogicComponent.boardSize, agent.boardLogicComponent.goalAreaSize) &&
-                DateTime.Now - agent.boardLogicComponent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.initializeComponent.averageTime);
+                !InGoalArea(agent.startGameComponent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.boardLogicComponent.boardSize, agent.boardLogicComponent.goalAreaSize) &&
+                DateTime.Now - agent.boardLogicComponent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.startGameComponent.averageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
         {
-            if (agent.initializeComponent.team == TeamId.Red)
+            if (agent.startGameComponent.team == TeamId.Red)
             {
                 foreach (var direction in new[] { Direction.North, Direction.West, Direction.East })
                     if (CouldMove(agent, direction, shortTime)) return direction;
@@ -73,24 +73,24 @@ namespace Agent
 
         public static bool DoesAgentKnowGoalInfo(Agent agent)
         {
-            return agent.boardLogicComponent.board[agent.initializeComponent.position.Y, agent.initializeComponent.position.X].goalInfo != GoalInformation.NoInformation;
+            return agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].goalInfo != GoalInformation.NoInformation;
         }
 
         public static int FindClosest(Agent agent, int shortTime, out Direction direction)
         {
             int shortest = int.MaxValue;
             direction = Direction.North;
-            for (int i = agent.initializeComponent.position.X - 1; i <= agent.initializeComponent.position.X + 1; i++)
-                for (int j = agent.initializeComponent.position.Y - 1; j <= agent.initializeComponent.position.Y + 1; j++)
-                    if ((i != agent.initializeComponent.position.X || j != agent.initializeComponent.position.Y) &&
+            for (int i = agent.startGameComponent.position.X - 1; i <= agent.startGameComponent.position.X + 1; i++)
+                for (int j = agent.startGameComponent.position.Y - 1; j <= agent.startGameComponent.position.Y + 1; j++)
+                    if ((i != agent.startGameComponent.position.X || j != agent.startGameComponent.position.Y) &&
                         OnBoard(new Point(i, j), agent.boardLogicComponent.boardSize) &&
-                        DateTime.Now - agent.boardLogicComponent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.initializeComponent.averageTime) &&
-                        agent.boardLogicComponent.board[j, i].distToPiece < Math.Min(shortest, agent.boardLogicComponent.board[agent.initializeComponent.position.Y, agent.initializeComponent.position.X].distToPiece))
+                        DateTime.Now - agent.boardLogicComponent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.startGameComponent.averageTime) &&
+                        agent.boardLogicComponent.board[j, i].distToPiece < Math.Min(shortest, agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece))
                     {
                         shortest = agent.boardLogicComponent.board[j, i].distToPiece;
-                        if (j > agent.initializeComponent.position.Y) direction = Direction.North;
-                        else if (j < agent.initializeComponent.position.Y) direction = Direction.South;
-                        else if (i < agent.initializeComponent.position.X) direction = Direction.West;
+                        if (j > agent.startGameComponent.position.Y) direction = Direction.North;
+                        else if (j < agent.startGameComponent.position.Y) direction = Direction.South;
+                        else if (i < agent.startGameComponent.position.X) direction = Direction.West;
                         else direction = Direction.East;
                     }
             return shortest;
@@ -99,10 +99,10 @@ namespace Agent
         public static int CountUndiscoveredFields(Agent agent, int shortTime)
         {
             int count = 0;
-            for (int i = agent.initializeComponent.position.X - 1; i <= agent.initializeComponent.position.X + 1; i++)
-                for (int j = agent.initializeComponent.position.Y - 1; j <= agent.initializeComponent.position.Y + 1; j++)
+            for (int i = agent.startGameComponent.position.X - 1; i <= agent.startGameComponent.position.X + 1; i++)
+                for (int j = agent.startGameComponent.position.Y - 1; j <= agent.startGameComponent.position.Y + 1; j++)
                     if (OnBoard(new Point(i, j), agent.boardLogicComponent.boardSize) &&
-                        DateTime.Now - agent.boardLogicComponent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.initializeComponent.averageTime))
+                        DateTime.Now - agent.boardLogicComponent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.startGameComponent.averageTime))
                         count++;
             return count;
         }

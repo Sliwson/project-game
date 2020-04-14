@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Agent
 {
-    public class InitializeComponent
+    public class StartGameComponent
     {
         private Agent agent;
         private static NLog.Logger logger;
@@ -26,7 +26,7 @@ namespace Agent
 
         public bool isLeader { get; private set; }
 
-        public InitializeComponent(Agent agent)
+        public StartGameComponent(Agent agent)
         {
             this.agent = agent;
             logger = NLog.LogManager.GetCurrentClassLogger();
