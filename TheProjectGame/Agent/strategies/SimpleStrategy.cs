@@ -19,12 +19,11 @@ namespace Agent.strategies
 
         private readonly Dictionary<ActionType, int> actionImportance = new Dictionary<ActionType, int>
         {
-            { ActionType.InformationResponse, 5 },
             { ActionType.CheckForSham, 4 },
             { ActionType.PutPiece, 3 },
             { ActionType.Move, 2 },
             { ActionType.Discovery, 1 },
-            { ActionType.InformationRequest, 0 },
+            { ActionType.InformationExchange, 0 },
             { ActionType.DestroyPiece, 6 }
         };
 
@@ -96,8 +95,8 @@ namespace Agent.strategies
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InGoalArea(agent.startGameComponent.team, agent.startGameComponent.position, agent.boardLogicComponent.boardSize, agent.boardLogicComponent.goalAreaSize)) stayInLineCount = 0;
-            if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationResponse, agent.startGameComponent.penalties))
+            if (!Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize)) stayInLineCount = 0;
+            if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationExchange, agent.penalties))
             {
                 return agent.GiveInfo();
             }

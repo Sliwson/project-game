@@ -193,9 +193,9 @@ namespace Agent
                 return MakeDecisionFromStrategy();
             }
             lastAskedTeammate++;
-            lastAskedTeammate %= startGameComponent.teamMates.Length;
-            SetPenalty(ActionType.InformationRequest);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(startGameComponent.teamMates[lastAskedTeammate])));
+            lastAskedTeammate %= teamMates.Length;
+            SetPenalty(ActionType.InformationExchange);
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -219,7 +219,7 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
             else if (respondToId == -1) return MakeDecisionFromStrategy();
-            SetPenalty(ActionType.InformationResponse);
+            SetPenalty(ActionType.InformationExchange);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, boardLogicComponent.GetDistances(), boardLogicComponent.GetRedTeamGoalAreaInformation(), boardLogicComponent.GetBlueTeamGoalAreaInformation())));
             logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString() + " AgentID: " + id.ToString());
             return ActionResult.Continue;
@@ -275,7 +275,7 @@ namespace Agent
             {
                 return null;
             }
-            var message = injectedMessages.FirstOrDefault(m => m.PayloadType == typeof(EndGamePayload));
+            var message = injectedMessages.FirstOrDefault(m => m.MessageId == MessageId.EndGameMessage);
             if (message == null) message = injectedMessages[0];
             injectedMessages.Remove(message);
             return message;

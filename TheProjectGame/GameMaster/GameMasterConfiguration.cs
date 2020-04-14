@@ -8,11 +8,10 @@ namespace GameMaster
     public class GameMasterConfiguration
     {
         public TimeSpan MovePenalty { get; set; }
-        public TimeSpan AskPenalty { get; set; }
+        public TimeSpan InformationExchangePenalty { get; set; }
         public TimeSpan DiscoveryPenalty { get; set; }
         public TimeSpan PutPenalty { get; set; }
         public TimeSpan CheckForShamPenalty { get; set; }
-        public TimeSpan ResponsePenalty { get; set; }
         public int BoardX { get; set; }
         public int BoardY { get; set; }
         public int GoalAreaHeight { get; set; }
@@ -38,8 +37,7 @@ namespace GameMaster
             agentTimeouts.Add(ActionType.CheckForSham, CheckForShamPenalty);
             agentTimeouts.Add(ActionType.DestroyPiece, DestroyPiecePenalty);
             agentTimeouts.Add(ActionType.Discovery, DiscoveryPenalty);
-            agentTimeouts.Add(ActionType.InformationRequest, AskPenalty);
-            agentTimeouts.Add(ActionType.InformationResponse, ResponsePenalty);
+            agentTimeouts.Add(ActionType.InformationExchange, InformationExchangePenalty);
             agentTimeouts.Add(ActionType.Move, MovePenalty);
             agentTimeouts.Add(ActionType.PutPiece, PutPenalty);
             return agentTimeouts;

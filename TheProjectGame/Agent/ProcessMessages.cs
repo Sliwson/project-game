@@ -100,9 +100,9 @@ namespace Agent
             if (message.Payload.MadeMove)
             {
                 agent.deniedLastMove = false;
-                agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece = message.Payload.ClosestPoint;
-                agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distLearned = DateTime.Now;
-                if (message.Payload.ClosestPoint == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
+                agent.board[agent.position.Y, agent.position.X].distToPiece = message.Payload.ClosestPiece;
+                agent.board[agent.position.Y, agent.position.X].distLearned = DateTime.Now;
+                if (message.Payload.ClosestPiece == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
                 {
                     logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.id.ToString());
                     return agent.PickUp();

@@ -200,7 +200,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace GameMasterTests
             var payload = response.Payload as ExchangeInformationPayload;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace GameMasterTests
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.IsTrue(payload.Leader);
             Assert.IsTrue(receipent.HaveToExchange());
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         #endregion
@@ -260,7 +260,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -282,7 +282,7 @@ namespace GameMasterTests
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
             Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         #endregion

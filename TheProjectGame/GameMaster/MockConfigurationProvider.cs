@@ -12,11 +12,10 @@ namespace GameMaster
             return new GameMasterConfiguration
             {
                 MovePenalty = new TimeSpan(1500),
-                AskPenalty = new TimeSpan(1000),
+                InformationExchangePenalty = new TimeSpan(1000),
                 DiscoveryPenalty = new TimeSpan(700),
                 PutPenalty = new TimeSpan(500),
                 CheckForShamPenalty = new TimeSpan(1000),
-                ResponsePenalty = new TimeSpan(1000),
                 BoardX = 40,
                 BoardY = 40,
                 GoalAreaHeight = 5,

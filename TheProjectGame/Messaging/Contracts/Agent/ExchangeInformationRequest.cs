@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using Newtonsoft.Json;
 
 namespace Messaging.Contracts.Agent
 {
@@ -6,6 +7,8 @@ namespace Messaging.Contracts.Agent
     {
         public MessageId GetMessageId() => MessageId.ExchangeInformationRequest;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "askedAgentID")]
         public int AskedAgentId { get; private set; }
 
         public ExchangeInformationRequest(int askedAgentId)
