@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace GameMasterPresentation
+namespace GameMasterPresentation.Configuration
 {
     /// <summary>
     /// Interaction logic for ConfigurationWindow.xaml
@@ -20,6 +20,7 @@ namespace GameMasterPresentation
         public ConfigurationWindow()
         {
             InitializeComponent();
+            ContentGrid.Children.Add(new ConfigurationView());
         }
     }
 }

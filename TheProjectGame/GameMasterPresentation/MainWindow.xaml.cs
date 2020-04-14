@@ -232,6 +232,12 @@ namespace GameMasterPresentation
             //    t.Abort();
         }
 
+        private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var ConfigurationWindow = new Configuration.ConfigurationWindow();
+            ConfigurationWindow.Show();
+        }
+
         //private void UpdateAgents()
         //{
         //    for (int i = 0; i < AgentFields.Length; i++)

@@ -96,7 +96,7 @@
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="Game Configuration:" FontSize="25" VerticalAlignment="Center" />
                     <Label Grid.Column="1" Content="game_config.json" FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
-                    <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" />
+                    <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" Click="ConfigurationButton_Click"/>
                     <Label Grid.Column="3" Content="OK" Foreground="Green" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
             </GroupBox>
