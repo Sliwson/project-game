@@ -95,8 +95,8 @@ namespace Agent.strategies
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize)) stayInLineCount = 0;
-            if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationExchange, agent.penalties))
+            if (!Common.InGoalArea(agent.startGameComponent.team, agent.startGameComponent.position, agent.boardLogicComponent.boardSize, agent.boardLogicComponent.goalAreaSize)) stayInLineCount = 0;
+            if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationExchange, agent.startGameComponent.penalties))
             {
                 return agent.GiveInfo();
             }

@@ -193,9 +193,9 @@ namespace Agent
                 return MakeDecisionFromStrategy();
             }
             lastAskedTeammate++;
-            lastAskedTeammate %= teamMates.Length;
+            lastAskedTeammate %= startGameComponent.teamMates.Length;
             SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(startGameComponent.teamMates[lastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
