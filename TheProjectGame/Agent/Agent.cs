@@ -25,11 +25,11 @@ namespace Agent
 
         private int skipCount;
 
-        public int id;
+        public int id { get; set; }
 
         private int lastAskedTeammate;
 
-        public Direction lastDirection;
+        public Direction lastDirection { get; private set; }
 
         private ISender sender;
 
@@ -37,29 +37,29 @@ namespace Agent
 
         private List<BaseMessage> injectedMessages;
 
-        public double remainingPenalty;
+        public double remainingPenalty { get; set; }
 
         public bool wantsToBeLeader { get; private set; }
 
         public List<int> waitingPlayers { get; private set; }
 
-        public Piece piece;
+        public Piece piece { get; set; }
 
-        public AgentState agentState;
+        public AgentState agentState { get; set; }
 
         private static NLog.Logger logger;
 
-        public bool deniedLastMove;
+        public bool deniedLastMove { get; set; }
 
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
-        public ProcessMessages processMessages;
+        public ProcessMessages processMessages { get; set; }
 
-        public BoardLogicComponent boardLogicComponent;
+        public BoardLogicComponent boardLogicComponent { get; set; }
 
-        public InitializeComponent initializeComponent;
+        public InitializeComponent initializeComponent { get; private set; }
 
-        public AgentConfiguration agentConfiguration;
+        public AgentConfiguration agentConfiguration { get; set; }
 
         public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {
