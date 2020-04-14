@@ -25,11 +25,11 @@ namespace Agent
 
         private int skipCount;
 
-        public int id;
+        public int id { get; set; }
 
         private int lastAskedTeammate;
 
-        public Direction lastDirection;
+        public Direction lastDirection { get; private set; }
 
         private ISender sender;
 
@@ -37,54 +37,33 @@ namespace Agent
 
         private List<BaseMessage> injectedMessages;
 
-        public double remainingPenalty;
+        public double remainingPenalty { get; set; }
 
-        public TeamId team;
+        public bool wantsToBeLeader { get; private set; }
 
-        public bool isLeader;
+        public List<int> waitingPlayers { get; private set; }
 
-        public bool wantsToBeLeader;
+        public Piece piece { get; set; }
 
-        public Field[,] board;
-
-        public Point boardSize;
-
-        public int goalAreaSize;
-
-        public Point position;
-
-        public List<int> waitingPlayers;
-
-        public int[] teamMates;
-
-        public Dictionary<ActionType, TimeSpan> penalties;
-
-        public int averageTime;
-
-        public float shamPieceProbability;
-
-        public Piece piece;
-
-        public AgentState agentState;
+        public AgentState agentState { get; set; }
 
         private static NLog.Logger logger;
 
-        public string CsIP;
-
-        public string CsPort;
-
-        public bool deniedLastMove;
+        public bool deniedLastMove { get; set; }
 
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
-        public ProcessMessages processMessages;
+        public ProcessMessages processMessages { get; set; }
 
-        public BoardLogicComponent boardLogicComponent;
+        public BoardLogicComponent boardLogicComponent { get; set; }
 
-        public InitializeComponent initializeComponent;
+        public StartGameComponent startGameComponent { get; private set; }
+
+        public AgentConfiguration agentConfiguration { get; set; }
 
         public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {
+            startGameComponent = new StartGameComponent(this);
             this.wantsToBeLeader = wantsToBeLeader;
             piece = null;
             lastAskedTeammate = 0;
@@ -95,14 +74,13 @@ namespace Agent
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
             agentState = AgentState.Created;
-            team = teamId;
             logger = NLog.LogManager.GetCurrentClassLogger();
-            initializeComponent = new InitializeComponent(this);
-        }      
+            processMessages = new ProcessMessages(this);
+        }
 
         private void SetPenalty(ActionType action)
         {
-            var ret = penalties.TryGetValue(action, out TimeSpan span);
+            var ret = startGameComponent.penalties.TryGetValue(action, out TimeSpan span);
             if (ret) remainingPenalty += span.TotalSeconds;
         }
 
@@ -119,7 +97,7 @@ namespace Agent
             switch (agentState)
             {
                 case AgentState.Created:
-                    SendMessage(MessageFactory.GetMessage(new JoinRequest(team, wantsToBeLeader)));
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(startGameComponent.team, wantsToBeLeader)));
                     agentState = AgentState.WaitingForJoin;
                     return ActionResult.Continue;
                 case AgentState.WaitingForJoin:
@@ -208,16 +186,16 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            if (teamMates.Length == 0)
+            if (startGameComponent.teamMates.Length == 0)
             {
                 logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
             lastAskedTeammate++;
-            lastAskedTeammate %= teamMates.Length;
+            lastAskedTeammate %= startGameComponent.teamMates.Length;
             SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(teamMates[lastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(startGameComponent.teamMates[lastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }

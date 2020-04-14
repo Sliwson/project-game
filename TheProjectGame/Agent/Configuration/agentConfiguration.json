@@ -2,6 +2,7 @@
   "CsIP": "192.168.0.0",
   "CsPort": 3729,
   "teamID": "blue",
-  "strategy": 3
+  "strategy": 3,
+  "wantsToBeTeamLeader":  true
 }
 

@@ -18,12 +18,18 @@ namespace AgentTests
 
         private DateTime startTime;
 
+        private StartGamePayload startGamePayload;
+
         [SetUp]
         public void Setup()
         {
             agent = new Agent.Agent(TeamId.Blue, false);
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 6), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
+            var enemiesIds = new int[3] { 5, 7, 6 };
+
+            startGamePayload = new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5, 6), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
+
+            agent.startGameComponent.Initialize(startGamePayload);
             agent.SetDoNothingStrategy();
             startTime = DateTime.Now;
         }
@@ -33,8 +39,12 @@ namespace AgentTests
         {
             agent = new Agent.Agent(TeamId.Blue, false);
             agent.id = 1;
-            agent.initializeComponent.Initialize(1, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), new int[3] { 2, 3, 4 }, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f);
-            Assert.AreEqual(agent.isLeader, true);
+            var teamMates = new int[3] { 2, 3, 4 };
+            var enemiesIds = new int[3] { 5, 7, 6 };
+            startGamePayload = new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5,5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
+
+            agent.startGameComponent.Initialize(startGamePayload);
+            Assert.AreEqual(agent.startGameComponent.isLeader, true);
         }
 
         [Test]
@@ -43,22 +53,25 @@ namespace AgentTests
             var agent = new Agent.Agent(TeamId.Blue, true);
             agent.id = 1;
             var teamMates = new int[3] { 2, 3, 4 };
-            agent.initializeComponent.Initialize(2, Messaging.Enumerators.TeamId.Blue, new System.Drawing.Point(5, 5), 1, new System.Drawing.Point(0, 0), teamMates, new System.Collections.Generic.Dictionary<ActionType, System.TimeSpan>(), 0.5f);
-            Assert.AreEqual(agent.isLeader, false);
+            var enemiesIds = new int[3] { 5, 7, 6 };
+
+            startGamePayload = new StartGamePayload(2, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5, 5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
+
+            Assert.AreEqual(agent.startGameComponent.isLeader, false);
         }
 
         [Test]
         public void Set_agent_boardSize()
         {
-            Assert.AreEqual(agent.boardSize.X, 5);
-            Assert.AreEqual(agent.boardSize.Y, 6);
+            Assert.AreEqual(agent.boardLogicComponent.boardSize.X, 5);
+            Assert.AreEqual(agent.boardLogicComponent.boardSize.Y, 6);
         }
 
         [Test]
         public void Set_agent_position()
         {
-            Assert.AreEqual(agent.position.X, 0);
-            Assert.AreEqual(agent.position.Y, 0);
+            Assert.AreEqual(agent.startGameComponent.position.X, 0);
+            Assert.AreEqual(agent.startGameComponent.position.Y, 0);
         }
 
         [Test]
@@ -66,7 +79,7 @@ namespace AgentTests
         {
             Assert.IsNotNull(agent.waitingPlayers);
             Assert.IsNull(agent.piece);
-            foreach (var field in agent.board)
+            foreach (var field in agent.boardLogicComponent.board)
             {
                 Assert.AreEqual(field.deniedMove, DateTime.MinValue);
                 Assert.AreEqual(field.distLearned, DateTime.MinValue);
@@ -76,9 +89,9 @@ namespace AgentTests
         [Test]
         public void Has_correct_board_size()
         {
-            Assert.AreEqual(agent.boardSize.X, agent.board.GetLength(1));
-            Assert.AreEqual(agent.boardSize.Y, agent.board.GetLength(0));
-            Assert.True(agent.position.X >= 0 && agent.position.Y >= 0 && agent.position.X < agent.boardSize.X && agent.position.Y < agent.boardSize.Y);
+            Assert.AreEqual(agent.boardLogicComponent.boardSize.X, agent.boardLogicComponent.board.GetLength(1));
+            Assert.AreEqual(agent.boardLogicComponent.boardSize.Y, agent.boardLogicComponent.board.GetLength(0));
+            Assert.True(agent.startGameComponent.position.X >= 0 && agent.startGameComponent.position.Y >= 0 && agent.startGameComponent.position.X < agent.boardLogicComponent.boardSize.X && agent.startGameComponent.position.Y < agent.boardLogicComponent.boardSize.Y);
         }
 
         #region Join
@@ -145,40 +158,40 @@ namespace AgentTests
             agent.agentState = AgentState.InGame;
 
             agent.AcceptMessage(GetBaseMessage(new DiscoverResponse(new int[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } }), 1));
-            var position = agent.position;
+            var position = agent.startGameComponent.position;
 
-            Assert.AreEqual(agent.board[position.Y, position.X].distToPiece, 5);
-            if (position.Y + 1 < agent.boardSize.Y)
+            Assert.AreEqual(agent.boardLogicComponent.board[position.Y, position.X].distToPiece, 5);
+            if (position.Y + 1 < agent.boardLogicComponent.boardSize.Y)
             {
-                Assert.AreEqual(agent.board[position.Y + 1, position.X].distToPiece, 8);
-                if (position.X + 1 < agent.boardSize.X)
+                Assert.AreEqual(agent.boardLogicComponent.board[position.Y + 1, position.X].distToPiece, 8);
+                if (position.X + 1 < agent.boardLogicComponent.boardSize.X)
                 {
-                    Assert.AreEqual(agent.board[position.Y + 1, position.X + 1].distToPiece, 9);
+                    Assert.AreEqual(agent.boardLogicComponent.board[position.Y + 1, position.X + 1].distToPiece, 9);
                 }
                 if (position.X - 1 >= 0)
                 {
-                    Assert.AreEqual(agent.board[position.Y + 1, position.X - 1].distToPiece, 7);
+                    Assert.AreEqual(agent.boardLogicComponent.board[position.Y + 1, position.X - 1].distToPiece, 7);
                 }
             }
             if (position.X - 1 >= 0)
             {
-                Assert.AreEqual(agent.board[position.Y, position.X - 1].distToPiece, 4);
+                Assert.AreEqual(agent.boardLogicComponent.board[position.Y, position.X - 1].distToPiece, 4);
                 if (position.Y - 1 >= 0)
                 {
-                    Assert.AreEqual(agent.board[position.Y - 1, position.X - 1].distToPiece, 1);
+                    Assert.AreEqual(agent.boardLogicComponent.board[position.Y - 1, position.X - 1].distToPiece, 1);
                 }
             }
             if (position.Y - 1 >= 0)
             {
-                Assert.AreEqual(agent.board[position.Y - 1, position.X].distToPiece, 2);
-                if (position.X + 1 < agent.boardSize.X)
+                Assert.AreEqual(agent.boardLogicComponent.board[position.Y - 1, position.X].distToPiece, 2);
+                if (position.X + 1 < agent.boardLogicComponent.boardSize.X)
                 {
-                    Assert.AreEqual(agent.board[position.Y - 1, position.X + 1].distToPiece, 3);
+                    Assert.AreEqual(agent.boardLogicComponent.board[position.Y - 1, position.X + 1].distToPiece, 3);
                 }
             }
-            if (position.X + 1 < agent.boardSize.X)
+            if (position.X + 1 < agent.boardLogicComponent.boardSize.X)
             {
-                Assert.AreEqual(agent.board[position.Y, position.X + 1].distToPiece, 6);
+                Assert.AreEqual(agent.boardLogicComponent.board[position.Y, position.X + 1].distToPiece, 6);
             }
         }
 
@@ -209,27 +222,27 @@ namespace AgentTests
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponse(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
 
-            for(int i = 0; i < agent.boardSize.Y; i++)
+            for(int i = 0; i < agent.boardLogicComponent.boardSize.Y; i++)
             {
-                for(int j = 0; j < agent.boardSize.X; j++)
+                for(int j = 0; j < agent.boardLogicComponent.boardSize.X; j++)
                 {
-                    Assert.AreEqual(agent.board[i, j].distToPiece, distances[i, j]);
+                    Assert.AreEqual(agent.boardLogicComponent.board[i, j].distToPiece, distances[i, j]);
                 }
             }
 
-            for (int i = 0; i < agent.goalAreaSize; i++)
+            for (int i = 0; i < agent.boardLogicComponent.goalAreaSize; i++)
             {
-                for (int j = 0; j < agent.boardSize.X; j++)
+                for (int j = 0; j < agent.boardLogicComponent.boardSize.X; j++)
                 {
-                    Assert.AreEqual(agent.board[i, j].goalInfo, blueGoalAreaInformation[i, j]);
+                    Assert.AreEqual(agent.boardLogicComponent.board[i, j].goalInfo, blueGoalAreaInformation[i, j]);
                 }
             }
 
-            for (int i = agent.boardSize.Y - agent.goalAreaSize + 1; i < agent.boardSize.Y; i++)
+            for (int i = agent.boardLogicComponent.boardSize.Y - agent.boardLogicComponent.goalAreaSize + 1; i < agent.boardLogicComponent.boardSize.Y; i++)
             {
-                for (int j = 0; j < agent.boardSize.X; j++)
+                for (int j = 0; j < agent.boardLogicComponent.boardSize.X; j++)
                 {
-                    Assert.AreEqual(agent.board[i, j].goalInfo, redGoalAreaInformation[i, j]);
+                    Assert.AreEqual(agent.boardLogicComponent.board[i, j].goalInfo, redGoalAreaInformation[i, j]);
                 }
             }
         }
@@ -245,8 +258,8 @@ namespace AgentTests
 
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 2), 1));
 
-            Assert.AreEqual(agent.position, new Point(1, 0));
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 2);
+            Assert.AreEqual(agent.startGameComponent.position, new Point(1, 0));
+            Assert.AreEqual(agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece, 2);
         }
 
         [Test]
@@ -258,8 +271,8 @@ namespace AgentTests
 
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
 
-            Assert.AreEqual(agent.position, new Point(1, 0));
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, 0);
+            Assert.AreEqual(agent.startGameComponent.position, new Point(1, 0));
+            Assert.AreEqual(agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece, 0);
             Assert.IsNotNull(agent.piece);
         }
 
@@ -267,12 +280,12 @@ namespace AgentTests
         public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Update_Position_And_Board_State()
         {
             agent.agentState = AgentState.InGame;
-            agent.position = new Point(0, 0);
+            agent.startGameComponent.position = new Point(0, 0);
 
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(false, new Point(1, 0), 2), 1));
 
-            Assert.AreEqual(agent.position, new Point(1, 0));
-            Assert.AreNotEqual(agent.board[agent.position.Y, agent.position.X].deniedMove, startTime);
+            Assert.AreEqual(agent.startGameComponent.position, new Point(1, 0));
+            Assert.AreNotEqual(agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].deniedMove, startTime);
         }
 
         #endregion
@@ -284,7 +297,7 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
+            agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece = 0;
 
             Assert.IsNull(agent.piece);
 
@@ -298,7 +311,7 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
+            agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece = 1;
 
             Assert.IsNull(agent.piece);
 
@@ -312,7 +325,7 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.board[agent.position.Y, agent.position.X].distToPiece = 0;
+            agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece = 0;
 
             Assert.IsNull(agent.piece);
 
@@ -320,7 +333,7 @@ namespace AgentTests
 
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere), 1));
 
-            Assert.AreEqual(agent.board[agent.position.Y, agent.position.X].distToPiece, int.MaxValue);
+            Assert.AreEqual(agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece, int.MaxValue);
         }
 
         #endregion
@@ -332,7 +345,7 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.board[agent.position.Y, agent.position.X].distToPiece = 1;
+            agent.boardLogicComponent.board[agent.startGameComponent.position.Y, agent.startGameComponent.position.X].distToPiece = 1;
             agent.piece = new Piece();
 
             Assert.IsNotNull(agent.piece);
@@ -362,7 +375,6 @@ namespace AgentTests
         #region Agent state
 
         [Test]
-        [Ignore("Fix null reference exception")]
         public void Joins_When_Accepted()
         {
             var agent = new Agent.Agent(TeamId.Blue, false);
@@ -374,7 +386,6 @@ namespace AgentTests
         }
 
         [Test]
-        [Ignore("Fix null reference exception")]
         public void Does_Not_Join_When_Rejected()
         {
             var agent = new Agent.Agent(TeamId.Blue, false);
