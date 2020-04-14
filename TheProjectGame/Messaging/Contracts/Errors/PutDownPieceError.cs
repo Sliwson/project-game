@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using Newtonsoft.Json;
 
 namespace Messaging.Contracts.Errors
 {
@@ -6,6 +7,8 @@ namespace Messaging.Contracts.Errors
     {
         public MessageId GetMessageId() => MessageId.PutDownPieceError;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "errorSubtype")]
         public PutDownPieceErrorSubtype ErrorSubtype { get; private set; }
 
         public PutDownPieceError(PutDownPieceErrorSubtype errorSubtype)

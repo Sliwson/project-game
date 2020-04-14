@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using Newtonsoft.Json;
 
 namespace Messaging.Contracts.GameMaster
 {
@@ -6,6 +7,7 @@ namespace Messaging.Contracts.GameMaster
     {
         public MessageId GetMessageId() => MessageId.PutDownPieceResponse;
 
+        // TODO: Wait for official specifiaction
         public PutDownPieceResult Result { get; set; }
 
         public PutDownPieceResponse(PutDownPieceResult result)

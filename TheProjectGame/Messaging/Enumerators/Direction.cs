@@ -1,10 +1,22 @@
-﻿namespace Messaging.Enumerators
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
+
+namespace Messaging.Enumerators
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum Direction
     {
+        [EnumMember(Value = "N")]
         North,
+
+        [EnumMember(Value = "E")]
         East,
+
+        [EnumMember(Value = "S")]
         South,
+
+        [EnumMember(Value = "W")]
         West
     }
 
