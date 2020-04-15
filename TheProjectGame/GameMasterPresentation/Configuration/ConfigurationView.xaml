@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="800" d:DesignWidth="500" FontSize="18"
              Background="White"
              Loaded="UserControl_Loaded">
@@ -45,25 +45,25 @@
                     Text="Board Height:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="20"/>
+                    Text="{Binding Config.BoardX}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Board Width:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="10"/>
+                    Text="{Binding Config.BoardY}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Goal Area Height:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="3"/>
+                    Text="{Binding Config.GoalAreaHeight}"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Number of Goals:"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
-                    Text="5"/>
+                    Text="{Binding Config.NumberOfGoals}"/>
             </Grid>            
         </GroupBox>
         <!--#endregion-->
@@ -86,19 +86,19 @@
                     Text="Team size:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="5"/>
+                    Text="{Binding Config.TeamSize}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Number of Pieces:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="10"/>
+                    Text="{Binding Config.NumberOfPieces}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Sham Probality:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="0.30"/>
+                    Text="{Binding Config.ShamProbability}"/>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -120,13 +120,13 @@
                     Text="CS IP:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="192.168.1.1"/>
+                    Text="{Binding Config.CSAddress}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="CS Port:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="12008"/>
+                    Text="{Binding Config.CSPort}"/>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -152,37 +152,37 @@
                     Text="Move:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="1500"/>
+                    Text="{Binding Config.MovePenalty}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Information Exchange:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="1000"/>
+                    Text="{Binding Config.InformationExchangePenalty}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
-                    Text="Discover:"/>
+                    Text="Discovery:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="700"/>
+                    Text="{Binding Config.DiscoveryPenalty}"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Put Down Piece:"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
-                    Text="500"/>
+                    Text="{Binding Config.PutPenalty}"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="0"
                     Text="Check For Sham:"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="1"
-                    Text="700"/>
+                    Text="{Binding Config.CheckForShamPenalty}"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="0"
                     Text="Destroy Piece:"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="1"
-                    Text="500"/>
+                    Text="{Binding Config.DestroyPiecePenalty}"/>
 
             </Grid>
         </GroupBox>

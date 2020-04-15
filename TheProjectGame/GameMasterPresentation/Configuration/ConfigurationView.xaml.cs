@@ -1,24 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace GameMasterPresentation.Configuration
 {
     /// <summary>
     /// Interaction logic for ConfigurationView.xaml
     /// </summary>
-    public partial class ConfigurationView : UserControl
+    public partial class ConfigurationView : UserControl//, INotifyPropertyChanged
     {
         private ConfigurationWindow parentWindow;
+        private Configuration _config;
+
+        //public Configuration Config
+        //{
+        //    get
+        //    {
+        //        return _config;
+        //    }
+        //    set
+        //    {
+        //        _config = value;
+        //        NotifyPropertyChanged();
+        //    }
+        //}
+
+        //public event PropertyChangedEventHandler PropertyChanged;
+
+        //private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        //{
+        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //}
 
         public ConfigurationView()
         {

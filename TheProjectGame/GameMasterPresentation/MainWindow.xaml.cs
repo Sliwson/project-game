@@ -19,6 +19,8 @@ namespace GameMasterPresentation
 
         private BoardComponent board;
 
+        private Configuration.Configuration Config;
+
         public BoardComponent Board
         {
             get
@@ -56,6 +58,8 @@ namespace GameMasterPresentation
             InitializeComponent();
 
             gameMaster = new GameMaster.GameMaster();
+
+            Config = new Configuration.Configuration();
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
@@ -234,7 +238,7 @@ namespace GameMasterPresentation
 
         private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
-            var ConfigurationWindow = new Configuration.ConfigurationWindow();
+            var ConfigurationWindow = new Configuration.ConfigurationWindow(Config);
             ConfigurationWindow.Show();
         }
 

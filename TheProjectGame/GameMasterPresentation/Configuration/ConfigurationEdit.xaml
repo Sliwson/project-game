@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="500" FontSize="18"
+             Loaded="UserControl_Loaded"
              Background="White">
     <!--TODO: delete background-->
     <UserControl.Resources>
@@ -43,26 +44,66 @@
                     Grid.Row="0" Grid.Column="0"
                     Text="Board Height:"/>
                 <TextBox 
-                    Grid.Row="0" Grid.Column="1"
-                    Text="20"/>
+                    Grid.Row="0" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Board Width:"/>
                 <TextBox 
-                    Grid.Row="1" Grid.Column="1"
-                    Text="10"/>
+                    Grid.Row="1" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Goal Area Height:"/>
                 <TextBox 
-                    Grid.Row="2" Grid.Column="1"
-                    Text="3"/>
+                    Grid.Row="2" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Number of Goals:"/>
                 <TextBox 
-                    Grid.Row="3" Grid.Column="1"
-                    Text="5"/>
+                    Grid.Row="3" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -84,20 +125,50 @@
                     Grid.Row="0" Grid.Column="0"
                     Text="Team size:"/>
                 <TextBox 
-                    Grid.Row="0" Grid.Column="1"
-                    Text="5"/>
+                    Grid.Row="0" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Number of Pieces:"/>
                 <TextBox 
-                    Grid.Row="1" Grid.Column="1"
-                    Text="10"/>
+                    Grid.Row="1" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Sham Probality:"/>
                 <TextBox 
-                    Grid.Row="2" Grid.Column="1"
-                    Text="0.30"/>
+                    Grid.Row="2" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -118,14 +189,34 @@
                     Grid.Row="0" Grid.Column="0"
                     Text="CS IP:"/>
                 <TextBox 
-                    Grid.Row="0" Grid.Column="1"
-                    Text="192.168.1.1"/>
+                    Grid.Row="0" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="CS Port:"/>
                 <TextBox 
-                    Grid.Row="1" Grid.Column="1"
-                    Text="12008"/>
+                    Grid.Row="1" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1024" Max="49151"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -150,39 +241,98 @@
                     Grid.Row="0" Grid.Column="0"
                     Text="Move:"/>
                 <TextBox 
-                    Grid.Row="0" Grid.Column="1"
-                    Text="1500"/>
+                    Grid.Row="0" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Information Exchange:"/>
                 <TextBox 
-                    Grid.Row="1" Grid.Column="1"
-                    Text="1000"/>
+                    Grid.Row="1" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
-                    Text="Discover:"/>
+                    Text="Discovery:"/>
                 <TextBox 
-                    Grid.Row="2" Grid.Column="1"
-                    Text="700"/>
+                    Grid.Row="2" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Put Down Piece:"/>
                 <TextBox 
-                    Grid.Row="3" Grid.Column="1"
-                    Text="500"/>
+                    Grid.Row="3" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="0"
                     Text="Check For Sham:"/>
                 <TextBox 
-                    Grid.Row="4" Grid.Column="1"
-                    Text="700"/>
+                    Grid.Row="4" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="0"
                     Text="Destroy Piece:"/>
                 <TextBox 
-                    Grid.Row="5" Grid.Column="1"
-                    Text="500"/>
-
+                    Grid.Row="5" Grid.Column="1">
+                    <TextBox.Text>
+                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                    <TextBox.ToolTip>
+                        <Binding RelativeSource="{RelativeSource Mode=Self}" Path="(Validation.Errors)[0].ErrorContent"/>
+                    </TextBox.ToolTip>
+                </TextBox>
             </Grid>
         </GroupBox>
         <!--#endregion-->

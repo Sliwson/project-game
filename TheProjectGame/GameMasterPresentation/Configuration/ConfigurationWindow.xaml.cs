@@ -1,25 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace GameMasterPresentation.Configuration
 {
     /// <summary>
     /// Interaction logic for ConfigurationWindow.xaml
     /// </summary>
-    public partial class ConfigurationWindow : Window
+    public partial class ConfigurationWindow : Window, INotifyPropertyChanged
     {
-        public ConfigurationWindow()
+        private Configuration _config;
+
+        public Configuration Config
         {
-            InitializeComponent();            
+            get
+            {
+                return _config;
+            }
+            set
+            {
+                _config = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public ConfigurationWindow(Configuration configuration)
+        {
+            InitializeComponent();
+            Config = configuration;
         }
 
         protected override void OnInitialized(EventArgs e)
