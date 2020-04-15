@@ -174,7 +174,7 @@ namespace GameMaster
             }
 
             targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
-            return MessageFactory.GetMessage(new ExchangeInformationPayload(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
+            return MessageFactory.GetMessage(new ExchangeInformationRequestForward(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
         }
 
         private BaseMessage Process(Message<ExchangeInformationResponse> message, Agent agent)
@@ -186,7 +186,7 @@ namespace GameMaster
             }
 
             agent.ClearExchangeState();
-            return MessageFactory.GetMessage(new ExchangeInformationResponsePayload(message.Payload), message.Payload.RespondToId);
+            return MessageFactory.GetMessage(new ExchangeInformationResponseForward(message.Payload), message.Payload.RespondToId);
         }
 
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)

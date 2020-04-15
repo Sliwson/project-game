@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Messaging.Contracts.GameMaster
 {
-    public class ExchangeInformationResponsePayload : IPayload
+    public class ExchangeInformationResponseForward : IPayload
     {
         public MessageId GetMessageId() => MessageId.ExchangeInformationResponseMessage;
         
@@ -29,7 +29,7 @@ namespace Messaging.Contracts.GameMaster
         public GoalInformation[,] BlueTeamGoalAreaInformation { get; private set; }
 
         [JsonConstructor]
-        public ExchangeInformationResponsePayload(int respondingId, int[,] distances, GoalInformation[,] redTeamGoalAreaInformation, GoalInformation[,] blueTeamGoalAreaInformation)
+        public ExchangeInformationResponseForward(int respondingId, int[,] distances, GoalInformation[,] redTeamGoalAreaInformation, GoalInformation[,] blueTeamGoalAreaInformation)
         {
             RespondingId = respondingId;
             Distances = distances;
@@ -37,7 +37,7 @@ namespace Messaging.Contracts.GameMaster
             BlueTeamGoalAreaInformation = blueTeamGoalAreaInformation;
         }
 
-        public ExchangeInformationResponsePayload(ExchangeInformationResponse message) : this (
+        public ExchangeInformationResponseForward(ExchangeInformationResponse message) : this (
             message.RespondToId,
             message.Distances,
             message.RedTeamGoalAreaInformation,

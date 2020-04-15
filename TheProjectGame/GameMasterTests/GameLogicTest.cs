@@ -217,7 +217,7 @@ namespace GameMasterTests
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
@@ -237,7 +237,7 @@ namespace GameMasterTests
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.IsTrue(payload.Leader);
@@ -281,9 +281,9 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
-            Assert.IsTrue(response.Payload is ExchangeInformationResponsePayload);
+            Assert.IsTrue(response.Payload is ExchangeInformationResponseForward);
 
-            var responsePayload = response.Payload as ExchangeInformationResponsePayload;
+            var responsePayload = response.Payload as ExchangeInformationResponseForward;
             Assert.AreEqual(payload.RespondToId, responsePayload.RespondingId);
             Assert.AreEqual(payload.Distances, responsePayload.Distances);
             Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);

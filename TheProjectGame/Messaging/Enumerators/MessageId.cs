@@ -75,7 +75,7 @@ namespace Messaging.Enumerators
                 case MessageId.StartGameMessage:
                     return typeof(Message<StartGamePayload>);
                 case MessageId.ExchangeInformationMessage:
-                    return typeof(Message<ExchangeInformationPayload>);
+                    return typeof(Message<ExchangeInformationRequestForward>);
                 case MessageId.JoinResponse:
                     return typeof(Message<JoinResponse>);
                 case MessageId.MoveResponse:
@@ -85,7 +85,7 @@ namespace Messaging.Enumerators
                 case MessageId.PutDownPieceResponse:
                     return typeof(Message<PutDownPieceResponse>);
                 case MessageId.ExchangeInformationResponseMessage:
-                    return typeof(Message<ExchangeInformationResponsePayload>);
+                    return typeof(Message<ExchangeInformationResponseForward>);
                 case MessageId.MoveError:
                     return typeof(Message<MoveError>);
                 case MessageId.PickUpPieceError:

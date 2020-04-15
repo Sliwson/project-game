@@ -204,7 +204,7 @@ namespace AgentTests
         {
             agent.agentState = AgentState.InGame;
 
-            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationPayload(2, false, Messaging.Enumerators.TeamId.Blue), 1));
+            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationRequestForward(2, false, Messaging.Enumerators.TeamId.Blue), 1));
 
             Assert.AreEqual(agent.waitingPlayers.Count, 1);
             Assert.AreEqual(agent.waitingPlayers[0], 2);
@@ -220,7 +220,7 @@ namespace AgentTests
             var redGoalAreaInformation = new GoalInformation[,] { { GoalInformation.NoInformation, GoalInformation.NoGoal, GoalInformation.NoGoal, GoalInformation.Goal, GoalInformation.NoInformation } };
             var distances = new int[,] {{ 1, 2, 3, 1, 4 }, { 2, 2, 2, 1, 3 }, { 3, 0, 2, 1, 2 }, { 2, 2, 2, 1, 1 }, { 3, 0, 2, 1, 2 }, { 2, 1, 3, 4, 1 } };
 
-            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponsePayload(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
+            agent.AcceptMessage(GetBaseMessage(new ExchangeInformationResponseForward(2, distances, redGoalAreaInformation, blueGoalAreaInformation ), 1));
 
             for(int i = 0; i < agent.boardLogicComponent.boardSize.Y; i++)
             {

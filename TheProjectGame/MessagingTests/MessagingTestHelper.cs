@@ -37,12 +37,12 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new DestroyPieceResponse()),
                 MessageFactory.GetMessage(new DiscoverResponse(new int[,] { { 1, 0, 1 }, { -1, 1, 2 }, { 3, 2, -1 } })),
                 MessageFactory.GetMessage(new EndGamePayload(TeamId.Red)),
-                MessageFactory.GetMessage(new ExchangeInformationPayload(666, false, TeamId.Blue)),
+                MessageFactory.GetMessage(new ExchangeInformationRequestForward(666, false, TeamId.Blue)),
                 MessageFactory.GetMessage(new JoinResponse(false, 333)),
                 MessageFactory.GetMessage(new MoveResponse(false, new Point(3,3), 2)),
                 MessageFactory.GetMessage(new PickUpPieceResponse()),
                 MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea)),
-                MessageFactory.GetMessage(new ExchangeInformationResponsePayload(
+                MessageFactory.GetMessage(new ExchangeInformationResponseForward(
                                                     333,
                                                     new int[,]{ { 1, 2 }, { 3, 4 } },
                                                     new GoalInformation[,]{ { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } },
