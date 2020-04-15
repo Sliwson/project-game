@@ -7,12 +7,12 @@ using System.Text;
 
 namespace Messaging.Contracts.GameMaster
 {
-    class ExchangeInformationResponsePayload : IPayload
+    public class ExchangeInformationResponsePayload : IPayload
     {
         public MessageId GetMessageId() => MessageId.ExchangeInformationResponseMessage;
         
         [JsonRequired]
-        [JsonProperty(PropertyName = "respondingId")]
+        [JsonProperty(PropertyName = "respondingID")]
         public int RespondingId { get; private set; }
 
         // TODO: Make sure how to format those arrays into one-dimensional
@@ -28,6 +28,7 @@ namespace Messaging.Contracts.GameMaster
         [JsonProperty(PropertyName = "blueTeamGoalAreaInformations")]
         public GoalInformation[,] BlueTeamGoalAreaInformation { get; private set; }
 
+        [JsonConstructor]
         public ExchangeInformationResponsePayload(int respondingId, int[,] distances, GoalInformation[,] redTeamGoalAreaInformation, GoalInformation[,] blueTeamGoalAreaInformation)
         {
             RespondingId = respondingId;
