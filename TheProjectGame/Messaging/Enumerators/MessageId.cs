@@ -84,6 +84,8 @@ namespace Messaging.Enumerators
                     return typeof(Message<PickUpPieceResponse>);
                 case MessageId.PutDownPieceResponse:
                     return typeof(Message<PutDownPieceResponse>);
+                case MessageId.ExchangeInformationResponseMessage:
+                    return typeof(Message<ExchangeInformationResponsePayload>);
                 case MessageId.MoveError:
                     return typeof(Message<MoveError>);
                 case MessageId.PickUpPieceError:
