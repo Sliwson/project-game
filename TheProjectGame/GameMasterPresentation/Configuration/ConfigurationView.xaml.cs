@@ -18,9 +18,24 @@ namespace GameMasterPresentation.Configuration
     /// </summary>
     public partial class ConfigurationView : UserControl
     {
+        private ConfigurationWindow parentWindow;
+
         public ConfigurationView()
         {
             InitializeComponent();
+        }
+
+        private void EditButton_Click(object sender, RoutedEventArgs e)
+        {
+            parentWindow.ContentGrid.Children.Clear();
+            parentWindow.ContentGrid.Children.Add(new ConfigurationEdit());
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            parentWindow = Window.GetWindow(this) as ConfigurationWindow;
+            if (parentWindow == null)
+                ;//TODO: error something
         }
     }
 }

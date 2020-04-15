@@ -19,7 +19,12 @@ namespace GameMasterPresentation.Configuration
     {
         public ConfigurationWindow()
         {
-            InitializeComponent();
+            InitializeComponent();            
+        }
+
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
             ContentGrid.Children.Add(new ConfigurationView());
         }
     }
