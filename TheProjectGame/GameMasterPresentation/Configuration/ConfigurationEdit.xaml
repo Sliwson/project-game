@@ -5,8 +5,204 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="500">
+             d:DesignHeight="800" d:DesignWidth="500" FontSize="18"
+             Background="White">
+    <!--TODO: delete background-->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ConfigurationStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <!--#region Board-->
+        <GroupBox 
+            Grid.Row="0" Header="Board"
+            Style="{StaticResource GroupBoxTopStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock 
+                    Grid.Row="0" Grid.Column="0"
+                    Text="Board Height:"/>
+                <TextBox 
+                    Grid.Row="0" Grid.Column="1"
+                    Text="20"/>
+                <TextBlock 
+                    Grid.Row="1" Grid.Column="0"
+                    Text="Board Width:"/>
+                <TextBox 
+                    Grid.Row="1" Grid.Column="1"
+                    Text="10"/>
+                <TextBlock 
+                    Grid.Row="2" Grid.Column="0"
+                    Text="Goal Area Height:"/>
+                <TextBox 
+                    Grid.Row="2" Grid.Column="1"
+                    Text="3"/>
+                <TextBlock 
+                    Grid.Row="3" Grid.Column="0"
+                    Text="Number of Goals:"/>
+                <TextBox 
+                    Grid.Row="3" Grid.Column="1"
+                    Text="5"/>
+            </Grid>
+        </GroupBox>
+        <!--#endregion-->
+        <!--#region Game-->
+        <GroupBox
+            Grid.Row="1" Header="Game"
+            Style="{StaticResource GroupBoxStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock 
+                    Grid.Row="0" Grid.Column="0"
+                    Text="Team size:"/>
+                <TextBox 
+                    Grid.Row="0" Grid.Column="1"
+                    Text="5"/>
+                <TextBlock 
+                    Grid.Row="1" Grid.Column="0"
+                    Text="Number of Pieces:"/>
+                <TextBox 
+                    Grid.Row="1" Grid.Column="1"
+                    Text="10"/>
+                <TextBlock 
+                    Grid.Row="2" Grid.Column="0"
+                    Text="Sham Probality:"/>
+                <TextBox 
+                    Grid.Row="2" Grid.Column="1"
+                    Text="0.30"/>
+            </Grid>
+        </GroupBox>
+        <!--#endregion-->
+        <!--#region Network-->
+        <GroupBox
+            Grid.Row="2" Header="Network"
+            Style="{StaticResource GroupBoxStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock 
+                    Grid.Row="0" Grid.Column="0"
+                    Text="CS IP:"/>
+                <TextBox 
+                    Grid.Row="0" Grid.Column="1"
+                    Text="192.168.1.1"/>
+                <TextBlock 
+                    Grid.Row="1" Grid.Column="0"
+                    Text="CS Port:"/>
+                <TextBox 
+                    Grid.Row="1" Grid.Column="1"
+                    Text="12008"/>
+            </Grid>
+        </GroupBox>
+        <!--#endregion-->
+        <!--#region penalties-->
+        <GroupBox
+            Grid.Row="3" Header="Penalties"
+            Style="{StaticResource GroupBoxBottomStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock 
+                    Grid.Row="0" Grid.Column="0"
+                    Text="Move:"/>
+                <TextBox 
+                    Grid.Row="0" Grid.Column="1"
+                    Text="1500"/>
+                <TextBlock 
+                    Grid.Row="1" Grid.Column="0"
+                    Text="Information Exchange:"/>
+                <TextBox 
+                    Grid.Row="1" Grid.Column="1"
+                    Text="1000"/>
+                <TextBlock 
+                    Grid.Row="2" Grid.Column="0"
+                    Text="Discover:"/>
+                <TextBox 
+                    Grid.Row="2" Grid.Column="1"
+                    Text="700"/>
+                <TextBlock 
+                    Grid.Row="3" Grid.Column="0"
+                    Text="Put Down Piece:"/>
+                <TextBox 
+                    Grid.Row="3" Grid.Column="1"
+                    Text="500"/>
+                <TextBlock 
+                    Grid.Row="4" Grid.Column="0"
+                    Text="Check For Sham:"/>
+                <TextBox 
+                    Grid.Row="4" Grid.Column="1"
+                    Text="700"/>
+                <TextBlock 
+                    Grid.Row="5" Grid.Column="0"
+                    Text="Destroy Piece:"/>
+                <TextBox 
+                    Grid.Row="5" Grid.Column="1"
+                    Text="500"/>
+
+            </Grid>
+        </GroupBox>
+        <!--#endregion-->
+        <!--#region Buttons-->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                Content="Save"/>
+            <Button
+                Grid.Column="1"
+                Content="Save To File"/>
+            <Button
+                Grid.Column="2"
+                Content="Exit"/>
+        </Grid>
+        <!--#endregion-->
     </Grid>
 </UserControl>

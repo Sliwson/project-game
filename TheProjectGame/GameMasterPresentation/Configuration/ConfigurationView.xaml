@@ -5,7 +5,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="500" FontSize="18">
+             d:DesignHeight="800" d:DesignWidth="500" FontSize="18"
+             Background="White"
+             Loaded="UserControl_Loaded">
+    <!--TODO: delete background-->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ConfigurationStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -14,8 +24,10 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+        <!--#region Board-->
         <GroupBox 
-            Grid.Row="0" Header="Board">
+            Grid.Row="0" Header="Board"
+            Style="{StaticResource GroupBoxTopStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -52,11 +64,13 @@
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
                     Text="5"/>
-            </Grid>
-            
+            </Grid>            
         </GroupBox>
+        <!--#endregion-->
+        <!--#region Game-->
         <GroupBox
-            Grid.Row="1" Header="Game">
+            Grid.Row="1" Header="Game"
+            Style="{StaticResource GroupBoxStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -87,8 +101,11 @@
                     Text="0.30"/>
             </Grid>
         </GroupBox>
+        <!--#endregion-->
+        <!--#region Network-->
         <GroupBox
-            Grid.Row="2" Header="Network">
+            Grid.Row="2" Header="Network"
+            Style="{StaticResource GroupBoxStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -112,8 +129,11 @@
                     Text="12008"/>
             </Grid>
         </GroupBox>
+        <!--#endregion-->
+        <!--#region penalties-->
         <GroupBox
-            Grid.Row="3" Header="Penalties">
+            Grid.Row="3" Header="Penalties"
+            Style="{StaticResource GroupBoxBottomStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -166,7 +186,8 @@
 
             </Grid>
         </GroupBox>
-        <!--Buttons-->
+        <!--#endregion-->
+        <!--#region Buttons-->
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -174,10 +195,12 @@
             </Grid.ColumnDefinitions>
             <Button
                 Grid.Column="0"
-                Content="Edit"/>
+                Content="Edit"
+                Click="EditButton_Click"/>
             <Button
                 Grid.Column="1"
                 Content="Read from file"/>
         </Grid>
+        <!--#endregion-->
     </Grid>
 </UserControl>
