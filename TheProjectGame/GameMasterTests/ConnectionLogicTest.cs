@@ -27,7 +27,7 @@ namespace GameMasterTests
         }
 
         [Test]
-        public void ProcessMessage_ShouldRejectAndBanMessagesDifferentThanJoinRequest()
+        public void ProcessMessage_ShouldRejectAndBanAgentsThatSendMessagesDifferentThanJoinRequest()
         {
             connectionLogic.FlushLobby();
 
@@ -96,6 +96,27 @@ namespace GameMasterTests
             Assert.IsTrue(castedResponse.Payload.Accepted);
             Assert.AreEqual(message.AgentId, castedResponse.Payload.AgentId);
             Assert.IsTrue(connectionLogic.FlushLobby().Count == 1);
+        }
+
+        [Test]
+        public void ConnectionLogic_ShouldAcceptNoMoreAgentsThanItIsConfigured()
+        {
+            connectionLogic.FlushLobby();
+            var teamLimit = configuration.AgentsLimit;
+
+            for (int i = 0; i < teamLimit; i++)
+            {
+                dynamic response =  connectionLogic.ProcessMessage(MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false), i));
+                Assert.AreEqual(i, response.AgentId);
+                Assert.IsTrue(response.Payload is JoinResponse);
+                var joinResponse = response.Payload as JoinResponse;
+                Assert.IsTrue(joinResponse.Accepted);
+            }
+
+            dynamic rejectResponse = connectionLogic.ProcessMessage(MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false), teamLimit));
+            Assert.AreEqual(teamLimit, rejectResponse.AgentId);
+            var joinResponseReject = rejectResponse.Payload as JoinResponse;
+            Assert.IsFalse(joinResponseReject.Accepted);
         }
     }
 }
