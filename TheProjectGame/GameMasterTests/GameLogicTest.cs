@@ -281,7 +281,13 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
-            Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
+            Assert.IsTrue(response.Payload is ExchangeInformationResponsePayload);
+
+            var responsePayload = response.Payload as ExchangeInformationResponsePayload;
+            Assert.AreEqual(payload.RespondToId, responsePayload.RespondingId);
+            Assert.AreEqual(payload.Distances, responsePayload.Distances);
+            Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);
+            Assert.AreEqual(payload.RedTeamGoalAreaInformation, responsePayload.RedTeamGoalAreaInformation);
             Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
