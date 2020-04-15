@@ -27,7 +27,7 @@ namespace Agent
         {
             LoadDefaultConfiguration();
             agent = new Agent(Configuration.teamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue, Configuration.wantsToBeTeamLeader);
-            agent.agentConfiguration = Configuration;
+            agent.AgentConfiguration = Configuration;
             Stopwatch stopwatch = new Stopwatch();
             double timeElapsed = 0.0;
             ActionResult actionResult = ActionResult.Continue;
