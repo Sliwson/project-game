@@ -42,6 +42,11 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new MoveResponse(false, new Point(3,3), 2)),
                 MessageFactory.GetMessage(new PickUpPieceResponse()),
                 MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.ShamOnGoalArea)),
+                MessageFactory.GetMessage(new ExchangeInformationResponsePayload(
+                                                    333,
+                                                    new int[,]{ { 1, 2 }, { 3, 4 } },
+                                                    new GoalInformation[,]{ { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } },
+                                                    new GoalInformation[,]{ { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } })),
                 MessageFactory.GetMessage(new StartGamePayload(
                                                     333,
                                                     new int[] { 666 },
@@ -79,7 +84,7 @@ namespace MessagingTests
 
         public static bool IsMessagePayloadError<T>(Message<T> message) where T : IPayload
         {
-            return message.Payload is IErrorPayload && message != null;
+            return message != null && message.Payload is IErrorPayload;
         }
     }
 }
