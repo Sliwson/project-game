@@ -59,8 +59,11 @@ namespace GameMaster
         private BaseMessage Process(Message<JoinRequest> message)
         {
             var payload = message.Payload;
+            var foundAgent = lobby.FirstOrDefault(a => a.Id == message.AgentId);   
 
-            //check limits
+            if (foundAgent != null)
+                return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId), message.AgentId);
+
             if (!CanAddAgentForTeam(payload.TeamId))
             {
                 logger.Warn("[Connection] Rejecting - team {team} is full", payload.TeamId);

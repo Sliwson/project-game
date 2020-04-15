@@ -78,5 +78,24 @@ namespace GameMasterTests
             Assert.AreEqual(message.AgentId, castedResponse.Payload.AgentId);
             Assert.IsTrue(connectionLogic.FlushLobby().Count == 1);
         }
+
+        [Test]
+        public void ConnectionLogic_ShouldIgnoreSecondJoinRequestFromTheSameAgent()
+        {
+            connectionLogic.FlushLobby();
+            var message = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false), 0);
+            connectionLogic.ProcessMessage(message);
+
+            message = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false), 0);
+            dynamic response = connectionLogic.ProcessMessage(message);
+
+            Assert.AreEqual(message.AgentId, response.AgentId);
+            Assert.IsTrue(response.Payload is JoinResponse);
+
+            var castedResponse = response as Message<JoinResponse>;
+            Assert.IsTrue(castedResponse.Payload.Accepted);
+            Assert.AreEqual(message.AgentId, castedResponse.Payload.AgentId);
+            Assert.IsTrue(connectionLogic.FlushLobby().Count == 1);
+        }
     }
 }
