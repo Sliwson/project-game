@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 
 namespace Messaging.Contracts.GameMaster
 {
-    public class ExchangeInformationPayload : IPayload
+    public class ExchangeInformationRequestForward : IPayload
     {
-        public MessageId GetMessageId() => MessageId.ExchangeInformationMessage;
+        public MessageId GetMessageId() => MessageId.ExchangeInformationRequestForward;
 
         [JsonRequired]
         [JsonProperty(PropertyName = "askingID")]
@@ -19,7 +19,7 @@ namespace Messaging.Contracts.GameMaster
         [JsonProperty(PropertyName = "teamID")]
         public TeamId TeamId { get; private set; }
 
-        public ExchangeInformationPayload(int askingAgentId, bool isLeader, TeamId teamId)
+        public ExchangeInformationRequestForward(int askingAgentId, bool isLeader, TeamId teamId)
         {
             AskingAgentId = askingAgentId;
             Leader = isLeader;

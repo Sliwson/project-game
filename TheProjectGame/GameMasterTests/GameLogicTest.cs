@@ -215,9 +215,9 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
@@ -235,9 +235,9 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.IsTrue(payload.Leader);
@@ -281,7 +281,13 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
-            Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
+            Assert.IsTrue(response.Payload is ExchangeInformationResponseForward);
+
+            var responsePayload = response.Payload as ExchangeInformationResponseForward;
+            Assert.AreEqual(payload.RespondToId, responsePayload.RespondingId);
+            Assert.AreEqual(payload.Distances, responsePayload.Distances);
+            Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);
+            Assert.AreEqual(payload.RedTeamGoalAreaInformation, responsePayload.RedTeamGoalAreaInformation);
             Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 

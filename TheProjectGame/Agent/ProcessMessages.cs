@@ -76,7 +76,7 @@ namespace Agent
             return agent.MakeDecisionFromStrategy();
         }
 
-        public ActionResult Process(Message<ExchangeInformationResponse> message)
+        public ActionResult Process(Message<ExchangeInformationResponseForward> message)
         {
             if (agent.agentState != AgentState.InGame)
             {
@@ -160,7 +160,7 @@ namespace Agent
             return agent.MakeDecisionFromStrategy();
         }
 
-        public ActionResult Process(Message<ExchangeInformationPayload> message)
+        public ActionResult Process(Message<ExchangeInformationRequestForward> message)
         {
             if (agent.agentState != AgentState.InGame)
             {
