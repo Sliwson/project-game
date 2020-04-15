@@ -5,7 +5,7 @@ namespace Messaging.Contracts.GameMaster
 {
     public class ExchangeInformationRequestForward : IPayload
     {
-        public MessageId GetMessageId() => MessageId.ExchangeInformationMessage;
+        public MessageId GetMessageId() => MessageId.ExchangeInformationRequestForward;
 
         [JsonRequired]
         [JsonProperty(PropertyName = "askingID")]

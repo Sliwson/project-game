@@ -9,7 +9,7 @@ namespace Messaging.Contracts.GameMaster
 {
     public class ExchangeInformationResponseForward : IPayload
     {
-        public MessageId GetMessageId() => MessageId.ExchangeInformationResponseMessage;
+        public MessageId GetMessageId() => MessageId.ExchangeInformationResponseForward;
         
         [JsonRequired]
         [JsonProperty(PropertyName = "respondingID")]

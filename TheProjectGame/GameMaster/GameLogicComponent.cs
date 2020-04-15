@@ -112,7 +112,7 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new IgnoredDelayError(TimeSpan.FromSeconds(agent.Timeout)), agent.Id);
             }
 
-            if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
+            if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationRequestForward)
             {
                 logger.Info("[Logic] Agent has to exchange information");
                 NLog.NestedDiagnosticsContext.Pop();

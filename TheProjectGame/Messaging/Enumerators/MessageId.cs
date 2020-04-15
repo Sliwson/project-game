@@ -25,12 +25,12 @@ namespace Messaging.Enumerators
         DiscoverResponse =                   103,
         EndGameMessage =                     104,
         StartGameMessage =                   105,
-        ExchangeInformationMessage =         106,
+        ExchangeInformationRequestForward =  106,
         JoinResponse =                       107,
         MoveResponse =                       108,
         PickUpPieceResponse =                109,
         PutDownPieceResponse =               110,
-        ExchangeInformationResponseMessage = 111,
+        ExchangeInformationResponseForward = 111,
 
         // Error Messages:
         MoveError =                          901,
@@ -74,7 +74,7 @@ namespace Messaging.Enumerators
                     return typeof(Message<EndGamePayload>);
                 case MessageId.StartGameMessage:
                     return typeof(Message<StartGamePayload>);
-                case MessageId.ExchangeInformationMessage:
+                case MessageId.ExchangeInformationRequestForward:
                     return typeof(Message<ExchangeInformationRequestForward>);
                 case MessageId.JoinResponse:
                     return typeof(Message<JoinResponse>);
@@ -84,7 +84,7 @@ namespace Messaging.Enumerators
                     return typeof(Message<PickUpPieceResponse>);
                 case MessageId.PutDownPieceResponse:
                     return typeof(Message<PutDownPieceResponse>);
-                case MessageId.ExchangeInformationResponseMessage:
+                case MessageId.ExchangeInformationResponseForward:
                     return typeof(Message<ExchangeInformationResponseForward>);
                 case MessageId.MoveError:
                     return typeof(Message<MoveError>);

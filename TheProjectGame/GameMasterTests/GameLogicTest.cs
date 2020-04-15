@@ -215,7 +215,7 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
             var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
@@ -235,7 +235,7 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
             var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
