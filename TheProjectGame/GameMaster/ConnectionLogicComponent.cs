@@ -36,6 +36,15 @@ namespace GameMaster
             return returnLobby;
         }
 
+        public bool CanStartGame()
+        {
+            //both team leaders should be present
+            if (CanAddTeamLeader(TeamId.Blue) || CanAddTeamLeader(TeamId.Red))
+                return false;
+
+            return true;
+        }
+
         public BaseMessage ProcessMessage(BaseMessage message)
         {
             logger.Info("[Connection] Received message {type} from id {id}", message.MessageId, message.AgentId);
