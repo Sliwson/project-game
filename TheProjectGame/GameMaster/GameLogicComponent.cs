@@ -186,7 +186,7 @@ namespace GameMaster
             }
 
             agent.ClearExchangeState();
-            return MessageFactory.GetMessage(message.Payload, message.Payload.RespondToId);
+            return MessageFactory.GetMessage(new ExchangeInformationResponsePayload(message.Payload), message.Payload.RespondToId);
         }
 
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)

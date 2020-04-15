@@ -76,7 +76,7 @@ namespace Agent
             return agent.MakeDecisionFromStrategy();
         }
 
-        public ActionResult Process(Message<ExchangeInformationResponse> message)
+        public ActionResult Process(Message<ExchangeInformationResponsePayload> message)
         {
             if (agent.agentState != AgentState.InGame)
             {
