@@ -27,5 +27,10 @@ namespace GameMasterPresentation.Configuration
             if (parentWindow == null)
                 ;//TODO: error something
         }
+
+        private void ReadButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

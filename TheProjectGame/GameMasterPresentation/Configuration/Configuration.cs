@@ -145,7 +145,7 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        //penalties
+        //penalties in milliseconds
         private TimeSpan _movePenalty;
 
         public TimeSpan MovePenalty
@@ -264,6 +264,11 @@ namespace GameMasterPresentation.Configuration
                 DestroyPiecePenalty = this.DestroyPiecePenalty
             };
             return conf;
+        }
+
+        public static Configuration ReadFromFile(string path)
+        {
+
         }
 
         //TODO: delete

@@ -203,7 +203,8 @@
             <Button
                 Grid.Column="1"
                 Style="{StaticResource ButtonSmallStyle}"
-                Content="Read from file"/>
+                Content="Read from file"
+                Click="ReadButton_Click"/>
         </Grid>
         <!--#endregion-->
     </Grid>
