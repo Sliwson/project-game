@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
-             d:DesignHeight="1000" d:DesignWidth="500" FontSize="18"
+             d:DesignHeight="910" d:DesignWidth="500" FontSize="18"
              Loaded="UserControl_Loaded"
              Background="White">
     <!--TODO: delete background-->
@@ -341,19 +341,29 @@
         <!--#endregion-->
         <!--#region Buttons-->
         <Grid Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
+            </Grid.ColumnDefinitions>            
             <Button
+                Grid.Row="0"
                 Grid.Column="0"
+                Style="{StaticResource ButtonSmallStyle}"
                 Content="Save"/>
             <Button
+                Grid.Row="0"
                 Grid.Column="1"
+                Style="{StaticResource ButtonSmallStyle}"
                 Content="Save To File"/>
             <Button
-                Grid.Column="2"
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Style="{StaticResource ButtonLargeStyle}"
                 Content="Exit"/>
         </Grid>
         <!--#endregion-->
