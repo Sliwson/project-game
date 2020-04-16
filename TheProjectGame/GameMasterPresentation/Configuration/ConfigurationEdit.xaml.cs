@@ -14,7 +14,7 @@ namespace GameMasterPresentation.Configuration
         private ConfigurationWindow parentWindow;
         private Configuration _config;
 
-        public Configuration Config
+        public Configuration ConfigCopy
         {
             get
             {
@@ -34,8 +34,9 @@ namespace GameMasterPresentation.Configuration
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public ConfigurationEdit()
+        public ConfigurationEdit(Configuration configuration)
         {
+            ConfigCopy = configuration.Clone();
             InitializeComponent();
         }
 

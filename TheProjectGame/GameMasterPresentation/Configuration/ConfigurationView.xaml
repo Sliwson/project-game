@@ -14,7 +14,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ConfigurationStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
+            <local:IPAddressConverter x:Key="IPAddressConverter"/>
+        </ResourceDictionary>        
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -120,7 +121,7 @@
                     Text="CS IP:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.CSAddress}"/>
+                    Text="{Binding Config.CSAddress, Converter={StaticResource IPAddressConverter}}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="CS Port:"/>

@@ -242,5 +242,52 @@ namespace GameMasterPresentation.Configuration
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public Configuration Clone()
+        {
+            var conf = new Configuration()
+            {
+                BoardX = this.BoardX,
+                BoardY = this.BoardY,
+                GoalAreaHeight = this.GoalAreaHeight,
+                NumberOfGoals = this.NumberOfGoals,
+                TeamSize = this.TeamSize,
+                NumberOfPieces = this.NumberOfPieces,
+                ShamProbability = this.ShamProbability,
+                CSAddress = new IPAddress(this.CSAddress.GetAddressBytes()),
+                CSPort = this.CSPort,
+                MovePenalty = this.MovePenalty,
+                InformationExchangePenalty = this.InformationExchangePenalty,
+                DiscoveryPenalty = this.DiscoveryPenalty,
+                PutPenalty = this.PutPenalty,
+                CheckForShamPenalty = this.CheckForShamPenalty,
+                DestroyPiecePenalty = this.DestroyPiecePenalty
+            };
+            return conf;
+        }
+
+        //TODO: delete
+        public static Configuration MockConfiguration()
+        {
+            var conf = new Configuration()
+            {
+                BoardX = 5,
+                BoardY = 10,
+                GoalAreaHeight = 3,
+                NumberOfGoals = 4,
+                TeamSize = 2,
+                NumberOfPieces = 10,
+                ShamProbability = 0.3f,
+                CSAddress = IPAddress.Parse("192.168.1.1"),
+                CSPort = 10023,
+                MovePenalty = TimeSpan.FromMilliseconds(1000),
+                InformationExchangePenalty = TimeSpan.FromMilliseconds(700),
+                DiscoveryPenalty = TimeSpan.FromMilliseconds(600),
+                PutPenalty = TimeSpan.FromMilliseconds(500),
+                CheckForShamPenalty = TimeSpan.FromMilliseconds(400),
+                DestroyPiecePenalty = TimeSpan.FromMilliseconds(300)
+            };
+            return conf;
+        }
     }
 }

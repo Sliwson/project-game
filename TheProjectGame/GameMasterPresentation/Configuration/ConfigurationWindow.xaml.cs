@@ -34,8 +34,8 @@ namespace GameMasterPresentation.Configuration
 
         public ConfigurationWindow(Configuration configuration)
         {
-            InitializeComponent();
             Config = configuration;
+            InitializeComponent();            
         }
 
         protected override void OnInitialized(EventArgs e)

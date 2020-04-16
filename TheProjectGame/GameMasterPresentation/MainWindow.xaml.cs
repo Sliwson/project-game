@@ -19,7 +19,7 @@ namespace GameMasterPresentation
 
         private BoardComponent board;
 
-        private Configuration.Configuration Config;
+        private Configuration.Configuration GMConfig;
 
         public BoardComponent Board
         {
@@ -59,7 +59,7 @@ namespace GameMasterPresentation
 
             gameMaster = new GameMaster.GameMaster();
 
-            Config = new Configuration.Configuration();
+            GMConfig = Configuration.Configuration.MockConfiguration();
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
@@ -238,7 +238,7 @@ namespace GameMasterPresentation
 
         private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
-            var ConfigurationWindow = new Configuration.ConfigurationWindow(Config);
+            var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
             ConfigurationWindow.Show();
         }
 
