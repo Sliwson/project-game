@@ -37,8 +37,8 @@ namespace CommunicationServer
         {
             return new CommunicationServerConfig
             (
-                agentPort: 8000,
-                gameMasterPort: 8080
+                agentPort: 54321,
+                gameMasterPort: 12345
             );
         }
 

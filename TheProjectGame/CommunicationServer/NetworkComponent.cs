@@ -11,38 +11,40 @@ namespace CommunicationServer
     {
         private CommunicationServer server;
 
+        private ManualResetEvent gmAccepted = new ManualResetEvent(false);
+        private ManualResetEvent agentAccepted = new ManualResetEvent(false);
+
         internal NetworkComponent(CommunicationServer communicationServer)
         {
             server = communicationServer;
         }
 
-        internal string GetLocalIPAddress()
+        internal void StartListening(Socket gameMasterListener, Socket agentListener)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
+            var gameMasterEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetGameMasterPort());
+            var agentEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetAgentPort());
+
+            var extendedGameMasterListener = new ExtendedListener(gameMasterListener, ClientType.GameMaster, ref gmAccepted);
+            var extendedAgentListener = new ExtendedListener(agentListener, ClientType.Agent, ref agentAccepted);
+
+            try
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
+                gameMasterListener.Bind(gameMasterEndpoint);
+                agentListener.Bind(agentEndpoint);
+
+                Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
+                gameMasterThread.Start(extendedGameMasterListener);
+                Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{server.ConfigComponent.GetGameMasterPort()}");
+
+                Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
+                agentsThread.Start(extendedAgentListener);
+                Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{server.ConfigComponent.GetAgentPort()}");
             }
-            throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
-        }
-
-        internal void StartListening(TcpListener gameMasterListener, TcpListener agentListener)
-        {
-            var extendedGameMasterListener = new ExtendedListener(gameMasterListener, ClientType.GameMaster);
-            var extendedAgentListener = new ExtendedListener(agentListener, ClientType.Agent);
-
-            gameMasterListener.Start();
-            Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
-            gameMasterThread.Start(extendedGameMasterListener);
-            Console.WriteLine($"Server for agent was started with IP: {server.IPAddress}:{server.ConfigComponent.GetAgentPort()}");
-
-            agentListener.Start();
-            Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
-            agentsThread.Start(extendedAgentListener);
-            Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{server.ConfigComponent.GetGameMasterPort()}");
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
         }
 
         private void StartListener(object obj)
@@ -51,15 +53,17 @@ namespace CommunicationServer
 
             try
             {
+                listener.Listener.Listen(100);
+
                 while (true)
                 {
-                    TcpClient client = listener.Listener.AcceptTcpClient();
-                    Console.WriteLine($"{listener.ClientType} Connected!");
+                    listener.Barrier.Reset();
+                    // TODO: DEBUG purposes, remove it
+                    Console.WriteLine($"Waiting for {listener.ClientType} to connect...");
 
-                    var extendedClient = new ExtendedClient(client, listener.ClientType);
+                    listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
-                    Thread t = new Thread(new ParameterizedThreadStart(HandleClient));
-                    t.Start(extendedClient);
+                    listener.Barrier.WaitOne();
 
                     if (listener.ClientType == ClientType.GameMaster)
                         break;
@@ -68,39 +72,70 @@ namespace CommunicationServer
             catch (SocketException e)
             {
                 Console.WriteLine("SocketException: {0}", e);
-                listener.Listener.Stop();
+                throw;
             }
         }
 
-        // TODO: Modify and finish this method
-        private void HandleClient(object obj)
+        private void AcceptCallback(IAsyncResult ar)
         {
-            var client = (ExtendedClient)obj;
+            var listener = (ExtendedListener)ar.AsyncState;
 
-            var messageStream = client.Client.GetStream();
-            string data;
+            listener.Barrier.Set();
+            var handler = listener.Listener.EndAccept(ar);
 
-            var bytes = new byte[1<<13];
-            int i;
-            try
+            var state = new ClientStateObject(ref handler, listener.ClientType);
+            state.SetReadCallback(new AsyncCallback(ReadCallback));
+            Console.WriteLine($"{listener.ClientType} connected!");
+        }
+
+        private void ReadCallback(IAsyncResult ar)
+        {
+            var state = (ClientStateObject)ar.AsyncState;
+            Socket handler = state.WorkSocket;
+
+            int bytesRead = handler.EndReceive(ar);
+            int messageLength;
+            string message;
+
+            if(bytesRead > 2)
             {
-                while ((i = messageStream.Read(bytes, 0, bytes.Length)) != 0)
+                var littleEndianBytes = new byte[2];
+                Array.Copy(state.Buffer, littleEndianBytes, 2);
+                if(!BitConverter.IsLittleEndian)
+                    Array.Reverse(littleEndianBytes);
+
+                messageLength = BitConverter.ToInt16(littleEndianBytes, 0);
+
+                if (messageLength <= state.BufferSize - 2)
                 {
-                    string hex = BitConverter.ToString(bytes);
-                    data = Encoding.ASCII.GetString(bytes, 0, i);
-                    Console.WriteLine("{1}: Received: {0}", data, Thread.CurrentThread.ManagedThreadId);
-                    string str = "Hey Device!";
-                    Byte[] reply = System.Text.Encoding.ASCII.GetBytes(str);
-                    messageStream.Write(reply, 0, reply.Length);
-                    Console.WriteLine("{1}: Sent: {0}", str, Thread.CurrentThread.ManagedThreadId);
+                    message = Encoding.UTF8.GetString(state.Buffer, 2, messageLength);
+                    // TODO: Create class ReceivedMessage with sender, receipent and seralizedMessage
+                    server.AddMessage(message);
+                }
+                else
+                {
+                    Console.WriteLine($"Received message was too long (expected maximum {state.BufferSize}, got {messageLength + 2})");
                 }
             }
-            catch (Exception e)
+            else if(bytesRead > 0)
             {
-                Console.WriteLine("Exception: {0}", e.ToString());
-                client.Client.Close();
+                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
             }
 
+            state.SetReadCallback(new AsyncCallback(ReadCallback));
+        }
+
+        internal IPAddress GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip;
+                }
+            }
+            throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
         }
     }
 }

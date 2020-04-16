@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Collections.Concurrent;
 
 namespace CommunicationServer
 {
@@ -13,23 +15,29 @@ namespace CommunicationServer
         internal ConfigurationComponent ConfigComponent { get; private set; }
         internal NetworkComponent NetworkComponent { get; private set; }
 
-        private TcpListener gameMasterListener;
-        private TcpListener agentListener;
+        private ConcurrentQueue<string> messageQueue;
+        private ManualResetEvent shouldProcessMessage;
+
+        private Socket gameMasterListener;
+        private Socket agentListener;
 
         internal CommunicationServer()
         {
             ConfigComponent = new ConfigurationComponent(null);
             NetworkComponent = new NetworkComponent(this);
+
+            messageQueue = new ConcurrentQueue<string>();
+            shouldProcessMessage = new ManualResetEvent(false);
         }
 
         internal void Run()
         {
             try
             {
-                IPAddress = IPAddress.Parse(NetworkComponent.GetLocalIPAddress());
+                IPAddress = NetworkComponent.GetLocalIPAddress();
 
-                agentListener = new TcpListener(IPAddress, ConfigComponent.GetAgentPort());
-                gameMasterListener = new TcpListener(IPAddress, ConfigComponent.GetGameMasterPort());
+                gameMasterListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);// ConfigComponent.GetGameMasterPort());
+                agentListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -38,11 +46,42 @@ namespace CommunicationServer
             }
             catch (Exception)
             {
-                Console.WriteLine("Unable to find IP address for Communication Server");
+                Console.WriteLine("Unable to create socket");
                 throw;
             }
 
             NetworkComponent.StartListening(gameMasterListener, agentListener);
+
+            ProcessMessages();
+        }
+
+        // Call this method from other threads
+        internal void AddMessage(string serializedMessage)
+        {
+            messageQueue.Enqueue(serializedMessage);
+            shouldProcessMessage.Set();
+        }
+
+        private void ProcessMessages()
+        {
+            string message;
+
+            while(true)
+            {
+                shouldProcessMessage.WaitOne();
+
+                if(messageQueue.TryDequeue(out message))
+                {
+                    ProcessMessage(message);
+                    shouldProcessMessage.Reset();
+                }
+            }
+        }
+
+        private void ProcessMessage(string serializedMessage)
+        {
+            // TODO: Implement forwarding message and checking agent in HostMapping
+            Console.Write(serializedMessage);
         }
     }
 }
