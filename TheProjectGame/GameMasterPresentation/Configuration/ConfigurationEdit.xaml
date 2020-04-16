@@ -15,8 +15,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ConfigurationStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <local:IPAddressConverter x:Key="IPAddressConverter"/>
-            <local:TimeSpanConverter x:Key="TimeSpanConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -194,7 +192,7 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.CSAddress" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource IPAddressConverter}">
+                        <Binding Path="ConfigCopy.CSAddress" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:IPAddressValidationRule/>
                             </Binding.ValidationRules>
@@ -246,9 +244,9 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.MovePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.MovePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -262,9 +260,9 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.InformationExchangePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.InformationExchangePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -278,9 +276,9 @@
                 <TextBox 
                     Grid.Row="2" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.DiscoveryPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.DiscoveryPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -294,9 +292,9 @@
                 <TextBox 
                     Grid.Row="3" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.PutPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.PutPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -310,9 +308,9 @@
                 <TextBox 
                     Grid.Row="4" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.CheckForShamPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.CheckForShamPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -326,7 +324,7 @@
                 <TextBox 
                     Grid.Row="5" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.DestroyPiecePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
+                        <Binding Path="ConfigCopy.DestroyPiecePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>

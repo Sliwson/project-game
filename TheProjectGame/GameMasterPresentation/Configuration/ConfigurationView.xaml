@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d"
-             d:DesignHeight="747" d:DesignWidth="500" FontSize="18"
+             d:DesignHeight="770" d:DesignWidth="500" FontSize="18"
              Background="White"
              Loaded="UserControl_Loaded">
     <!--TODO: delete background-->
@@ -14,8 +14,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ConfigurationStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <local:IPAddressConverter x:Key="IPAddressConverter"/>
-            <local:TimeSpanConverter x:Key="TimeSpanConverter"/>
         </ResourceDictionary>        
     </UserControl.Resources>
     <Grid>
@@ -47,25 +45,25 @@
                     Text="Board Height:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.BoardX}"/>
+                    Text="{Binding Config.BoardX, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Board Width:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.BoardY}"/>
+                    Text="{Binding Config.BoardY, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Goal Area Height:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="{Binding Config.GoalAreaHeight}"/>
+                    Text="{Binding Config.GoalAreaHeight, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Number of Goals:"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
-                    Text="{Binding Config.NumberOfGoals}"/>
+                    Text="{Binding Config.NumberOfGoals, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>            
         </GroupBox>
         <!--#endregion-->
@@ -88,19 +86,19 @@
                     Text="Team size:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.TeamSize}"/>
+                    Text="{Binding Config.TeamSize, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Number of Pieces:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.NumberOfPieces}"/>
+                    Text="{Binding Config.NumberOfPieces, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Sham Probality:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="{Binding Config.ShamProbability}"/>
+                    Text="{Binding Config.ShamProbability, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -122,13 +120,13 @@
                     Text="CS IP:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.CSAddress, Converter={StaticResource IPAddressConverter}}"/>
+                    Text="{Binding Config.CSAddress, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="CS Port:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.CSPort}"/>
+                    Text="{Binding Config.CSPort, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </GroupBox>
         <!--#endregion-->
@@ -154,37 +152,37 @@
                     Text="Move:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.MovePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.MovePenalty, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Information Exchange:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.InformationExchangePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.InformationExchangePenalty, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Discovery:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="{Binding Config.DiscoveryPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.DiscoveryPenalty, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Put Down Piece:"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
-                    Text="{Binding Config.PutPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.PutPenalty, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="0"
                     Text="Check For Sham:"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="1"
-                    Text="{Binding Config.CheckForShamPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.CheckForShamPenalty, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="0"
                     Text="Destroy Piece:"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="1"
-                    Text="{Binding Config.DestroyPiecePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
+                    Text="{Binding Config.DestroyPiecePenalty, UpdateSourceTrigger=PropertyChanged}"/>
 
             </Grid>
         </GroupBox>

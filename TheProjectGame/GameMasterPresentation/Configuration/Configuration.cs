@@ -115,9 +115,9 @@ namespace GameMasterPresentation.Configuration
         }
 
         //network
-        private IPAddress _CSAddress;
+        private string _CSAddress;
 
-        public IPAddress CSAddress
+        public string CSAddress
         {
             get
             {
@@ -146,9 +146,9 @@ namespace GameMasterPresentation.Configuration
         }
 
         //penalties in milliseconds
-        private TimeSpan _movePenalty;
+        private int _movePenalty;
 
-        public TimeSpan MovePenalty
+        public int MovePenalty
         {
             get
             {
@@ -161,9 +161,9 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        private TimeSpan _informationExchangePenalty;
+        private int _informationExchangePenalty;
 
-        public TimeSpan InformationExchangePenalty
+        public int InformationExchangePenalty
         {
             get
             {
@@ -176,9 +176,9 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        private TimeSpan _discoveryPenalty;
+        private int _discoveryPenalty;
 
-        public TimeSpan DiscoveryPenalty
+        public int DiscoveryPenalty
         {
             get
             {
@@ -191,9 +191,9 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        private TimeSpan _putPenalty;
+        private int _putPenalty;
 
-        public TimeSpan PutPenalty
+        public int PutPenalty
         {
             get
             {
@@ -206,9 +206,9 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        private TimeSpan _checkForShamPenalty;
+        private int _checkForShamPenalty;
 
-        public TimeSpan CheckForShamPenalty
+        public int CheckForShamPenalty
         {
             get
             {
@@ -221,9 +221,9 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
-        private TimeSpan _destroyPiecePenalty;
+        private int _destroyPiecePenalty;
 
-        public TimeSpan DestroyPiecePenalty
+        public int DestroyPiecePenalty
         {
             get
             {
@@ -254,7 +254,7 @@ namespace GameMasterPresentation.Configuration
                 TeamSize = this.TeamSize,
                 NumberOfPieces = this.NumberOfPieces,
                 ShamProbability = this.ShamProbability,
-                CSAddress = new IPAddress(this.CSAddress.GetAddressBytes()),
+                CSAddress = this.CSAddress,
                 CSPort = this.CSPort,
                 MovePenalty = this.MovePenalty,
                 InformationExchangePenalty = this.InformationExchangePenalty,
@@ -268,7 +268,7 @@ namespace GameMasterPresentation.Configuration
 
         public static Configuration ReadFromFile(string path)
         {
-
+            return null;
         }
 
         //TODO: delete
@@ -283,14 +283,14 @@ namespace GameMasterPresentation.Configuration
                 TeamSize = 2,
                 NumberOfPieces = 10,
                 ShamProbability = 0.3f,
-                CSAddress = IPAddress.Parse("192.168.1.1"),
+                CSAddress = "192.168.1.1",
                 CSPort = 10023,
-                MovePenalty = TimeSpan.FromMilliseconds(1000),
-                InformationExchangePenalty = TimeSpan.FromMilliseconds(700),
-                DiscoveryPenalty = TimeSpan.FromMilliseconds(600),
-                PutPenalty = TimeSpan.FromMilliseconds(500),
-                CheckForShamPenalty = TimeSpan.FromMilliseconds(400),
-                DestroyPiecePenalty = TimeSpan.FromMilliseconds(300)
+                MovePenalty = 1000,
+                InformationExchangePenalty = 700,
+                DiscoveryPenalty = 600,
+                PutPenalty = 500,
+                CheckForShamPenalty = 400,
+                DestroyPiecePenalty = 300
             };
             return conf;
         }
