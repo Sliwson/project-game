@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
-             mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="500" FontSize="18"
+             mc:Ignorable="d"
+             DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
+             d:DesignHeight="1000" d:DesignWidth="500" FontSize="18"
              Loaded="UserControl_Loaded"
              Background="White">
     <!--TODO: delete background-->
@@ -14,6 +15,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ConfigurationStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <local:IPAddressConverter x:Key="IPAddressConverter"/>
+            <local:TimeSpanConverter x:Key="TimeSpanConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -46,7 +49,7 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.BoardX" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -62,7 +65,7 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.BoardY" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -78,7 +81,7 @@
                 <TextBox 
                     Grid.Row="2" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.GoalAreaHeight" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -94,7 +97,7 @@
                 <TextBox 
                     Grid.Row="3" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.NumberOfGoals" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -127,7 +130,7 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.TeamSize" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -143,7 +146,7 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.NumberOfPieces" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -159,9 +162,9 @@
                 <TextBox 
                     Grid.Row="2" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.ShamProbability" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:FloatValidationRule Min="0.0" Max="1.0"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -191,9 +194,9 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.CSAddress" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource IPAddressConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:IPAddressValidationRule/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -207,7 +210,7 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.CSPort" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1024" Max="49151"/>
                             </Binding.ValidationRules>
@@ -222,7 +225,7 @@
         <!--#endregion-->
         <!--#region penalties-->
         <GroupBox
-            Grid.Row="3" Header="Penalties"
+            Grid.Row="3" Header="Penalties [ms]"
             Style="{StaticResource GroupBoxBottomStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -243,9 +246,9 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.MovePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -259,9 +262,9 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.InformationExchangePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -275,9 +278,9 @@
                 <TextBox 
                     Grid.Row="2" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.DiscoveryPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -291,9 +294,9 @@
                 <TextBox 
                     Grid.Row="3" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.PutPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -307,9 +310,9 @@
                 <TextBox 
                     Grid.Row="4" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.CheckForShamPenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:TimeSpanValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -323,7 +326,7 @@
                 <TextBox 
                     Grid.Row="5" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="MatchStartFromHour" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.DestroyPiecePenalty" UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource TimeSpanConverter}">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>

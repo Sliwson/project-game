@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+﻿using System.Globalization;
 using System.Windows.Controls;
 
 namespace GameMasterPresentation.Configuration
@@ -10,6 +7,7 @@ namespace GameMasterPresentation.Configuration
     {
         public int Min { get; set; }
         public int Max { get; set; }
+
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             if (value is string s)

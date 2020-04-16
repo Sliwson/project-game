@@ -1,18 +1,21 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using System.Windows.Controls;
 
 namespace GameMasterPresentation.Configuration
 {
-    public class FloatValidationRule : ValidationRule
+    public class TimeSpanValidationRule : ValidationRule
     {
-        public float Min { get; set; }
-        public float Max { get; set; }
+        public int Min { get; set; }
+        public int Max { get; set; }
 
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             if (value is string s)
             {
-                if (float.TryParse(s, out float number) == true)
+                if (int.TryParse(s, out int number) == true)
                 {
                     if (number >= Min && number <= Max)
                         return ValidationResult.ValidResult;
@@ -20,7 +23,7 @@ namespace GameMasterPresentation.Configuration
                         return new ValidationResult(false, $"Value must be between {Min} and {Max}!");
                 }
             }
-            return new ValidationResult(false, "Value should be decimal!");
+            return new ValidationResult(false, "Value should be integer!");
         }
     }
 }

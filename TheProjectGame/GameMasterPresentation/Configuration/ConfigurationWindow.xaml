@@ -6,9 +6,12 @@
         xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
         mc:Ignorable="d"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
-        Title="Game Master Configuration" Height="auto" Width="500"
+        Title="Game Master Configuration" 
+        Height="auto" Width="500" 
+        MinHeight="400" MinWidth="500" MaxWidth="500"
         Topmost="True" WindowStartupLocation="CenterScreen">
-    <Grid x:Name="ContentGrid">
-        
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid x:Name="ContentGrid">
+        </Grid>
+    </ScrollViewer>
 </Window>

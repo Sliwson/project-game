@@ -15,6 +15,7 @@
                 <ResourceDictionary Source="ConfigurationStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <local:IPAddressConverter x:Key="IPAddressConverter"/>
+            <local:TimeSpanConverter x:Key="TimeSpanConverter"/>
         </ResourceDictionary>        
     </UserControl.Resources>
     <Grid>
@@ -133,7 +134,7 @@
         <!--#endregion-->
         <!--#region penalties-->
         <GroupBox
-            Grid.Row="3" Header="Penalties"
+            Grid.Row="3" Header="Penalties [ms]"
             Style="{StaticResource GroupBoxBottomStyle}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -153,37 +154,37 @@
                     Text="Move:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.MovePenalty}"/>
+                    Text="{Binding Config.MovePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Information Exchange:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.InformationExchangePenalty}"/>
+                    Text="{Binding Config.InformationExchangePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Discovery:"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="1"
-                    Text="{Binding Config.DiscoveryPenalty}"/>
+                    Text="{Binding Config.DiscoveryPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="0"
                     Text="Put Down Piece:"/>
                 <TextBlock 
                     Grid.Row="3" Grid.Column="1"
-                    Text="{Binding Config.PutPenalty}"/>
+                    Text="{Binding Config.PutPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="0"
                     Text="Check For Sham:"/>
                 <TextBlock 
                     Grid.Row="4" Grid.Column="1"
-                    Text="{Binding Config.CheckForShamPenalty}"/>
+                    Text="{Binding Config.CheckForShamPenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="0"
                     Text="Destroy Piece:"/>
                 <TextBlock 
                     Grid.Row="5" Grid.Column="1"
-                    Text="{Binding Config.DestroyPiecePenalty}"/>
+                    Text="{Binding Config.DestroyPiecePenalty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanConverter}}"/>
 
             </Grid>
         </GroupBox>
