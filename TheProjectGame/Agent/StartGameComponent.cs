@@ -11,6 +11,7 @@ namespace Agent
     public class StartGameComponent
     {
         private Agent agent;
+
         private static NLog.Logger logger;
         public int[] teamMates { get; private set; }
 
@@ -26,9 +27,10 @@ namespace Agent
 
         public bool isLeader { get; private set; }
 
-        public StartGameComponent(Agent agent)
+        public StartGameComponent(Agent agent, TeamId teamId)
         {
             this.agent = agent;
+            team = teamId;
             logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
@@ -43,7 +45,7 @@ namespace Agent
             averageTime = startGamePayload.Penalties.Count > 0 ? (int)startGamePayload.Penalties.Values.Max().TotalMilliseconds : 500;
             shamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
-            agent.boardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight);
+            agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight);
             agent.processMessages = new ProcessMessages(agent);
         }
     }
