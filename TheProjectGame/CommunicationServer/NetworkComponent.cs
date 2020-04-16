@@ -116,13 +116,13 @@ namespace CommunicationServer
                 {
                     Console.WriteLine($"Received message was too long (expected maximum {state.BufferSize}, got {messageLength + 2})");
                 }
+                state.SetReadCallback(new AsyncCallback(ReadCallback));
             }
             else if(bytesRead > 0)
             {
                 Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                state.SetReadCallback(new AsyncCallback(ReadCallback));
             }
-
-            state.SetReadCallback(new AsyncCallback(ReadCallback));
         }
 
         internal IPAddress GetLocalIPAddress()
