@@ -19,6 +19,7 @@ namespace GameMaster
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
         public PresentationComponent PresentationComponent { get; private set; }
+        public NetworkComponent NetworkComponent { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
@@ -33,8 +34,9 @@ namespace GameMaster
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
             PresentationComponent = new PresentationComponent(this);
+            NetworkComponent = new NetworkComponent(this);
 
-            //try to connect to communciation server
+            NetworkComponent.Connect();
         }
 
         public void SetNetworkConfiguration(/*network configuration*/) { }

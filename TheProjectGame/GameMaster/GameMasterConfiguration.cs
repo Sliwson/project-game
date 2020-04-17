@@ -23,8 +23,8 @@ namespace GameMaster
         public TimeSpan GeneratePieceDelay { get; set; }
         public int AgentsLimit { get; set; }
         public float ShamProbability { get; set; }
-        // csIP
-        // csPort
+        public string CsIP { get; set; }
+        public int CsPort { get; set; }
 
         private Dictionary<ActionType, TimeSpan> agentTimeouts = null;
 
