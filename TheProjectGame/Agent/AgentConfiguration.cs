@@ -15,7 +15,7 @@ namespace Agent
         public int strategy { get; set; }
         public bool wantsToBeTeamLeader { get; set; }
 
-        public AgentConfiguration GetConfiguration()
+        public static AgentConfiguration GetConfiguration()
         {
             string fileName = "..\\..\\..\\Configuration\\agentConfiguration.json";
             AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(File.ReadAllText(@fileName));

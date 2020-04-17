@@ -46,7 +46,7 @@ namespace Agent
             shamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight);
-            agent.processMessages = new ProcessMessages(agent);
+            agent.ProcessMessages = new ProcessMessages(agent);
         }
     }
 }
