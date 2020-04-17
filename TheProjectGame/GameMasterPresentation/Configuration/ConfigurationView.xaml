@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d"
-             d:DesignHeight="770" d:DesignWidth="500" FontSize="18"
+             d:DesignHeight="750" d:DesignWidth="500" FontSize="18"
              Background="White"
              Loaded="UserControl_Loaded">
     <!--TODO: delete background-->
@@ -45,13 +45,13 @@
                     Text="Board Height:"/>
                 <TextBlock 
                     Grid.Row="0" Grid.Column="1"
-                    Text="{Binding Config.BoardX, UpdateSourceTrigger=PropertyChanged}"/>
+                    Text="{Binding Config.BoardY, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="0"
                     Text="Board Width:"/>
                 <TextBlock 
                     Grid.Row="1" Grid.Column="1"
-                    Text="{Binding Config.BoardY, UpdateSourceTrigger=PropertyChanged}"/>
+                    Text="{Binding Config.BoardX, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock 
                     Grid.Row="2" Grid.Column="0"
                     Text="Goal Area Height:"/>

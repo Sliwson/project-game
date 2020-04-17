@@ -47,7 +47,7 @@
                 <TextBox 
                     Grid.Row="0" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.BoardX" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.BoardY" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>
@@ -63,7 +63,7 @@
                 <TextBox 
                     Grid.Row="1" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.BoardY" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.BoardX" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
                                 <local:NumberValidationRule Min="1" Max="999999"/>
                             </Binding.ValidationRules>

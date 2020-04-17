@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using Microsoft.Win32;
+using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace GameMasterPresentation.Configuration
@@ -30,7 +32,29 @@ namespace GameMasterPresentation.Configuration
 
         private void ReadButton_Click(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Open Game Master Configuration File";
+            openFileDialog.Filter = "JSON Files (*.json)|*.json";
 
+            string configurationPath = "..\\..\\..\\Configuration";
+
+            openFileDialog.InitialDirectory = Path.GetFullPath(configurationPath);
+            openFileDialog.Multiselect = false;
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string filename = openFileDialog.FileName;
+                var conf = Configuration.ReadFromFile(filename);
+                if(conf == null)
+                {
+                    MessageBox.Show("There was problem reading json file!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+                else
+                {
+                    MessageBox.Show("Configuration read successfully!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                    parentWindow.Config = conf;
+                }
+            }
         }
     }
 }

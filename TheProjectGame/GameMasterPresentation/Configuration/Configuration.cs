@@ -1,15 +1,21 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
+using System;
 using System.ComponentModel;
+using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 
 namespace GameMasterPresentation.Configuration
 {
+    [JsonObject(MemberSerialization.OptIn)]
     public class Configuration : INotifyPropertyChanged
     {
         //board
         private int _boardX;
 
+        [JsonProperty(PropertyName = "boardX", Order = 8)]
         public int BoardX
         {
             get
@@ -25,6 +31,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _boardY;
 
+        [JsonProperty(PropertyName = "boardY", Order = 9)]
         public int BoardY
         {
             get
@@ -40,6 +47,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _goalAreaHeight;
 
+        [JsonProperty(PropertyName = "goalAreaHeight", Order = 10)]
         public int GoalAreaHeight
         {
             get
@@ -55,6 +63,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _numberOfGoals;
 
+        [JsonProperty(PropertyName = "numberOfGoals", Order = 11)]
         public int NumberOfGoals
         {
             get
@@ -71,6 +80,7 @@ namespace GameMasterPresentation.Configuration
         //game
         private int _teamSize;
 
+        [JsonProperty(PropertyName = "teamSize", Order = 13)]
         public int TeamSize
         {
             get
@@ -86,6 +96,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _numberOfPieces;
 
+        [JsonProperty(PropertyName = "numberOfPieces", Order = 12)]
         public int NumberOfPieces
         {
             get
@@ -101,6 +112,7 @@ namespace GameMasterPresentation.Configuration
 
         private float _shamProbability;
 
+        [JsonProperty(PropertyName = "shamPieceProbability", Order = 14)]
         public float ShamProbability
         {
             get
@@ -117,6 +129,7 @@ namespace GameMasterPresentation.Configuration
         //network
         private string _CSAddress;
 
+        [JsonProperty(PropertyName = "CsIP", Order = 0)]
         public string CSAddress
         {
             get
@@ -132,6 +145,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _CSPort;
 
+        [JsonProperty(PropertyName = "CsPort", Order = 1)]
         public int CSPort
         {
             get
@@ -148,6 +162,7 @@ namespace GameMasterPresentation.Configuration
         //penalties in milliseconds
         private int _movePenalty;
 
+        [JsonProperty(PropertyName = "movePenalty", Order = 2)]
         public int MovePenalty
         {
             get
@@ -163,6 +178,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _informationExchangePenalty;
 
+        [JsonProperty(PropertyName = "informationExchangePenalty", Order = 3)]
         public int InformationExchangePenalty
         {
             get
@@ -178,6 +194,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _discoveryPenalty;
 
+        [JsonProperty(PropertyName = "discoveryPenalty", Order = 4)]
         public int DiscoveryPenalty
         {
             get
@@ -193,6 +210,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _putPenalty;
 
+        [JsonProperty(PropertyName = "putPenalty", Order = 5)]
         public int PutPenalty
         {
             get
@@ -208,6 +226,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _checkForShamPenalty;
 
+        [JsonProperty(PropertyName = "checkForShamPenalty", Order = 6)]
         public int CheckForShamPenalty
         {
             get
@@ -223,6 +242,7 @@ namespace GameMasterPresentation.Configuration
 
         private int _destroyPiecePenalty;
 
+        [JsonProperty(PropertyName = "destroyPiecePenalty", Order = 7)]
         public int DestroyPiecePenalty
         {
             get
@@ -266,9 +286,80 @@ namespace GameMasterPresentation.Configuration
             return conf;
         }
 
+        public bool Validate()
+        {
+            if (BoardX < 1)
+                return false;
+            if (BoardY < 1)
+                return false;
+            if (2 * GoalAreaHeight >= BoardY)
+                return false;
+            if (NumberOfGoals < 1)
+                return false;
+            if (TeamSize < 1)
+                return false;
+            if (NumberOfGoals < 1)
+                return false;
+            if (TeamSize < 1)
+                return false;
+            if (NumberOfPieces < 1)
+                return false;
+            if (ShamProbability < 0 || ShamProbability > 1)
+                return false;
+            if (IPAddress.TryParse(CSAddress, out _) == false)
+                return false;
+            if (CSPort < 1024 || CSPort > 49151)
+                return false;
+            if (MovePenalty < 0)
+                return false;
+            if (InformationExchangePenalty < 0)
+                return false;
+            if (DiscoveryPenalty < 0)
+                return false;
+            if (PutPenalty < 0)
+                return false;
+            if (CheckForShamPenalty < 0)
+                return false;
+            if (DestroyPiecePenalty < 0)
+                return false;
+            return true;
+        }
+
+        public bool SaveToFile(string path)
+        {
+            // serialize JSON directly to a file
+            try
+            {
+                using (StreamWriter file = File.CreateText(path))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Serialize(file, this);
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+            return true;            
+        }
+
         public static Configuration ReadFromFile(string path)
         {
-            return null;
+            //TODO: validate using schema
+            //var resolver = new JSchemaUrlResolver();
+            //var schema = JSchema.Parse(ConfigurationSchema.GetConfigurationSchema(), resolver);
+            string json = File.ReadAllText(path);
+            //JObject jObject = JObject.Parse(json);
+            //bool isValid = jObject.IsValid(schema);
+            //if(isValid==false)
+            //{
+            //    return null;
+            //}
+
+            Configuration conf = JsonConvert.DeserializeObject<Configuration>(json);
+            if (conf.Validate() == false)
+                return null;
+            return conf;
         }
 
         //TODO: delete
