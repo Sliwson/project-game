@@ -10,35 +10,38 @@ namespace Agent
     {
         private Agent agent;
 
-        public Field[,] board { get; private set; }
+        public Field[,] Board { get; private set; }
 
-        public Point boardSize { get; private set; }
+        public Point BoardSize { get; private set; }
 
-        public int goalAreaSize { get; private set; }
+        public int GoalAreaSize { get; private set; }
 
-        public BoardLogicComponent(Agent agent, Point BoardSize, int GoalAreaHeight)
+        public Point Position { get; set; }
+
+        public BoardLogicComponent(Agent agent, Point boardSize, int goalAreaHeight, Point position)
         {
             this.agent = agent;
-            boardSize = BoardSize;
-            board = new Field[BoardSize.Y, BoardSize.X];
+            BoardSize = boardSize;
+            Position = position;
+            Board = new Field[BoardSize.Y, BoardSize.X];
             for (int i = 0; i < BoardSize.Y; i++)
             {
                 for (int j = 0; j < BoardSize.X; j++)
                 {
-                    board[i, j] = new Field();
+                    Board[i, j] = new Field();
                 }
             }
-            goalAreaSize = GoalAreaHeight;
+            GoalAreaSize = goalAreaHeight;
         }
 
         public int[,] GetDistances()
         {
-            int[,] distances = new int[boardSize.Y, boardSize.X];
-            for (int i = 0; i < boardSize.Y; i++)
+            int[,] distances = new int[BoardSize.Y, BoardSize.X];
+            for (int i = 0; i < BoardSize.Y; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    distances[i, j] = board[i, j].distToPiece;
+                    distances[i, j] = Board[i, j].distToPiece;
                 }
             }
             return distances;
@@ -46,12 +49,12 @@ namespace Agent
 
         public GoalInformation[,] GetBlueTeamGoalAreaInformation()
         {
-            GoalInformation[,] goalAreaInformation = new GoalInformation[goalAreaSize, boardSize.X];
-            for (int i = 0; i < goalAreaSize; i++)
+            GoalInformation[,] goalAreaInformation = new GoalInformation[GoalAreaSize, BoardSize.X];
+            for (int i = 0; i < GoalAreaSize; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    goalAreaInformation[i, j] = board[i, j].goalInfo;
+                    goalAreaInformation[i, j] = Board[i, j].goalInfo;
                 }
             }
             return goalAreaInformation;
@@ -59,12 +62,12 @@ namespace Agent
 
         public GoalInformation[,] GetRedTeamGoalAreaInformation()
         {
-            GoalInformation[,] goalAreaInformation = new GoalInformation[goalAreaSize, boardSize.X];
-            for (int i = boardSize.Y - goalAreaSize + 1; i < boardSize.Y; i++)
+            GoalInformation[,] goalAreaInformation = new GoalInformation[GoalAreaSize, BoardSize.X];
+            for (int i = BoardSize.Y - GoalAreaSize + 1; i < BoardSize.Y; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    goalAreaInformation[i - boardSize.Y + goalAreaSize, j] = board[i, j].goalInfo;
+                    goalAreaInformation[i - BoardSize.Y + GoalAreaSize, j] = Board[i, j].goalInfo;
                 }
             }
             return goalAreaInformation;
@@ -73,33 +76,33 @@ namespace Agent
         public void UpdateDistances(int[,] distances)
         {
             //TODO: update only when distLearned old
-            for (int i = 0; i < boardSize.Y; i++)
+            for (int i = 0; i < BoardSize.Y; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    board[i, j].distToPiece = distances[i, j];
+                    Board[i, j].distToPiece = distances[i, j];
                 }
             }
         }
 
         public void UpdateBlueTeamGoalAreaInformation(GoalInformation[,] goalAreaInformation)
         {
-            for (int i = 0; i < goalAreaSize; i++)
+            for (int i = 0; i < GoalAreaSize; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    if (board[i, j].goalInfo == GoalInformation.NoInformation) board[i, j].goalInfo = goalAreaInformation[i, j];
+                    if (Board[i, j].goalInfo == GoalInformation.NoInformation) Board[i, j].goalInfo = goalAreaInformation[i, j];
                 }
             }
         }
 
         public void UpdateRedTeamGoalAreaInformation(GoalInformation[,] goalAreaInformation)
         {
-            for (int i = boardSize.Y - goalAreaSize + 1; i < boardSize.Y; i++)
+            for (int i = BoardSize.Y - GoalAreaSize + 1; i < BoardSize.Y; i++)
             {
-                for (int j = 0; j < boardSize.X; j++)
+                for (int j = 0; j < BoardSize.X; j++)
                 {
-                    board[i, j].goalInfo = goalAreaInformation[i - boardSize.Y + goalAreaSize, j];
+                    Board[i, j].goalInfo = goalAreaInformation[i - BoardSize.Y + GoalAreaSize, j];
                 }
             }
         }
