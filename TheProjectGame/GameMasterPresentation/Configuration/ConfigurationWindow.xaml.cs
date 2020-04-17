@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace GameMasterPresentation.Configuration
 {
@@ -35,13 +37,29 @@ namespace GameMasterPresentation.Configuration
         public ConfigurationWindow(Configuration configuration)
         {
             Config = configuration;
-            InitializeComponent();            
+            InitializeComponent();
         }
 
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
             ContentGrid.Children.Add(new ConfigurationView());
+        }
+
+        private void ConfigurationWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var editWindows = ContentGrid.Children.OfType<ConfigurationEdit>();
+            if (editWindows.Any())
+            {
+                if (editWindows.First().ConfigCopy != Config)
+                {
+                    var result = MessageBox.Show("Do you want to exit without saving?", "Configuration", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    if (result == MessageBoxResult.No)
+                    {
+                        e.Cancel = true;
+                    }
+                }
+            }
         }
     }
 }
