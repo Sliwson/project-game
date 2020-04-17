@@ -10,12 +10,14 @@ namespace CommunicationServer
 {
     internal class CommunicationServer
     {
-        internal IPAddress IPAddress { get; private set; }
         // TODO: Implement loading configuration from file
         internal ConfigurationComponent ConfigComponent { get; private set; }
         internal NetworkComponent NetworkComponent { get; private set; }
 
-        private ConcurrentQueue<string> messageQueue;
+        internal IPAddress IPAddress { get; private set; }
+        internal HostMapping HostMapping { get; private set; }
+
+        private ConcurrentQueue<ReceivedMessage> messageQueue;
         private ManualResetEvent shouldProcessMessage;
 
         private Socket gameMasterListener;
@@ -26,7 +28,9 @@ namespace CommunicationServer
             ConfigComponent = new ConfigurationComponent(null);
             NetworkComponent = new NetworkComponent(this);
 
-            messageQueue = new ConcurrentQueue<string>();
+            HostMapping = new HostMapping();
+
+            messageQueue = new ConcurrentQueue<ReceivedMessage>();
             shouldProcessMessage = new ManualResetEvent(false);
         }
 
@@ -56,15 +60,15 @@ namespace CommunicationServer
         }
 
         // Call this method from other threads
-        internal void AddMessage(string serializedMessage)
+        internal void AddMessage(ReceivedMessage receivedMessage)
         {
-            messageQueue.Enqueue(serializedMessage);
+            messageQueue.Enqueue(receivedMessage);
             shouldProcessMessage.Set();
         }
 
         private void ProcessMessages()
         {
-            string message;
+            ReceivedMessage message;
 
             while(true)
             {
@@ -78,10 +82,12 @@ namespace CommunicationServer
             }
         }
 
-        private void ProcessMessage(string serializedMessage)
+        private void ProcessMessage(ReceivedMessage receivedMessage)
         {
             // TODO: Implement forwarding message and checking agent in HostMapping
-            Console.Write(serializedMessage);
+            Console.WriteLine($"Received message from host with id = {HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket)}");
+            Console.WriteLine("Content: ");
+            Console.Write(receivedMessage.SerializedMessage);
         }
     }
 }

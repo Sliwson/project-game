@@ -1,49 +1,67 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
 namespace CommunicationServer
 {
     internal class HostMapping
     {
-        private Dictionary<int, IPEndPoint> mapping;
-        private Dictionary<IPEndPoint, int> inversedMapping;
+        private ConcurrentDictionary<int, Socket> mapping;
+        private ConcurrentDictionary<Socket, int> inversedMapping;
 
         private int lastHostId = 0;
+        private int gmHostId = 0;
 
         internal HostMapping()
         {
-            mapping = new Dictionary<int, IPEndPoint>();
-            inversedMapping = new Dictionary<IPEndPoint, int>();
+            mapping = new ConcurrentDictionary<int, Socket>();
+            inversedMapping = new ConcurrentDictionary<Socket, int>();
         }
 
-        internal int GetHostIdForAddress(IPEndPoint ipAddress)
+        internal int GetHostIdForSocket(Socket socket)
         {
-            if (inversedMapping.TryGetValue(ipAddress, out int result))
+            if (inversedMapping.TryGetValue(socket, out int result))
                 return result;
 
-            throw new KeyNotFoundException($"No host was found for IP address: {ipAddress}");
+            throw new KeyNotFoundException($"No host binded with requested socket");
         }
 
-        internal IPEndPoint GetAddressForHostId(int hostId)
+        internal Socket GetSocketForHostId(int hostId)
         {
-            if(mapping.TryGetValue(hostId, out IPEndPoint result))
+            if(mapping.TryGetValue(hostId, out Socket result))
                 return result;
 
-            throw new KeyNotFoundException($"No address found for host with ID: {hostId}");
+            throw new KeyNotFoundException($"No socket found for host with ID: {hostId}");
         }
 
-        internal void AddAddressToMapping(IPEndPoint ipAddress)
+        internal int AddClientToMapping(ClientType clientType, Socket socket)
         {
-            if (mapping.ContainsValue(ipAddress))
-                throw new ArgumentException($"There is already a host with address: {ipAddress}");
+            var hostId = clientType == ClientType.Agent ? ++lastHostId : gmHostId;
 
-            lastHostId++;
+            if (inversedMapping.ContainsKey(socket))
+                throw new ArgumentException($"There is already a host binded with requested socket");
+            else if (hostId == gmHostId && mapping.ContainsKey(gmHostId))
+                throw new ArgumentException($"Game Master is already registered");
 
-            mapping.Add(lastHostId, ipAddress);
-            inversedMapping.Add(ipAddress, lastHostId);
+            string errorMessage = "Unable to register socket";
+
+            if (!mapping.TryAdd(hostId, socket))
+            {
+                throw new Exception(errorMessage);
+            }
+            if (!inversedMapping.TryAdd(socket, hostId))
+            {
+                while (!mapping.TryRemove(hostId, out _))
+                    Console.WriteLine(errorMessage);
+
+                throw new Exception(errorMessage);
+            }
+
+            return hostId;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Messaging.Contracts;
+using Messaging.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -47,19 +49,11 @@ namespace CommunicationServer
             }
         }
 
-        internal void SendMessage(Socket handler, string serializedMessage)
+        internal void SendMessage(Socket handler, BaseMessage message)
         {
-            var messageData = Encoding.UTF8.GetBytes(serializedMessage);
-            var messageLength = (short)messageData.Length;
-
-            var data = BitConverter.GetBytes(messageLength);
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(data);
-
-            Array.Resize(ref data, messageLength + 2);
-            Array.Copy(messageData, 0, data, 2, messageLength);
-
-            handler.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+            var messageData = MessageSerializer.SerializeAndWrapMessage(message);
+            
+            handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
         }
 
         private void StartListener(object obj)
@@ -73,11 +67,7 @@ namespace CommunicationServer
                 while (true)
                 {
                     listener.Barrier.Reset();
-                    // TODO: DEBUG purposes, remove it
-                    Console.WriteLine($"Waiting for {listener.ClientType} to connect...");
-
                     listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
-
                     listener.Barrier.WaitOne();
 
                     if (listener.ClientType == ClientType.GameMaster)
@@ -97,9 +87,11 @@ namespace CommunicationServer
 
             listener.Barrier.Set();
             var handler = listener.Listener.EndAccept(ar);
+            var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
             var state = new ClientStateObject(ref handler, listener.ClientType);
             state.SetReadCallback(new AsyncCallback(ReadCallback));
+
             Console.WriteLine($"{listener.ClientType} connected!");
         }
 
@@ -109,27 +101,23 @@ namespace CommunicationServer
             Socket handler = state.WorkSocket;
 
             int bytesRead = handler.EndReceive(ar);
-            int messageLength;
             string message;
 
             if(bytesRead > 2)
             {
-                var littleEndianBytes = new byte[2];
-                Array.Copy(state.Buffer, littleEndianBytes, 2);
-                if(!BitConverter.IsLittleEndian)
-                    Array.Reverse(littleEndianBytes);
-
-                messageLength = BitConverter.ToInt16(littleEndianBytes, 0);
-
-                if (messageLength <= state.BufferSize - 2)
+                try
                 {
-                    message = Encoding.UTF8.GetString(state.Buffer, 2, messageLength);
-                    // TODO: Create class ReceivedMessage with sender, receipent and seralizedMessage
-                    server.AddMessage(message);
+                    message = MessageSerializer.UnwrapMessage(state.Buffer);
+                    var receivedMessage = new ReceivedMessage(handler, message);
+
+                    server.AddMessage(receivedMessage);
                 }
-                else
+                catch(Exception e)
                 {
-                    Console.WriteLine($"Received message was too long (expected maximum {state.BufferSize}, got {messageLength + 2})");
+                    if (e is ArgumentOutOfRangeException)
+                        Console.WriteLine(e.Message);
+                    else
+                        throw;
                 }
                 state.SetReadCallback(new AsyncCallback(ReadCallback));
             }
