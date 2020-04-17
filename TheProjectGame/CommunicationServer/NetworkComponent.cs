@@ -47,6 +47,21 @@ namespace CommunicationServer
             }
         }
 
+        internal void SendMessage(Socket handler, string serializedMessage)
+        {
+            var messageData = Encoding.UTF8.GetBytes(serializedMessage);
+            var messageLength = (short)messageData.Length;
+
+            var data = BitConverter.GetBytes(messageLength);
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(data);
+
+            Array.Resize(ref data, messageLength + 2);
+            Array.Copy(messageData, 0, data, 2, messageLength);
+
+            handler.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+        }
+
         private void StartListener(object obj)
         {
             ExtendedListener listener = (ExtendedListener)obj;
@@ -122,6 +137,24 @@ namespace CommunicationServer
             {
                 Console.WriteLine("Received message was too short (expected more than 2 bytes)");
                 state.SetReadCallback(new AsyncCallback(ReadCallback));
+            }
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket handler = (Socket)ar.AsyncState;
+
+                int bytesSent = handler.EndSend(ar);
+                Console.WriteLine($"Sent {bytesSent} bytes to client");
+
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
