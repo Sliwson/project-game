@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
@@ -238,8 +239,17 @@ namespace GameMasterPresentation
 
         private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
-            var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
-            ConfigurationWindow.Show();
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == false)
+            {
+                var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
+                ConfigurationWindow.Show();
+            }
+            else
+            {
+                if (configurationWindows.First().WindowState == WindowState.Minimized)
+                    configurationWindows.First().WindowState = WindowState.Normal;
+            }
         }
 
         //private void UpdateAgents()
