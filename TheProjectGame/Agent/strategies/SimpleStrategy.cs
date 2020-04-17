@@ -17,6 +17,8 @@ namespace Agent.strategies
 
         private const float smallShamProbability = 0.3f;
 
+        private const int askInterval = 3;
+
         private readonly Dictionary<ActionType, int> actionImportance = new Dictionary<ActionType, int>
         {
             { ActionType.CheckForSham, 4 },
@@ -28,6 +30,8 @@ namespace Agent.strategies
         };
 
         private int stayInLineCount = 0;
+
+        private int didNotAskCount = 0;
 
         private bool IsActionExpensive(ActionType action, Dictionary<ActionType, TimeSpan> penalties)
         {
@@ -96,6 +100,12 @@ namespace Agent.strategies
         public ActionResult MakeDecision(Agent agent)
         {
             if (!Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
+            didNotAskCount++;
+            if (didNotAskCount > askInterval)
+            {
+                didNotAskCount = 0;
+                return agent.BegForInfo();
+            }
             if (agent.WaitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationExchange, agent.StartGameComponent.penalties))
             {
                 return agent.GiveInfo();
