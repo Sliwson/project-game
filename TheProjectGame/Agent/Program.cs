@@ -9,9 +9,11 @@ namespace Agent
 {
     class Program
     {
-        public static AgentConfiguration Configuration { get; private set; }
-        public static Agent agent { get; set; }
         private const int updateInterval = 10;
+
+        public static AgentConfiguration Configuration { get; private set; }
+        public static Agent Agent { get; set; }
+
         static void Main(string[] args)
         {
             CreateAgent();
@@ -25,8 +27,8 @@ namespace Agent
         private static void CreateAgent()
         {
             LoadDefaultConfiguration();
-            agent = new Agent(Configuration.teamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue, Configuration.wantsToBeTeamLeader);
-            agent.AgentConfiguration = Configuration;
+            Agent = new Agent(Configuration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue, Configuration.WantsToBeTeamLeader);
+            Agent.AgentConfiguration = Configuration;
             Stopwatch stopwatch = new Stopwatch();
             double timeElapsed = 0.0;
             ActionResult actionResult = ActionResult.Continue;
@@ -34,7 +36,7 @@ namespace Agent
             {
                 stopwatch.Start();
                 Thread.Sleep(updateInterval);
-                actionResult = agent.Update(timeElapsed);
+                actionResult = Agent.Update(timeElapsed);
                 stopwatch.Stop();
                 timeElapsed = stopwatch.Elapsed.TotalSeconds;
             }

@@ -60,16 +60,16 @@ namespace Agent
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
             DateTime now = DateTime.Now;
-            for (int y = agent.StartGameComponent.position.Y - 1; y <= agent.StartGameComponent.position.Y + 1; y++)
+            for (int y = agent.BoardLogicComponent.Position.Y - 1; y <= agent.BoardLogicComponent.Position.Y + 1; y++)
             {
-                for (int x = agent.StartGameComponent.position.X - 1; x <= agent.StartGameComponent.position.X + 1; x++)
+                for (int x = agent.BoardLogicComponent.Position.X - 1; x <= agent.BoardLogicComponent.Position.X + 1; x++)
                 {
-                    int taby = y - agent.StartGameComponent.position.Y + 1;
-                    int tabx = x - agent.StartGameComponent.position.X + 1;
-                    if (Common.OnBoard(new Point(x, y), agent.BoardLogicComponent.boardSize))
+                    int taby = y - agent.BoardLogicComponent.Position.Y + 1;
+                    int tabx = x - agent.BoardLogicComponent.Position.X + 1;
+                    if (Common.OnBoard(new Point(x, y), agent.BoardLogicComponent.BoardSize))
                     {
-                        agent.BoardLogicComponent.board[y, x].distToPiece = message.Payload.Distances[taby, tabx];
-                        agent.BoardLogicComponent.board[y, x].distLearned = now;
+                        agent.BoardLogicComponent.Board[y, x].distToPiece = message.Payload.Distances[taby, tabx];
+                        agent.BoardLogicComponent.Board[y, x].distLearned = now;
                     }
                 }
             }
@@ -96,12 +96,12 @@ namespace Agent
                 logger.Warn("Process move response: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            agent.StartGameComponent.position = message.Payload.CurrentPosition;
+            agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
-                agent.DeniedLastMove = false;
-                agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distToPiece = message.Payload.ClosestPiece;
-                agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distLearned = DateTime.Now;
+                agent.AgentInformationsComponent.DeniedLastMove = false;
+                agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = message.Payload.ClosestPiece;
+                agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                 if (message.Payload.ClosestPiece == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
                 {
                     logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.id.ToString());
@@ -110,10 +110,10 @@ namespace Agent
             }
             else
             {
-                agent.DeniedLastMove = true;
+                agent.AgentInformationsComponent.DeniedLastMove = true;
                 logger.Info("Process move response: agent did not move." + " AgentID: " + agent.id.ToString());
-                var deniedField = Common.GetFieldInDirection(agent.StartGameComponent.position, agent.LastDirection);
-                if (Common.OnBoard(deniedField, agent.BoardLogicComponent.boardSize)) agent.BoardLogicComponent.board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
+                var deniedField = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.LastDirection);
+                if (Common.OnBoard(deniedField, agent.BoardLogicComponent.BoardSize)) agent.BoardLogicComponent.Board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
             }
             return agent.MakeDecisionFromStrategy();
         }
@@ -125,7 +125,7 @@ namespace Agent
                 logger.Warn("Process pick up piece response: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            if (agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distToPiece == 0)
+            if (agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece == 0)
             {
                 logger.Info("Process pick up piece response: Agent picked up piece" + " AgentID: " + agent.id.ToString());
                 agent.Piece = new Piece();
@@ -144,17 +144,17 @@ namespace Agent
             switch (message.Payload.Result)
             {
                 case PutDownPieceResult.NormalOnGoalField:
-                    agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].goalInfo = GoalInformation.Goal;
+                    agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].goalInfo = GoalInformation.Goal;
                     break;
                 case PutDownPieceResult.NormalOnNonGoalField:
-                    agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].goalInfo = GoalInformation.NoGoal;
+                    agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].goalInfo = GoalInformation.NoGoal;
                     break;
                 case PutDownPieceResult.ShamOnGoalArea:
                     break;
                 case PutDownPieceResult.TaskField:
-                    agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].goalInfo = GoalInformation.NoGoal;
-                    agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distToPiece = 0;
-                    agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distLearned = DateTime.Now;
+                    agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].goalInfo = GoalInformation.NoGoal;
+                    agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = 0;
+                    agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                     break;
             }
             return agent.MakeDecisionFromStrategy();
@@ -236,7 +236,7 @@ namespace Agent
             }
             logger.Warn("IgnoredDelay error" + " AgentID: " + agent.id.ToString());
             var time = message.Payload.RemainingDelay;
-            agent.RemainingPenalty = Math.Max(0.0, time.TotalSeconds);
+            agent.AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, time.TotalSeconds);
             return ActionResult.Continue;
         }
 
@@ -248,8 +248,8 @@ namespace Agent
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Move error" + " AgentID: " + agent.id.ToString());
-            agent.DeniedLastMove = true;
-            agent.StartGameComponent.position = message.Payload.Position;
+            agent.AgentInformationsComponent.DeniedLastMove = true;
+            agent.BoardLogicComponent.Position = message.Payload.Position;
             return agent.MakeDecisionFromStrategy();
         }
 
@@ -261,8 +261,8 @@ namespace Agent
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Pick up piece error" + " AgentID: " + agent.id.ToString());
-            agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distLearned = DateTime.Now;
-            agent.BoardLogicComponent.board[agent.StartGameComponent.position.Y, agent.StartGameComponent.position.X].distToPiece = int.MaxValue;
+            agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
+            agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = int.MaxValue;
             return agent.MakeDecisionFromStrategy();
         }
 

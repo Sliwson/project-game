@@ -23,8 +23,6 @@ namespace Agent
 
         public TeamId team { get; private set; }
 
-        public Point position { get; set; }
-
         public bool isLeader { get; private set; }
 
         public StartGameComponent(Agent agent, TeamId teamId)
@@ -38,14 +36,13 @@ namespace Agent
         {
             isLeader = agent.id == startGamePayload.LeaderId ? true : false;
             team = startGamePayload.TeamId;
-            position = startGamePayload.Position;
             teamMates = new int[startGamePayload.AlliesIds.Length];
             teamMates = startGamePayload.AlliesIds;
             penalties = startGamePayload.Penalties;
             averageTime = startGamePayload.Penalties.Count > 0 ? (int)startGamePayload.Penalties.Values.Max().TotalMilliseconds : 500;
             shamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
-            agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight);
+            agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
             agent.ProcessMessages = new ProcessMessages(agent);
         }
     }

@@ -23,21 +23,13 @@ namespace Agent
 
         private const int maxSkipCount = int.MaxValue;
 
-        private int skipCount;
-
         public int id;
-
-        private int lastAskedTeammate;
-
-        public Direction LastDirection { get; private set; }
 
         private ISender sender;
 
         private IStrategy strategy;
 
         private List<BaseMessage> injectedMessages;
-
-        public double RemainingPenalty { get; set; }
 
         public bool WantsToBeLeader { get; private set; }
 
@@ -49,8 +41,6 @@ namespace Agent
 
         private static NLog.Logger logger;
 
-        public bool DeniedLastMove { get; set; }
-
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
         public ProcessMessages ProcessMessages { get; set; }
@@ -61,15 +51,15 @@ namespace Agent
 
         public AgentConfiguration AgentConfiguration { get; set; }
 
+        public AgentInformationsComponent AgentInformationsComponent { get; set; }
+
+
         public Agent(TeamId teamId, bool wantsToBeLeader = false)
         {
             StartGameComponent = new StartGameComponent(this, teamId);
+            AgentInformationsComponent = new AgentInformationsComponent(this);
             this.WantsToBeLeader = wantsToBeLeader;
             Piece = null;
-            lastAskedTeammate = 0;
-            DeniedLastMove = false;
-            RemainingPenalty = 0.0;
-            skipCount = 0;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
@@ -81,7 +71,7 @@ namespace Agent
         private void SetPenalty(ActionType action)
         {
             var ret = StartGameComponent.penalties.TryGetValue(action, out TimeSpan span);
-            if (ret) RemainingPenalty += span.TotalSeconds;
+            if (ret)  AgentInformationsComponent.RemainingPenalty += span.TotalSeconds;
         }
 
         public void SetDoNothingStrategy()
@@ -92,8 +82,8 @@ namespace Agent
         public ActionResult Update(double dt)
         {
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
-            RemainingPenalty = Math.Max(0.0, RemainingPenalty - dt);
-            if (RemainingPenalty > 0.0) return ActionResult.Continue;
+            AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
+            if (AgentInformationsComponent.RemainingPenalty > 0.0) return ActionResult.Continue;
             switch (AgentState)
             {
                 case AgentState.Created:
@@ -120,12 +110,12 @@ namespace Agent
                     return ActionResult.Continue;
                 case AgentState.InGame:
                     BaseMessage message = GetMessage();
-                    if (message == null && skipCount < maxSkipCount)
+                    if (message == null && AgentInformationsComponent.SkipCount < maxSkipCount)
                     {
-                        skipCount++;
+                        AgentInformationsComponent.SkipCount++;
                         return ActionResult.Continue;
                     }
-                    skipCount = 0;
+                    AgentInformationsComponent.SkipCount = 0;
                     ActionResult ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
                     if (ret == ActionResult.Finish)
                     {
@@ -146,7 +136,7 @@ namespace Agent
                 logger.Warn("Move: Agent not in game" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
-            LastDirection = direction;
+            AgentInformationsComponent.LastDirection = direction;
             SetPenalty(ActionType.Move);
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
             logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + id.ToString());
@@ -192,10 +182,10 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            lastAskedTeammate++;
-            lastAskedTeammate %= StartGameComponent.teamMates.Length;
+            AgentInformationsComponent.LastAskedTeammate++;
+            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.teamMates.Length;
             SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.teamMates[lastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.teamMates[AgentInformationsComponent.LastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
