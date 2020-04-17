@@ -29,7 +29,7 @@
         <GroupBox 
             Grid.Row="0" Header="Board"
             Style="{StaticResource GroupBoxTopStyle}">
-            <Grid>
+            <Grid x:Name="BoardGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -112,7 +112,7 @@
         <GroupBox
             Grid.Row="1" Header="Game"
             Style="{StaticResource GroupBoxStyle}">
-            <Grid>
+            <Grid x:Name="GameGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -177,7 +177,7 @@
         <GroupBox
             Grid.Row="2" Header="Network"
             Style="{StaticResource GroupBoxStyle}">
-            <Grid>
+            <Grid x:Name="NetworkGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
@@ -225,7 +225,7 @@
         <GroupBox
             Grid.Row="3" Header="Penalties [ms]"
             Style="{StaticResource GroupBoxBottomStyle}">
-            <Grid>
+            <Grid x:Name="PenaltiesGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>

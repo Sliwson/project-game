@@ -358,6 +358,19 @@ namespace GameMasterPresentation.Configuration
 
         public static bool operator ==(Configuration a, Configuration b)
         {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if (ReferenceEquals(a, null))
+            {
+                return false;
+            }
+            if (ReferenceEquals(b, null))
+            {
+                return false;
+            }
+
             if (a.BoardX != b.BoardX)
                 return false;
             if (a.BoardY != b.BoardY)
@@ -394,6 +407,21 @@ namespace GameMasterPresentation.Configuration
         public static bool operator !=(Configuration a, Configuration b)
         {
             return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            //dunno if everything is ok here (situation when both are null)
+            var conf = obj as Configuration;
+            if (conf == null)
+                return false;
+            return this == conf;
+        }
+
+        public override int GetHashCode()
+        {
+            //maybe think of sth better
+            return base.GetHashCode();
         }
 
         //TODO: delete

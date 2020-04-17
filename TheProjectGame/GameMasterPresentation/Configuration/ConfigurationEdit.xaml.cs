@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,6 +42,24 @@ namespace GameMasterPresentation.Configuration
             InitializeComponent();
         }
 
+        private bool Validate()
+        {
+            return ValidateGrid(BoardGrid) &&
+                ValidateGrid(GameGrid) &&
+                ValidateGrid(NetworkGrid) &&
+                ValidateGrid(PenaltiesGrid);
+        }
+
+        private bool ValidateGrid(Grid grid)
+        {
+            foreach (var textbox in grid.Children.OfType<TextBox>())
+            {
+                if (Validation.GetHasError(textbox))
+                    return false;
+            }
+            return true;
+        }
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             parentWindow = Window.GetWindow(this) as ConfigurationWindow;
@@ -49,10 +69,47 @@ namespace GameMasterPresentation.Configuration
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Validate())
+            {
+                parentWindow.Config = ConfigCopy;
+                MessageBox.Show("Configuration saved!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Form contains errors!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
 
         private void SaveToFileButtonClick(object sender, RoutedEventArgs e)
         {
+            if (Validate())
+            {
+                string configurationPath = "..\\..\\..\\Configuration";
+
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "JSON File|*.json";
+                saveFileDialog.Title = "Save Game Master Configuration File";
+                saveFileDialog.FileName = "Untitled";
+                saveFileDialog.InitialDirectory = System.IO.Path.GetFullPath(configurationPath);
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    if (saveFileDialog.FileName != "")
+                    {
+                        if (ConfigCopy.SaveToFile(saveFileDialog.FileName) == true)
+                        {
+                            MessageBox.Show("Configuration saved!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("There was problem saving configuration!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Form contains errors!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
 
         private void ExitButtonClick(object sender, RoutedEventArgs e)
