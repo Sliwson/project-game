@@ -17,10 +17,9 @@ namespace Agent
             CreateAgent();
         }
 
-        private static AgentConfiguration LoadDefaultConfiguration()
+        private static void LoadDefaultConfiguration()
         {
-            Configuration = new AgentConfiguration();
-            return Configuration.GetConfiguration();
+            Configuration = AgentConfiguration.GetConfiguration();
         }
      
         private static void CreateAgent()
