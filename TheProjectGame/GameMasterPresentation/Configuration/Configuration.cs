@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -298,10 +296,6 @@ namespace GameMasterPresentation.Configuration
                 return false;
             if (TeamSize < 1)
                 return false;
-            if (NumberOfGoals < 1)
-                return false;
-            if (TeamSize < 1)
-                return false;
             if (NumberOfPieces < 1)
                 return false;
             if (ShamProbability < 0 || ShamProbability > 1)
@@ -336,11 +330,11 @@ namespace GameMasterPresentation.Configuration
                     serializer.Serialize(file, this);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
-            return true;            
+            return true;
         }
 
         public static Configuration ReadFromFile(string path)
@@ -360,6 +354,46 @@ namespace GameMasterPresentation.Configuration
             if (conf.Validate() == false)
                 return null;
             return conf;
+        }
+
+        public static bool operator ==(Configuration a, Configuration b)
+        {
+            if (a.BoardX != b.BoardX)
+                return false;
+            if (a.BoardY != b.BoardY)
+                return false;
+            if (a.GoalAreaHeight != b.GoalAreaHeight)
+                return false;
+            if (a.NumberOfGoals != b.NumberOfGoals)
+                return false;
+            if (a.TeamSize != b.TeamSize)
+                return false;
+            if (a.NumberOfPieces != b.NumberOfPieces)
+                return false;
+            if (a.ShamProbability != b.ShamProbability)
+                return false;
+            if (a.CSAddress != b.CSAddress)
+                return false;
+            if (a.CSPort != b.CSPort)
+                return false;
+            if (a.MovePenalty != b.MovePenalty)
+                return false;
+            if (a.InformationExchangePenalty != b.InformationExchangePenalty)
+                return false;
+            if (a.DiscoveryPenalty != b.DiscoveryPenalty)
+                return false;
+            if (a.PutPenalty != b.PutPenalty)
+                return false;
+            if (a.CheckForShamPenalty != b.CheckForShamPenalty)
+                return false;
+            if (a.DestroyPiecePenalty != b.DestroyPiecePenalty)
+                return false;
+            return true;
+        }
+
+        public static bool operator !=(Configuration a, Configuration b)
+        {
+            return !(a == b);
         }
 
         //TODO: delete

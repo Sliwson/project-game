@@ -46,5 +46,27 @@ namespace GameMasterPresentation.Configuration
             if (parentWindow == null)
                 ;//TODO: error something
         }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void SaveToFileButtonClick(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void ExitButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (ConfigCopy != parentWindow.Config)
+            {
+                var result = MessageBox.Show("Do you want to exit without saving?", "Configuration", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
+            parentWindow.ContentGrid.Children.Clear();
+            parentWindow.ContentGrid.Children.Add(new ConfigurationView());
+        }
     }
 }
