@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Messaging.Contracts;
+using Messaging.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -10,7 +12,9 @@ namespace GameMaster
     public class NetworkComponent
     {
         private GameMaster gameMaster;
+
         private IPEndPoint communicationServerEndpoint;
+        private Socket socket;
 
         private ManualResetEvent connectDone;
         private ManualResetEvent sendDone;
@@ -26,54 +30,62 @@ namespace GameMaster
             sendDone = new ManualResetEvent(false);
         }
 
-        public void Connect()
-        {
-            
-            var serializedMessage = "Test message";
-            var byteMessage = Encoding.UTF8.GetBytes(serializedMessage);
-            byte[] message = BitConverter.GetBytes((short)byteMessage.Length);
-            Array.Resize(ref message, byteMessage.Length + 2);
-            Array.Copy(byteMessage, 0, message, 2, byteMessage.Length);
-
+        public bool Connect()
+        {            
             try
             {
-                var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                client.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), client);
-
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
 
+                var state = new ServerStateObject(ref socket);
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-                Send(client, message);
-                sendDone.WaitOne();
-
-                Send(client, message);
-                sendDone.WaitOne();
-
-                client.Shutdown(SocketShutdown.Both);
-                client.Close();
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine("Exception: {0}", e);
+                return false;
             }
-            Console.WriteLine("Closed");
+        }
+
+        public bool Disconnect()
+        {
+            try
+            {
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+
+                Console.WriteLine("Closed");
+                return true;
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Unable to disconnect: {0}", e);
+                return false;
+            }
+        }
+
+        public void SendMessage(BaseMessage message)
+        {
+            var wrappedMessage = MessageSerializer.SerializeAndWrapMessage(message);
+
+            Send(socket, wrappedMessage);
+            sendDone.WaitOne();
         }
 
         private void ConnectCallback(IAsyncResult ar)
         {
             try
             {
-                // Retrieve the socket from the state object.  
                 Socket client = (Socket)ar.AsyncState;
 
-                // Complete the connection.  
                 client.EndConnect(ar);
 
                 Console.WriteLine("Socket connected to {0}",
                     client.RemoteEndPoint.ToString());
 
-                // Signal that the connection has been made.  
                 connectDone.Set();
             }
             catch (Exception e)
@@ -91,19 +103,48 @@ namespace GameMaster
         {
             try
             {
-                // Retrieve the socket from the state object.  
                 Socket client = (Socket)ar.AsyncState;
 
-                // Complete sending the data to the remote device.  
                 int bytesSent = client.EndSend(ar);
                 Console.WriteLine("Sent {0} bytes to server.", bytesSent);
 
-                // Signal that all bytes have been sent.  
                 sendDone.Set();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void ReceiveCallback(IAsyncResult ar)
+        {
+            var state = (ServerStateObject)ar.AsyncState;
+            var client = state.WorkSocket;
+
+            int bytesRead = client.EndReceive(ar);
+            BaseMessage message;
+
+            if (bytesRead > 2)
+            {
+                try
+                {
+                    message = MessageSerializer.UnwrapAndDeserializeMessage(state.Buffer);
+
+                    gameMaster.InjectMessage(message);
+                }
+                catch (Exception e)
+                {
+                    if (e is ArgumentOutOfRangeException)
+                        Console.WriteLine(e.Message);
+                    else
+                        throw;
+                }
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if (bytesRead > 0)
+            {
+                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
         }
     }

@@ -65,7 +65,7 @@ namespace Messaging.Serialization
 
             var messageLength = BitConverter.ToInt16(littleEndianBytes, 0);
 
-            if (messageLength <= 1 >> 13 - 2)
+            if (messageLength <= (1 << 13) - 2)
             {
                 serializedMessage = Encoding.UTF8.GetString(wrappedMessage, 2, messageLength);
 

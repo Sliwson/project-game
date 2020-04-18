@@ -36,7 +36,8 @@ namespace GameMaster
             PresentationComponent = new PresentationComponent(this);
             NetworkComponent = new NetworkComponent(this);
 
-            NetworkComponent.Connect();
+            if (!NetworkComponent.Connect())
+                throw new ApplicationException("Unable to connect to CS");
         }
 
         public void SetNetworkConfiguration(/*network configuration*/) { }
