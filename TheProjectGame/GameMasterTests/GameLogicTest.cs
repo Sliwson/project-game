@@ -3,6 +3,7 @@ using GameMaster;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using Messaging.Contracts;
 using Messaging.Contracts.GameMaster;
 using Messaging.Contracts.Agent;
@@ -393,6 +394,7 @@ namespace GameMasterTests
 
             var payload = response.Payload as PickUpPieceError;
             Assert.AreEqual(PickUpPieceErrorSubtype.NothingThere, payload.ErrorSubtype);
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
         }
 
         [Test]
@@ -610,6 +612,20 @@ namespace GameMasterTests
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
         {
             return MessageFactory.GetMessage(payload, agentFromId);
+        }
+
+        private int GetNumberOfAllPieces()
+        {
+            int onBoardPieces = 0;
+            for (int y = 0; y < configuration.BoardY; y++)
+            {
+                for (int x = 0; x < configuration.BoardX; x++)
+                {
+                    onBoardPieces += gameMaster.BoardLogic.GetField(x, y).Pieces.Count;
+                }
+            }
+            int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
+            return onBoardPieces + agentPieces;
         }
     }
 }
