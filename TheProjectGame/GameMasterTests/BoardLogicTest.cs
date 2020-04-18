@@ -1,8 +1,7 @@
-using NUnit.Framework;
 using GameMaster;
-using System.Drawing;
-using System.Collections.Generic;
+using NUnit.Framework;
 using System;
+using System.Drawing;
 
 namespace GameMasterTests
 {
@@ -15,7 +14,9 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            var configurationProvider = new GameMaster.MockConfigurationProvider();
+            var Configuration = configurationProvider.GetConfiguration();
+            gameMaster = new GameMaster.GameMaster(Configuration);
             BoardLogicComponent = gameMaster.BoardLogic;
             size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
@@ -43,7 +44,7 @@ namespace GameMasterTests
         {
             BoardLogicComponent.Clean();
             var field = BoardLogicComponent.GetField(4, 4);
-            var agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, new Point(4,4));
+            var agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, new Point(4, 4));
             field.Agent = agent;
 
             Assert.AreEqual(new Point(4, 4), BoardLogicComponent.GetPointWhere(p => p.Agent == agent).Value);
@@ -70,7 +71,7 @@ namespace GameMasterTests
                 for (int x = 0; x < size.X; x++)
                     Assert.IsTrue(BoardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
         }
-        
+
         [Test]
         public void IsFieldInGoalArea_ShouldReturnTrueForRedTeam()
         {
@@ -131,7 +132,8 @@ namespace GameMasterTests
 
         private void ChangeBoard()
         {
-            Action<Field, Point> changeField = (Field f, Point position) => {
+            Action<Field, Point> changeField = (Field f, Point position) =>
+            {
                 f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
                 f.Pieces.Push(new Piece(false));
             };

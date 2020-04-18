@@ -23,7 +23,9 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            var configurationProvider = new GameMaster.MockConfigurationProvider();
+            var Configuration = configurationProvider.GetConfiguration();
+            gameMaster = new GameMaster.GameMaster(Configuration);
             config = gameMaster.Configuration;
         }
 

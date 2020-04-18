@@ -5,7 +5,7 @@ using System.Text;
 
 namespace GameMaster
 {
-    class MockConfigurationProvider : IConfigurationProvider
+    public class MockConfigurationProvider : IConfigurationProvider
     {
         public GameMasterConfiguration GetConfiguration()
         {
