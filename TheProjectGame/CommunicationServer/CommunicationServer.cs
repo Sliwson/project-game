@@ -87,7 +87,7 @@ namespace CommunicationServer
             // TODO: Implement forwarding message and checking agent in HostMapping
             Console.WriteLine($"Received message from host with id = {HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket)}");
             Console.WriteLine("Content: ");
-            Console.Write(receivedMessage.SerializedMessage);
+            Console.WriteLine(receivedMessage.SerializedMessage);
         }
     }
 }

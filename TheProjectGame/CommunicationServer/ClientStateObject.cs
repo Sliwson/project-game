@@ -20,7 +20,7 @@ namespace CommunicationServer
             ClientType = clientType;
         }
 
-        internal void SetReadCallback(AsyncCallback callback)
+        internal void SetReceiveCallback(AsyncCallback callback)
         {
             WorkSocket.BeginReceive(Buffer, 0, BufferSize, SocketFlags.None, callback, this);
         }

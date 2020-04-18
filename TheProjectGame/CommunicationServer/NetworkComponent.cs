@@ -90,12 +90,12 @@ namespace CommunicationServer
             var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
             var state = new ClientStateObject(ref handler, listener.ClientType);
-            state.SetReadCallback(new AsyncCallback(ReadCallback));
+            state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
             Console.WriteLine($"{listener.ClientType} connected!");
         }
 
-        private void ReadCallback(IAsyncResult ar)
+        private void ReceiveCallback(IAsyncResult ar)
         {
             var state = (ClientStateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
@@ -119,12 +119,12 @@ namespace CommunicationServer
                     else
                         throw;
                 }
-                state.SetReadCallback(new AsyncCallback(ReadCallback));
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if(bytesRead > 0)
             {
                 Console.WriteLine("Received message was too short (expected more than 2 bytes)");
-                state.SetReadCallback(new AsyncCallback(ReadCallback));
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
         }
 
