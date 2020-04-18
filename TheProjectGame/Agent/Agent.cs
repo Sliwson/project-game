@@ -56,13 +56,15 @@ namespace Agent
 
         public INetworkComponent NetworkComponent { get; private set; }
 
-        public Agent(AgentConfiguration configuration, TeamId teamId, bool wantsToBeLeader = false)
+        public Agent(AgentConfiguration agentConfiguration)
         {
-            AgentConfiguration = configuration;
+            var teamId = agentConfiguration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue;
+            
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
+            AgentConfiguration = agentConfiguration;
+            WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
             NetworkComponent = new ClientNetworkComponent(configuration.CsIP, configuration.CsPort);
-            this.WantsToBeLeader = wantsToBeLeader;
             Piece = null;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();

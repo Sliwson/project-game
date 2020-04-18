@@ -167,6 +167,11 @@ namespace Agent
                 logger.Warn("Process exchange information payload: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
+            if (!Array.Exists(agent.StartGameComponent.teamMates, id => id == message.Payload.AskingAgentId))
+            {
+                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString());
+                return agent.MakeDecisionFromStrategy();
+            }
             if (message.Payload.Leader)
             {
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.id.ToString());
