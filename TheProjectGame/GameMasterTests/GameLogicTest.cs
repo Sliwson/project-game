@@ -394,7 +394,6 @@ namespace GameMasterTests
 
             var payload = response.Payload as PickUpPieceError;
             Assert.AreEqual(PickUpPieceErrorSubtype.NothingThere, payload.ErrorSubtype);
-            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
         }
 
         [Test]
