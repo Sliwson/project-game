@@ -54,11 +54,13 @@ namespace Agent
         public AgentInformationsComponent AgentInformationsComponent { get; set; }
 
 
-        public Agent(TeamId teamId, bool wantsToBeLeader = false)
+        public Agent(AgentConfiguration agentConfiguration)
         {
+            TeamId teamId = agentConfiguration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue;
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
-            this.WantsToBeLeader = wantsToBeLeader;
+            AgentConfiguration = agentConfiguration;
+            this.WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
             Piece = null;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
