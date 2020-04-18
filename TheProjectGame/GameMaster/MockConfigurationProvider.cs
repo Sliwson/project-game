@@ -25,7 +25,7 @@ namespace GameMaster
                 ShamProbability = 0.3f,
                 AgentsLimit = 5,
                 DestroyPiecePenalty = new TimeSpan(700),
-                CsIP = "192.168.0.53",
+                CsIP = "192.168.1.109",
                 CsPort = 12345
             };
         }

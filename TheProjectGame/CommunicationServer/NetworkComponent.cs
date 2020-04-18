@@ -149,6 +149,7 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
+            return IPAddress.Parse("192.168.1.109");
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {

@@ -78,7 +78,9 @@ namespace Messaging.Communication
 
         public IEnumerable<BaseMessage> GetIncomingMessages()
         {
-            return messageQueue.ToArray();
+            var result = messageQueue.ToArray();
+            messageQueue.Clear();
+            return result;
         }
 
         private void ConnectCallback(IAsyncResult ar)
@@ -117,6 +119,7 @@ namespace Messaging.Communication
             }
             catch (Exception e)
             {
+                throw;
                 //Console.WriteLine(e.ToString());
             }
         }

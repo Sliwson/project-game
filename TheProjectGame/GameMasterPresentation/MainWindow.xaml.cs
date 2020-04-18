@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Agent;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -119,6 +121,8 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            gameMaster.ConnectToCommunicationServer();
+            CreateGameplayMockup();
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -214,6 +218,11 @@ namespace GameMasterPresentation
         private void Update(double dt)
         {
             gameMaster.Update(dt);
+
+            if (agents != null)
+                for (int i = 0; i < agents.Length; i++)
+                    agents[i].Update(dt);
+
             FlushLogs();
         }
 
@@ -239,5 +248,25 @@ namespace GameMasterPresentation
         //        SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
         //    }
         //}
+        //MOCKUP
+        private Agent.Agent[] agents;
+
+        private void CreateGameplayMockup()
+        {
+            gameMaster.ApplyConfiguration();
+
+            var agentsCount = gameMaster.Configuration.AgentsLimit;
+            agents = new Agent.Agent[agentsCount];
+
+            var teamLimit = agentsCount / 2;
+            for (int i = 0; i < agentsCount; i++)
+            {
+                var config = new Agent.AgentConfiguration { CsIP = "192.168.1.109", CsPort = 54321, TeamID = i < teamLimit ? "blue" : "red", WantsToBeTeamLeader = i % teamLimit == 0 };
+                var agent = new Agent.Agent(config); 
+                agents[i] = agent;
+                agent.ConnectToCommunicationServer();
+                Thread.Sleep(100);
+            }
+        }
     }
 }
