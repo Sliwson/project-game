@@ -54,11 +54,9 @@ namespace GameMasterPresentation
             }
         }
 
-        //maybe move these to another class
-        private int HorizontalLineZIndex = 50;
-
-        private int VerticalLineZIndex = 50;
-        private int BackgroundZIndex = 10;
+        private int HorizontalLineZIndex = Constants.HorizontalLineZIndex;
+        private int VerticalLineZIndex = Constants.VerticalLineZIndex;
+        private int BackgroundZIndex = Constants.BackgroundZIndex;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -79,11 +77,11 @@ namespace GameMasterPresentation
             RedTeamScore = 0;
         }
 
-        public void InitializeBoard(int AgentsCount, int BoardRows, int BoardColumns, int BoardGoalAreaRows)
+        public void InitializeBoard(int AgentsCount, Configuration.Configuration configuration)
         {
-            this.BoardRows = BoardRows;
-            this.BoardColumns = BoardColumns;
-            this.BoardGoalAreaRows = BoardGoalAreaRows;
+            this.BoardRows = configuration.BoardY;
+            this.BoardColumns = configuration.BoardX;
+            this.BoardGoalAreaRows = configuration.GoalAreaHeight;
             CalculateBoardSize();
             SetBoardMesh();
             SetAreasBackgrounds();
@@ -97,7 +95,7 @@ namespace GameMasterPresentation
             if (IsInitialized)
             {
                 if (data.Agents.Count != AgentFields.Length)
-                    ;//error something
+                    ;//TODO: error something
                 int i = 0;
                 foreach (var agent in data.Agents)
                 {
@@ -261,7 +259,6 @@ namespace GameMasterPresentation
             for (int i = 0; i < AgentFields.Length; i++)
             {
                 AgentFields[i] = new BoardField(canvas, FieldSize, FieldSize, 0, 0, Colors.Transparent);
-                //SetSingleAgent(Agents[i], AgentFields[i]);
             }
         }
 

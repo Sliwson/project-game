@@ -60,7 +60,9 @@ namespace GameMasterPresentation
 
             gameMaster = new GameMaster.GameMaster();
 
-            GMConfig = Configuration.Configuration.MockConfiguration();
+            GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+
+            Board = new BoardComponent(BoardCanvas);
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
@@ -76,50 +78,6 @@ namespace GameMasterPresentation
             Update((double)stopwatch.ElapsedMilliseconds / 1000.0);
             stopwatch.Start();
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
-        }
-
-        //private void GetGameMasterConfiguration()
-        //{
-        //    BoardRows = gameMaster.Configuration.BoardY;
-        //    BoardColumns = gameMaster.Configuration.BoardX;
-        //    BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
-        //}
-
-        //private void MockBoard()
-        //{
-        //    BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[1, 2], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[1, 4], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[2, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[2, 4], true, false);
-
-        //    BoardField.SetGoalBoardField(BoardFields[9, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 2], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 4], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 5], true, false);
-        //    BoardField.SetGoalBoardField(BoardFields[11, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[11, 4], true, false);
-
-        //    BoardField.SetAgentBoardField(BoardFields[4, 2], 1, false, false);
-        //    BoardField.SetAgentBoardField(BoardFields[7, 4], 2, false, true);
-        //    BoardField.SetAgentBoardField(BoardFields[6, 5], 3, true, false);
-        //    BoardField.SetAgentBoardField(BoardFields[8, 3], 4, true, false);
-
-        //    BoardField.SetPieceBoardField(BoardFields[5, 1], false);
-        //}
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            Board = new BoardComponent(BoardCanvas);
-            //InitPresentation();
-            //GetGameMasterConfiguration();
-            //GenerateBoard(BoardCanvas);
-            //MockBoard();
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            Abort();
         }
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -141,11 +99,10 @@ namespace GameMasterPresentation
             {
                 StartGame();
 
-                var configuration = gameMaster.Configuration;
-                Board.InitializeBoard(gameMaster.Agents.Count, configuration.BoardY, configuration.BoardX, configuration.GoalAreaHeight);
-                //SetAgentFields(BoardCanvas);
+                Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+
                 //TODO:
-                //do it better
+                //create agents List
                 AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
 
                 PauseRadioButton.IsEnabled = true;
@@ -165,15 +122,6 @@ namespace GameMasterPresentation
         private void BreakpointButton_Click(object sender, RoutedEventArgs e)
         {
             ;
-        }
-
-        private void SetScore()
-        {
-            int scoreRed = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Red);
-            int scoreBlue = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Blue);
-
-            RedTeamScoreLabel.Content = scoreRed.ToString();
-            BlueTeamScoreLabel.Content = scoreBlue.ToString();
         }
 
         private void UpdateLog(string text)
@@ -229,14 +177,6 @@ namespace GameMasterPresentation
                 UpdateLog(log);
         }
 
-        private void Abort()
-        {
-            //TODO:
-            //fix
-            //foreach (var t in threads)
-            //    t.Abort();
-        }
-
         private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
             var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
@@ -251,13 +191,5 @@ namespace GameMasterPresentation
                     configurationWindows.First().WindowState = WindowState.Normal;
             }
         }
-
-        //private void UpdateAgents()
-        //{
-        //    for (int i = 0; i < AgentFields.Length; i++)
-        //    {
-        //        SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
-        //    }
-        //}
     }
 }
