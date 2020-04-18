@@ -51,6 +51,12 @@ namespace GameMaster
 
         public void StartGame()
         {
+            if (!ConnectionLogic.CanStartGame())
+            {
+                Logger.Get().Error("[GM] Start game conditions not met!");
+                return;
+            }
+
             Agents = ConnectionLogic.FlushLobby();
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;

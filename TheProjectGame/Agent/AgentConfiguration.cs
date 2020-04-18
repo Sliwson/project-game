@@ -11,12 +11,16 @@ namespace Agent
     {
         public string CsIP { get; set; }
         public string CsPort { get; set; }
-        public string teamID { get; set; }
-        public int strategy { get; set; }
+        public string TeamID { get; set; }
+        public int Strategy { get; set; }
+        public bool WantsToBeTeamLeader { get; set; }
 
-        public AgentConfiguration GetConfiguration()
+        public static AgentConfiguration GetConfiguration(string fileName = null)
         {
-            string fileName = "..\\..\\..\\Configuration\\agentConfiguration.json";
+            if (fileName == null)
+            {
+                fileName = "..\\..\\..\\Configuration\\agentConfiguration.json";
+            }
             AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(File.ReadAllText(@fileName));
             return agentConfiguration;
         }

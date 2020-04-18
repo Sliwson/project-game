@@ -8,7 +8,7 @@ namespace Messaging.Contracts.Agent
         public MessageId GetMessageId() => MessageId.ExchangeInformationResponse;
 
         [JsonRequired]
-        [JsonProperty(PropertyName = "respondToId")]
+        [JsonProperty(PropertyName = "respondToID")]
         public int RespondToId { get; private set; }
 
         // TODO: Make sure how to format those arrays into one-dimensional

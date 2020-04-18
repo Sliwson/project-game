@@ -36,6 +36,15 @@ namespace GameMaster
             return returnLobby;
         }
 
+        public bool CanStartGame()
+        {
+            //both team leaders should be present
+            if (CanAddTeamLeader(TeamId.Blue) || CanAddTeamLeader(TeamId.Red))
+                return false;
+
+            return true;
+        }
+
         public BaseMessage ProcessMessage(BaseMessage message)
         {
             logger.Info("[Connection] Received message {type} from id {id}", message.MessageId, message.AgentId);
@@ -59,18 +68,21 @@ namespace GameMaster
         private BaseMessage Process(Message<JoinRequest> message)
         {
             var payload = message.Payload;
+            var foundAgent = lobby.FirstOrDefault(a => a.Id == message.AgentId);   
 
-            //check limits
+            if (foundAgent != null)
+                return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId), message.AgentId);
+
             if (!CanAddAgentForTeam(payload.TeamId))
             {
                 logger.Warn("[Connection] Rejecting - team {team} is full", payload.TeamId);
-                return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId));
+                return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId), message.AgentId);
             }
 
             if (payload.IsTeamLeader && !CanAddTeamLeader(payload.TeamId))
             {
                 logger.Warn("[Connection] Rejecting - team {team} already has a team leader", payload.TeamId);
-                return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId));
+                return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId), message.AgentId);
             }
 
             //create new agent
@@ -78,7 +90,7 @@ namespace GameMaster
             gameMaster.BoardLogic.PlaceAgent(agent);
             lobby.Add(agent);
             logger.Info("[Connection] Accepting - agent placed on position {pos}", agent.Position);
-            return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId));
+            return MessageFactory.GetMessage(new JoinResponse(true, message.AgentId), message.AgentId);
         } 
 
         private bool CanAddAgentForTeam(TeamId team)
