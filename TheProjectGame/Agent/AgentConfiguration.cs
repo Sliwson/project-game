@@ -10,7 +10,7 @@ namespace Agent
     public class AgentConfiguration
     {
         public string CsIP { get; set; }
-        public string CsPort { get; set; }
+        public int CsPort { get; set; }
         public string TeamID { get; set; }
         public int Strategy { get; set; }
         public bool WantsToBeTeamLeader { get; set; }

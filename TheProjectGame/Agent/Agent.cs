@@ -53,11 +53,14 @@ namespace Agent
 
         public AgentInformationsComponent AgentInformationsComponent { get; set; }
 
+        public NetworkComponent NetworkComponent { get; private set; }
 
-        public Agent(TeamId teamId, bool wantsToBeLeader = false)
+        public Agent(AgentConfiguration configuration, TeamId teamId, bool wantsToBeLeader = false)
         {
+            AgentConfiguration = configuration;
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
+            NetworkComponent = new NetworkComponent(this);
             this.WantsToBeLeader = wantsToBeLeader;
             Piece = null;
             WaitingPlayers = new List<int>();
@@ -66,6 +69,9 @@ namespace Agent
             AgentState = AgentState.Created;
             logger = NLog.LogManager.GetCurrentClassLogger();
             ProcessMessages = new ProcessMessages(this);
+
+            if (!NetworkComponent.Connect())
+                throw new ApplicationException("Unable to connect to CS");
         }
 
         private void SetPenalty(ActionType action)
