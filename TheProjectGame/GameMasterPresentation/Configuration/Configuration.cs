@@ -411,9 +411,8 @@ namespace GameMasterPresentation.Configuration
 
         public override bool Equals(object obj)
         {
-            //dunno if everything is ok here (situation when both are null)
             var conf = obj as Configuration;
-            if (conf == null)
+            if (conf == null) //this won't be null
                 return false;
             return this == conf;
         }

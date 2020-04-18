@@ -72,11 +72,11 @@ namespace GameMasterPresentation.Configuration
             if (Validate())
             {
                 parentWindow.Config = ConfigCopy;
-                MessageBox.Show("Configuration saved!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Configuration saved!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
-                MessageBox.Show("Form contains errors!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show("Form contains errors!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
 
@@ -84,7 +84,7 @@ namespace GameMasterPresentation.Configuration
         {
             if (Validate())
             {
-                string configurationPath = "..\\..\\..\\Configuration";
+                string configurationPath = Constants.ConfigurationDirectoryPath;
 
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "JSON File|*.json";
@@ -97,18 +97,18 @@ namespace GameMasterPresentation.Configuration
                     {
                         if (ConfigCopy.SaveToFile(saveFileDialog.FileName) == true)
                         {
-                            MessageBox.Show("Configuration saved!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Configuration saved!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                         else
                         {
-                            MessageBox.Show("There was problem saving configuration!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                            MessageBox.Show("There was problem saving configuration!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                         }
                     }
                 }
             }
             else
             {
-                MessageBox.Show("Form contains errors!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show("Form contains errors!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
 
@@ -116,7 +116,7 @@ namespace GameMasterPresentation.Configuration
         {
             if (ConfigCopy != parentWindow.Config)
             {
-                var result = MessageBox.Show("Do you want to exit without saving?", "Configuration", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                var result = MessageBox.Show("Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (result == MessageBoxResult.No)
                 {
                     return;

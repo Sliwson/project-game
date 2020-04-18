@@ -53,7 +53,7 @@ namespace GameMasterPresentation.Configuration
             {
                 if (editWindows.First().ConfigCopy != Config)
                 {
-                    var result = MessageBox.Show("Do you want to exit without saving?", "Configuration", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    var result = MessageBox.Show("Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
                     if (result == MessageBoxResult.No)
                     {
                         e.Cancel = true;

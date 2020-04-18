@@ -36,7 +36,7 @@ namespace GameMasterPresentation.Configuration
             openFileDialog.Title = "Open Game Master Configuration File";
             openFileDialog.Filter = "JSON Files (*.json)|*.json";
 
-            string configurationPath = "..\\..\\..\\Configuration";
+            string configurationPath = Constants.ConfigurationDirectoryPath;
 
             openFileDialog.InitialDirectory = Path.GetFullPath(configurationPath);
             openFileDialog.Multiselect = false;
@@ -47,11 +47,11 @@ namespace GameMasterPresentation.Configuration
                 var conf = Configuration.ReadFromFile(filename);
                 if(conf == null)
                 {
-                    MessageBox.Show("There was problem reading json file!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessageBox.Show("There was problem reading json file!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
                 else
                 {
-                    MessageBox.Show("Configuration read successfully!", "Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Configuration read successfully!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
                     parentWindow.Config = conf;
                 }
             }
