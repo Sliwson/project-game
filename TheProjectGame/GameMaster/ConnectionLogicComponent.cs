@@ -96,7 +96,7 @@ namespace GameMaster
         private bool CanAddAgentForTeam(TeamId team)
         {
             var count = lobby.Where(a => a.Team == team).Count();
-            return count < gameMaster.Configuration.AgentsLimit;
+            return count < gameMaster.Configuration.TeamSize;
         }
 
         private bool CanAddTeamLeader(TeamId team)

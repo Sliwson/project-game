@@ -102,7 +102,7 @@ namespace GameMasterTests
         public void ConnectionLogic_ShouldAcceptNoMoreAgentsThanItIsConfigured()
         {
             connectionLogic.FlushLobby();
-            var teamLimit = configuration.AgentsLimit;
+            var teamLimit = configuration.TeamSize;
 
             for (int i = 0; i < teamLimit; i++)
             {

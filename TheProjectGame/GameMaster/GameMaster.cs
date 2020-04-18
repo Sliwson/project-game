@@ -61,6 +61,7 @@ namespace GameMaster
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;
             BoardLogic.GenerateGoals();
+            BoardLogic.DropPiecesOnGameStart();
 
             //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
@@ -90,9 +91,6 @@ namespace GameMaster
         {
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
-
-            if (state == GameMasterState.InGame)
-                BoardLogic.Update(dt);
             
             foreach (var agent in Agents)
                 agent.Update(dt);

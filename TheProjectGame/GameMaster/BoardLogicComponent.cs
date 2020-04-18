@@ -11,10 +11,9 @@ namespace GameMaster
     {
         private Field[,] fields;
         private Point size;
-        private int piecesDropped = 0;
+        private int piecesOnBoard = 0;
         private Random random = new Random();
         private GameMaster gameMaster;
-        private double timeFromLastDrop = 0;
         private NLog.Logger logger;
 
         public BoardLogicComponent(GameMaster gameMaster, Point size)
@@ -28,7 +27,7 @@ namespace GameMaster
             this.gameMaster = gameMaster;
             logger = gameMaster.Logger.Get();
 
-            piecesDropped = 0;
+            piecesOnBoard = 0;
         }
 
         public void GenerateGoals()
@@ -43,6 +42,14 @@ namespace GameMaster
             
             //red
             MirrorBlueGoalArea();
+        }
+
+        public void DropPiecesOnGameStart()
+        {
+            for (int i = 0; i < gameMaster.Configuration.NumberOfPieces; i++)
+            {
+                DropPiece();
+            }
         }
 
         private void GenerateGoalFieldsInRectangle(Rectangle rectangle, int count)
@@ -180,27 +187,24 @@ namespace GameMaster
             return new Point(-1, -1);
         }
 
-        public void Update(double dt)
+        public void RemovePieceAndDropNew()
         {
-            var conf = gameMaster.Configuration;
-            timeFromLastDrop += dt;
-            if (timeFromLastDrop > conf.GeneratePieceDelay.TotalSeconds)
-                DropPiece();
+            piecesOnBoard--;
+            DropPiece();
         }
 
         private void DropPiece()
         {
-            if (piecesDropped >= gameMaster.Configuration.NumberOfPieces)
+            if (piecesOnBoard >= gameMaster.Configuration.NumberOfPieces)
                 return;
 
-            timeFromLastDrop = 0;
             var point = GetRandomPointInRectangle(GetGameAreaRectangle());
             var isSham = random.NextDouble() < gameMaster.Configuration.ShamProbability;
             var piece = new Piece(isSham);
             fields[point.Y, point.X].Pieces.Push(piece);
-            piecesDropped++;
+            piecesOnBoard++;
 
-            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
+            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesOnBoard, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
