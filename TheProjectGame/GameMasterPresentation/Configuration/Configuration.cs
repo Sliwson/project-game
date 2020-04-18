@@ -319,6 +319,29 @@ namespace GameMasterPresentation.Configuration
             return true;
         }
 
+        public GameMaster.GameMasterConfiguration ConvertToGMConfiguration()
+        {
+            var conf = new GameMaster.GameMasterConfiguration()
+            {
+                BoardX = this.BoardX,
+                BoardY = this.BoardY,
+                GoalAreaHeight = this.GoalAreaHeight,
+                NumberOfGoals = this.NumberOfGoals,
+                TeamSize = this.TeamSize,
+                NumberOfPieces = this.NumberOfPieces,
+                ShamProbability = this.ShamProbability,
+                CsIP = this.CSAddress,
+                CsPort = this.CSPort,
+                MovePenalty = TimeSpan.FromMilliseconds(this.MovePenalty),
+                InformationExchangePenalty = TimeSpan.FromMilliseconds(this.InformationExchangePenalty),
+                DiscoveryPenalty = TimeSpan.FromMilliseconds(this.DiscoveryPenalty),
+                PutPenalty = TimeSpan.FromMilliseconds(this.PutPenalty),
+                CheckForShamPenalty = TimeSpan.FromMilliseconds(this.CheckForShamPenalty),
+                DestroyPiecePenalty = TimeSpan.FromMilliseconds(this.DestroyPiecePenalty)
+            };
+            return conf;
+        }
+
         public bool SaveToFile(string path)
         {
             // serialize JSON directly to a file

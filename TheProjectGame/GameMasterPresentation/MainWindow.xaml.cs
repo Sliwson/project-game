@@ -99,8 +99,6 @@ namespace GameMasterPresentation
             {
                 StartGame();
 
-                Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
-
                 //TODO:
                 //create agents List
                 AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
@@ -149,6 +147,8 @@ namespace GameMasterPresentation
         private void StartGame()
         {
             //logger.Debug("Game Started!");
+            Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
             gameMaster.StartGame();
         }
 
