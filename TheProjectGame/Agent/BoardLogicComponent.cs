@@ -80,7 +80,8 @@ namespace Agent
             {
                 for (int j = 0; j < BoardSize.X; j++)
                 {
-                    Board[i, j].distToPiece = distances[i, j];
+                    if (Board[i, j].distToPiece == int.MaxValue)
+                        Board[i, j].distToPiece = distances[i, j];
                 }
             }
         }
