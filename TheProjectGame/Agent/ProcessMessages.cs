@@ -169,7 +169,7 @@ namespace Agent
             }
             if (!Array.Exists(agent.StartGameComponent.teamMates, id => id == message.Payload.AskingAgentId))
             {
-                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString()); "
+                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString());
                 return agent.MakeDecisionFromStrategy();
             }
             if (message.Payload.Leader)
