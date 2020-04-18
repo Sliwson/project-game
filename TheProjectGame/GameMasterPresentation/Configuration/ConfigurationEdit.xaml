@@ -210,7 +210,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.CSPort" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1024" Max="49151"/>
+                                <local:NumberValidationRule Min="49152" Max="65535"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
