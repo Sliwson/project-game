@@ -12,6 +12,7 @@ namespace GameMaster
         public TimeSpan DiscoveryPenalty { get; set; }
         public TimeSpan PutPenalty { get; set; }
         public TimeSpan CheckForShamPenalty { get; set; }
+        public TimeSpan DestroyPiecePenalty { get; set; }
         public int BoardX { get; set; }
         public int BoardY { get; set; }
         public int GoalAreaHeight { get; set; }
@@ -19,7 +20,7 @@ namespace GameMaster
         public int NumberOfPieces { get; set; }
         
         //TODO: check fields below in issues
-        public TimeSpan DestroyPiecePenalty { get; set; }
+        
         public TimeSpan GeneratePieceDelay { get; set; }
         public int AgentsLimit { get; set; }
         public float ShamProbability { get; set; }

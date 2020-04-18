@@ -37,9 +37,10 @@ namespace GameMaster
             //try to connect to communciation server
         }
 
-        public void SetNetworkConfiguration(/*network configuration*/) { }
-        public void SetBoardConfiguration(/*board configuration*/) { }
-        public void SetAgentsConfiguartion(/*agents configuration*/) { }
+        public void SetConfiguration(GameMasterConfiguration configuration) 
+        {
+            this.Configuration = configuration;
+        }
 
         public void ApplyConfiguration()
         {
