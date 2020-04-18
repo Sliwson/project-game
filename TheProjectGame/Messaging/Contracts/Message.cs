@@ -15,6 +15,11 @@ namespace Messaging.Contracts
 
         [JsonIgnore]
         public IPayload Payload { get; protected set; }
+
+        public void SetAgentId(int newId)
+        {
+            AgentId = newId;
+        }
     }
 
     public class Message<T> : BaseMessage where T : IPayload

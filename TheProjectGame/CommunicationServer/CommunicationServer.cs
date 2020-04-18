@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Concurrent;
+using Messaging.Serialization;
 
 namespace CommunicationServer
 {
@@ -82,12 +83,35 @@ namespace CommunicationServer
             }
         }
 
+        // TODO: Improve this logic, for now it only forwards messages of all types
         private void ProcessMessage(ReceivedMessage receivedMessage)
         {
-            // TODO: Implement forwarding message and checking agent in HostMapping
-            Console.WriteLine($"Received message from host with id = {HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket)}");
+            var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
+            int receipentHostId;
+
+            Console.WriteLine("-----------------");
+            Console.WriteLine($"Received message from host with id = {senderHostId}");
             Console.WriteLine("Content: ");
             Console.WriteLine(receivedMessage.SerializedMessage);
+            Console.WriteLine();
+
+            var deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
+            if (!HostMapping.IsHostGameMaster(senderHostId))
+            {
+                receipentHostId = HostMapping.GetGameMasterHostId();
+                deserializedMessage.SetAgentId(senderHostId);
+            }
+            else
+            {
+                receipentHostId = deserializedMessage.AgentId;
+            }
+
+            Console.WriteLine($"\nForwarding to host with id = {receipentHostId}");
+
+            var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);
+            NetworkComponent.SendMessage(receipentSocket, deserializedMessage);
+
+            Console.WriteLine("-----------------");
         }
     }
 }

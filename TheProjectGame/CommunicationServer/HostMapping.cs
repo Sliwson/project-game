@@ -63,5 +63,15 @@ namespace CommunicationServer
 
             return hostId;
         }
+
+        internal bool IsHostGameMaster(int hostId)
+        {
+            return hostId == gmHostId;
+        }
+
+        internal int GetGameMasterHostId()
+        {
+            return gmHostId;
+        }
     }
 }
