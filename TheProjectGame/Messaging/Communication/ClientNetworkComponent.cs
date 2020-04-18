@@ -1,17 +1,18 @@
 ﻿using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Agent
+namespace Messaging.Communication
 {
-    public class NetworkComponent
+    public class ClientNetworkComponent : INetworkComponent
     {
-        private Agent agent;
+        private ConcurrentQueue<BaseMessage> messageQueue;
 
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
@@ -19,12 +20,12 @@ namespace Agent
         private ManualResetEvent connectDone;
         private ManualResetEvent sendDone;
 
-        public NetworkComponent(Agent agent)
+        public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
-            this.agent = agent;
+            messageQueue = new ConcurrentQueue<BaseMessage>();
 
-            var ipAddress = IPAddress.Parse(agent.AgentConfiguration.CsIP);
-            communicationServerEndpoint = new IPEndPoint(ipAddress, agent.AgentConfiguration.CsPort);
+            var ipAddress = IPAddress.Parse(serverIPAddress);
+            communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
 
             connectDone = new ManualResetEvent(false);
             sendDone = new ManualResetEvent(false);
@@ -38,14 +39,14 @@ namespace Agent
                 socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
 
-                var state = new ServerStateObject(ref socket);
+                var state = new StateObject(ref socket, ClientType.CommunicationServer);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
                 return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception: {0}", e);
+                //Console.WriteLine("Exception: {0}", e);
                 return false;
             }
         }
@@ -57,12 +58,12 @@ namespace Agent
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
 
-                Console.WriteLine("Closed");
+                //Console.WriteLine("Closed");
                 return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unable to disconnect: {0}", e);
+                //Console.WriteLine("Unable to disconnect: {0}", e);
                 return false;
             }
         }
@@ -75,6 +76,11 @@ namespace Agent
             sendDone.WaitOne();
         }
 
+        public IEnumerable<BaseMessage> GetIncomingMessages()
+        {
+            return messageQueue.ToArray();
+        }
+
         private void ConnectCallback(IAsyncResult ar)
         {
             try
@@ -83,14 +89,13 @@ namespace Agent
 
                 client.EndConnect(ar);
 
-                Console.WriteLine("Socket connected to {0}",
-                    client.RemoteEndPoint.ToString());
+                //Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
 
                 connectDone.Set();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                //Console.WriteLine(e.ToString());
             }
         }
 
@@ -106,19 +111,19 @@ namespace Agent
                 Socket client = (Socket)ar.AsyncState;
 
                 int bytesSent = client.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to server.", bytesSent);
+                //Console.WriteLine("Sent {0} bytes to server.", bytesSent);
 
                 sendDone.Set();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                //Console.WriteLine(e.ToString());
             }
         }
 
         private void ReceiveCallback(IAsyncResult ar)
         {
-            var state = (ServerStateObject)ar.AsyncState;
+            var state = (StateObject)ar.AsyncState;
             var client = state.WorkSocket;
 
             int bytesRead = client.EndReceive(ar);
@@ -129,23 +134,22 @@ namespace Agent
                 try
                 {
                     message = MessageSerializer.UnwrapAndDeserializeMessage(state.Buffer);
-
-                    agent.InjectMessage(message);
+                    messageQueue.Enqueue(message);
                 }
                 catch (Exception e)
                 {
-                    if (e is ArgumentOutOfRangeException)
-                        Console.WriteLine(e.Message);
-                    else
+                    //if (e is ArgumentOutOfRangeException)
+                        //Console.WriteLine(e.Message);
+                    //else
                         throw;
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                //Console.WriteLine("Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
         }
     }
-    }
+}

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CommunicationServer
+namespace Messaging.Communication
 {
-    internal enum ClientType
+    public enum ClientType
     {
         GameMaster,
-        Agent
+        Agent,
+        CommunicationServer
     }
 }

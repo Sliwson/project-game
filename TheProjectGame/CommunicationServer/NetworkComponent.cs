@@ -1,4 +1,5 @@
-﻿using Messaging.Contracts;
+﻿using Messaging.Communication;
+using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
 using System.Collections.Generic;
@@ -70,7 +71,7 @@ namespace CommunicationServer
                     listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
                     listener.Barrier.WaitOne();
 
-                    if (listener.ClientType == ClientType.GameMaster)
+                    if (listener.ClientType != ClientType.Agent)
                         break;
                 }
             }
@@ -89,7 +90,7 @@ namespace CommunicationServer
             var handler = listener.Listener.EndAccept(ar);
             var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
-            var state = new ClientStateObject(ref handler, listener.ClientType);
+            var state = new StateObject(ref handler, listener.ClientType);
             state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
             Console.WriteLine($"{listener.ClientType} connected!");
@@ -97,7 +98,7 @@ namespace CommunicationServer
 
         private void ReceiveCallback(IAsyncResult ar)
         {
-            var state = (ClientStateObject)ar.AsyncState;
+            var state = (StateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
 
             int bytesRead = handler.EndReceive(ar);

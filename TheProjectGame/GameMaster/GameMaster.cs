@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Messaging.Contracts;
 using GameMaster.Interfaces;
 using Messaging.Enumerators;
+using Messaging.Communication;
 
 namespace GameMaster
 {
@@ -19,7 +20,7 @@ namespace GameMaster
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
         public PresentationComponent PresentationComponent { get; private set; }
-        public NetworkComponent NetworkComponent { get; private set; }
+        public INetworkComponent NetworkComponent { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
@@ -34,10 +35,7 @@ namespace GameMaster
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
             PresentationComponent = new PresentationComponent(this);
-            NetworkComponent = new NetworkComponent(this);
-
-            if (!NetworkComponent.Connect())
-                throw new ApplicationException("Unable to connect to CS");
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
         }
 
         public void SetNetworkConfiguration(/*network configuration*/) { }
@@ -49,6 +47,12 @@ namespace GameMaster
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
             currentMessageProcessor = ConnectionLogic;
+        }
+
+        public void ConnectToCommunicationServer()
+        {
+            if (!NetworkComponent.Connect())
+                throw new ApplicationException("Unable to connect to CS");
         }
 
         public void StartGame()
@@ -131,6 +135,7 @@ namespace GameMaster
         public void OnDestroy()
         {
             Logger.OnDestroy();
+            NetworkComponent.Disconnect();
         }
 
         //TODO: move to messaging system
@@ -150,7 +155,7 @@ namespace GameMaster
             injectedMessages.Clear();
             return clone;
 #endif
-            return new List<BaseMessage>();
+            return NetworkComponent.GetIncomingMessages().ToList();
         }
 
         private void LoadDefaultConfiguration()

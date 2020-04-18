@@ -1,5 +1,6 @@
 ﻿using Agent.Interfaces;
 using Agent.strategies;
+using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
@@ -53,14 +54,14 @@ namespace Agent
 
         public AgentInformationsComponent AgentInformationsComponent { get; set; }
 
-        public NetworkComponent NetworkComponent { get; private set; }
+        public INetworkComponent NetworkComponent { get; private set; }
 
         public Agent(AgentConfiguration configuration, TeamId teamId, bool wantsToBeLeader = false)
         {
             AgentConfiguration = configuration;
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
-            NetworkComponent = new NetworkComponent(this);
+            NetworkComponent = new ClientNetworkComponent(configuration.CsIP, configuration.CsPort);
             this.WantsToBeLeader = wantsToBeLeader;
             Piece = null;
             WaitingPlayers = new List<int>();
@@ -69,7 +70,10 @@ namespace Agent
             AgentState = AgentState.Created;
             logger = NLog.LogManager.GetCurrentClassLogger();
             ProcessMessages = new ProcessMessages(this);
+        }
 
+        public void ConnectToCommunicationServer()
+        {
             if (!NetworkComponent.Connect())
                 throw new ApplicationException("Unable to connect to CS");
         }
@@ -87,6 +91,7 @@ namespace Agent
 
         public ActionResult Update(double dt)
         {
+            injectedMessages.AddRange(NetworkComponent.GetIncomingMessages());
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
             AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
             if (AgentInformationsComponent.RemainingPenalty > 0.0) return ActionResult.Continue;
@@ -292,7 +297,7 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
-            MockMessageSendFunction?.Invoke(this, message);
+            NetworkComponent.SendMessage(message);
         }
 
         public ActionResult AcceptMessage(BaseMessage message)

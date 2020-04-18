@@ -9,13 +9,14 @@ using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Enumerators;
 using Messaging.Contracts.GameMaster;
+using Messaging.Communication;
 
 namespace GameMasterTests
 {
     public class NetworkComponentTest
     {
         private GameMaster.GameMaster gameMaster;
-        private NetworkComponent networkComponent;
+        private INetworkComponent networkComponent;
 
         private List<BaseMessage> messages;
 
@@ -34,7 +35,6 @@ namespace GameMasterTests
             foreach(var message in messages)
             {
                 networkComponent.SendMessage(message);
-
             }
         }
 
