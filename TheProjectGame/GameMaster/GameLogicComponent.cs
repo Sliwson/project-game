@@ -242,7 +242,7 @@ namespace GameMaster
             var isTaskArea = gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position);
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             var piece = agent.RemovePiece();
-            gameMaster.BoardLogic.RemovePieceAndDropNew();
+            
 
             // Field is in task area
             if (isTaskArea)
@@ -250,6 +250,9 @@ namespace GameMaster
                 field.Pieces.Push(piece);
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), agent.Id);
             }
+
+            //in all other cases piece will disappear so we create new one
+            gameMaster.BoardLogic.RemovePieceAndDropNew();
 
             // Sham in goal area
             if (piece.IsSham)
