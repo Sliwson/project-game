@@ -137,7 +137,8 @@
 							 Grid.Row="1"
 							 Style="{StaticResource ButtonGame}"
                              Name="StartRadioButton"
-                             Checked="StartRadioButton_Checked" />
+                             Checked="StartRadioButton_Checked"
+                             IsEnabled="False"/>
                     <RadioButton Content="Pause"
 							 Grid.Row="2"
 							 Style="{StaticResource ButtonGame}"

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Drawing;
-using System.Collections.Generic;
+﻿using GameMaster.Interfaces;
 using Messaging.Contracts;
-using GameMaster.Interfaces;
 using Messaging.Enumerators;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -23,10 +22,10 @@ namespace GameMaster
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster()
+        public GameMaster(GameMasterConfiguration configuration)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
-            LoadDefaultConfiguration();
+            Configuration = configuration;
 
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
@@ -34,12 +33,7 @@ namespace GameMaster
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
             PresentationComponent = new PresentationComponent(this);
 
-            //try to connect to communciation server
-        }
-
-        public void SetConfiguration(GameMasterConfiguration configuration) 
-        {
-            this.Configuration = configuration;
+            //try to connect to communciation server (if connection is not successful throw exception)
         }
 
         public void ApplyConfiguration()
@@ -91,7 +85,7 @@ namespace GameMaster
         {
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
-            
+
             foreach (var agent in Agents)
                 agent.Update(dt);
 
@@ -137,6 +131,7 @@ namespace GameMaster
         {
             injectedMessages.Add(message);
         }
+
 #endif
 
         private List<BaseMessage> GetIncomingMessages()

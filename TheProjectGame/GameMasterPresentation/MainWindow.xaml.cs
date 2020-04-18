@@ -20,7 +20,19 @@ namespace GameMasterPresentation
 
         private BoardComponent board;
 
-        private Configuration.Configuration GMConfig;
+        private Configuration.Configuration gmConfig;
+        public Configuration.Configuration GMConfig
+        {
+            get
+            {
+                return gmConfig;
+            }
+            set
+            {
+                gmConfig = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public BoardComponent Board
         {
@@ -58,9 +70,14 @@ namespace GameMasterPresentation
         {
             InitializeComponent();
 
-            gameMaster = new GameMaster.GameMaster();
+            
 
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+
+            if(GMConfig == null)
+            {
+                //TODO: set OK to ERROR
+            }
 
             Board = new BoardComponent(BoardCanvas);
 
@@ -68,8 +85,7 @@ namespace GameMasterPresentation
             stopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
-            timer.Tick += TimerEvent;
-            timer.Start();
+            timer.Tick += TimerEvent;            
         }
 
         private void TimerEvent(object sender, EventArgs e)
@@ -82,6 +98,10 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            timer.Start();
+            gameMaster = new GameMaster.GameMaster(GMConfig.ConvertToGMConfiguration());
+            gameMaster.ApplyConfiguration();
+            StartRadioButton.IsEnabled = true;
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -148,7 +168,7 @@ namespace GameMasterPresentation
         {
             //logger.Debug("Game Started!");
             Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
-            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+            
             gameMaster.StartGame();
         }
 

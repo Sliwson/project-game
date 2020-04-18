@@ -46,6 +46,7 @@ namespace GameMaster
 
         public void DropPiecesOnGameStart()
         {
+            logger.Info("[Board] Dropping pieces");
             for (int i = 0; i < gameMaster.Configuration.NumberOfPieces; i++)
             {
                 DropPiece();
