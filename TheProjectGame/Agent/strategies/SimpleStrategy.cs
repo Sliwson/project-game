@@ -106,7 +106,7 @@ namespace Agent.strategies
                 didNotAskCount = 0;
                 return agent.BegForInfo();
             }
-            if (agent.WaitingPlayers.Count > 0/* && !IsActionExpensive(ActionType.InformationExchange, agent.StartGameComponent.penalties)*/)
+            if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();
             }
