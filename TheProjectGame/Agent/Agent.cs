@@ -64,7 +64,7 @@ namespace Agent
             AgentInformationsComponent = new AgentInformationsComponent(this);
             AgentConfiguration = agentConfiguration;
             WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
-            NetworkComponent = new ClientNetworkComponent(configuration.CsIP, configuration.CsPort);
+            NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
