@@ -137,8 +137,8 @@ namespace CommunicationServer
                 int bytesSent = handler.EndSend(ar);
                 Console.WriteLine($"Sent {bytesSent} bytes to client");
 
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                //handler.Shutdown(SocketShutdown.Both);
+                //handler.Close();
             }
             catch (Exception e)
             {
