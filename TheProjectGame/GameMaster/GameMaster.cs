@@ -2,7 +2,6 @@
 using Messaging.Contracts;
 using Messaging.Enumerators;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 
 namespace GameMaster
@@ -22,24 +21,14 @@ namespace GameMaster
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster()
+        public GameMaster(GameMasterConfiguration configuration = null)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
-            LoadDefaultConfiguration();
 
-            ConnectionLogic = new ConnectionLogicComponent(this);
-            GameLogic = new GameLogicComponent(this);
-            ScoreComponent = new ScoreComponent(this);
-            BoardLogic = new BoardLogicComponent(this);
-            PresentationComponent = new PresentationComponent(this);
-
-            //try to connect to communciation server (if connection is not successful throw exception)
-        }
-
-        public GameMaster(GameMasterConfiguration configuration)
-        {
-            Logger.Get().Info("[GM] Creating GameMaster");
-            Configuration = configuration;
+            if (configuration == null)
+                LoadDefaultConfiguration();
+            else
+                Configuration = configuration;
 
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
@@ -52,7 +41,7 @@ namespace GameMaster
 
         public void SetConfiguration(GameMasterConfiguration configuration)
         {
-            if(state == GameMasterState.Configuration)
+            if (state == GameMasterState.Configuration)
             {
                 Configuration = configuration;
                 ScoreComponent.LoadNewConfiguration();

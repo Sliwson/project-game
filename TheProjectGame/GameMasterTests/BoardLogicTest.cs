@@ -14,9 +14,7 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            var configurationProvider = new GameMaster.MockConfigurationProvider();
-            var Configuration = configurationProvider.GetConfiguration();
-            gameMaster = new GameMaster.GameMaster(Configuration);
+            gameMaster = new GameMaster.GameMaster();
             BoardLogicComponent = gameMaster.BoardLogic;
             size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
