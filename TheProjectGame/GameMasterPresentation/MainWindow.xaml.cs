@@ -7,6 +7,9 @@ using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 
+//TODO:
+//update filename in groupbox, also green text
+
 namespace GameMasterPresentation
 {
     /// <summary>
