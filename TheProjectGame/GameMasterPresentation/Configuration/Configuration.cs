@@ -261,6 +261,25 @@ namespace GameMasterPresentation.Configuration
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public void CopyFrom(Configuration conf)
+        {
+            BoardX = conf.BoardX;
+            BoardY = conf.BoardY;
+            GoalAreaHeight = conf.GoalAreaHeight;
+            NumberOfGoals = conf.NumberOfGoals;
+            TeamSize = conf.TeamSize;
+            NumberOfPieces = conf.NumberOfPieces;
+            ShamProbability = conf.ShamProbability;
+            CSAddress = conf.CSAddress;
+            CSPort = conf.CSPort;
+            MovePenalty = conf.MovePenalty;
+            InformationExchangePenalty = conf.InformationExchangePenalty;
+            DiscoveryPenalty = conf.DiscoveryPenalty;
+            PutPenalty = conf.PutPenalty;
+            CheckForShamPenalty = conf.CheckForShamPenalty;
+            DestroyPiecePenalty = conf.DestroyPiecePenalty;
+        }
+
         public Configuration Clone()
         {
             var conf = new Configuration()
@@ -302,7 +321,7 @@ namespace GameMasterPresentation.Configuration
                 return false;
             if (IPAddress.TryParse(CSAddress, out _) == false)
                 return false;
-            if (CSPort < 1024 || CSPort > 49151)
+            if (CSPort < 49152 || CSPort > 65535)
                 return false;
             if (MovePenalty < 0)
                 return false;
@@ -365,7 +384,15 @@ namespace GameMasterPresentation.Configuration
             //TODO: validate using schema
             //var resolver = new JSchemaUrlResolver();
             //var schema = JSchema.Parse(ConfigurationSchema.GetConfigurationSchema(), resolver);
-            string json = File.ReadAllText(path);
+            string json;
+            try
+            {
+                json = File.ReadAllText(path);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
             //JObject jObject = JObject.Parse(json);
             //bool isValid = jObject.IsValid(schema);
             //if(isValid==false)
@@ -374,8 +401,8 @@ namespace GameMasterPresentation.Configuration
             //}
 
             Configuration conf = JsonConvert.DeserializeObject<Configuration>(json);
-            if (conf.Validate() == false)
-                return null;
+            //if (conf.Validate() == false)
+            //    return null;
             return conf;
         }
 
@@ -459,7 +486,7 @@ namespace GameMasterPresentation.Configuration
                 NumberOfPieces = 10,
                 ShamProbability = 0.3f,
                 CSAddress = "192.168.1.1",
-                CSPort = 10023,
+                CSPort = 50000,
                 MovePenalty = 1000,
                 InformationExchangePenalty = 700,
                 DiscoveryPenalty = 600,
