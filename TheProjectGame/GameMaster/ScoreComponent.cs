@@ -26,6 +26,7 @@ namespace GameMaster
         public void Reset(int scoreTarget)
         {
             this.scoreTarget = scoreTarget;
+            scores.Clear();
             scores.Add(TeamId.Blue, 0);
             scores.Add(TeamId.Red, 0);
         }

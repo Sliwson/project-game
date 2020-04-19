@@ -34,9 +34,7 @@ namespace GameMaster
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this);
-            PresentationComponent = new PresentationComponent(this);
-
-            //try to connect to communciation server (if connection is not successful throw exception)
+            PresentationComponent = new PresentationComponent(this);            
         }
 
         public void SetConfiguration(GameMasterConfiguration configuration)
@@ -55,6 +53,9 @@ namespace GameMaster
 
         public void ApplyConfiguration()
         {
+            //we should connect to cs after setting configuration
+            //try to connect to communciation server (if connection is not successful throw exception)
+
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
             currentMessageProcessor = ConnectionLogic;
