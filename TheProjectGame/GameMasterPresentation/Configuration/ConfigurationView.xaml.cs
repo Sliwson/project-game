@@ -49,6 +49,10 @@ namespace GameMasterPresentation.Configuration
                 {
                     MessageBox.Show("There was problem reading json file!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
+                else if(conf.Validate() == false)
+                {
+                    MessageBox.Show("Configuration contains erorrs!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 else
                 {
                     MessageBox.Show("Configuration read successfully!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
