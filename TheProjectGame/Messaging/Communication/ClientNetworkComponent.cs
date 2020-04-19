@@ -5,11 +5,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace Messaging.Communication
 {
+    // TODO (#IO-45): Add exception handling and logging (GM and Agent) 
     public class ClientNetworkComponent : INetworkComponent
     {
         private ConcurrentQueue<BaseMessage> messageQueue;
@@ -29,7 +29,7 @@ namespace Messaging.Communication
             connectDone = new ManualResetEvent(false);
         }
 
-        public bool Connect()
+        public bool Connect(ClientType clientType)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace Messaging.Communication
                 socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
 
-                var state = new StateObject(ref socket, ClientType.CommunicationServer);
+                var state = new StateObject(ref socket, clientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
                 return true;

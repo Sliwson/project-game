@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -41,7 +39,7 @@ namespace CommunicationServer
             {
                 IPAddress = NetworkComponent.GetLocalIPAddress();
 
-                gameMasterListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);// ConfigComponent.GetGameMasterPort());
+                gameMasterListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 gameMasterListener.NoDelay = true;
 
                 agentListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -86,7 +84,7 @@ namespace CommunicationServer
             }
         }
 
-        // TODO: Improve this logic, for now it only forwards messages of all types
+        // TODO (#IO-45): Add EndGame handlers
         private void ProcessMessage(ReceivedMessage receivedMessage)
         {
             var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);

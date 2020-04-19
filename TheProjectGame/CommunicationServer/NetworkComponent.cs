@@ -2,10 +2,8 @@
 using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace CommunicationServer
@@ -71,7 +69,7 @@ namespace CommunicationServer
                     listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
                     listener.Barrier.WaitOne();
 
-                    if (listener.ClientType != ClientType.Agent)
+                    if (listener.ClientType == ClientType.GameMaster)
                         break;
                 }
             }
@@ -140,9 +138,6 @@ namespace CommunicationServer
 
                 int bytesSent = handler.EndSend(ar);
                 Console.WriteLine($"Sent {bytesSent} bytes to client");
-
-                //handler.Shutdown(SocketShutdown.Both);
-                //handler.Close();
             }
             catch (Exception e)
             {
@@ -152,7 +147,7 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            // TODO: Fix getting weird IPs
+            // TODO (#IO-39): Fix getting weird IPs
             return IPAddress.Parse("192.168.0.51");
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)

@@ -1,5 +1,4 @@
 ﻿using Messaging.Enumerators;
-using Newtonsoft.Json;
 
 namespace Messaging.Contracts.GameMaster
 {

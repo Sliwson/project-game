@@ -51,7 +51,7 @@ namespace GameMaster
 
         public void ConnectToCommunicationServer()
         {
-            if (!NetworkComponent.Connect())
+            if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
         }
 
@@ -68,7 +68,6 @@ namespace GameMaster
             currentMessageProcessor = GameLogic;
             BoardLogic.GenerateGoals();
 
-            //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
@@ -123,7 +122,6 @@ namespace GameMaster
             {
                 state = GameMasterState.Summary;
 
-                //TODO: send
                 Logger.Get().Info("[GM] Ending game");
                 var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
                 foreach (var m in resultMessages)
@@ -142,7 +140,7 @@ namespace GameMaster
             NetworkComponent.Disconnect();
         }
 
-        //TODO: move to messaging system
+        //TODO (#IO-39): move to messaging system
 #if DEBUG
         private List<BaseMessage> injectedMessages = new List<BaseMessage>();
 
