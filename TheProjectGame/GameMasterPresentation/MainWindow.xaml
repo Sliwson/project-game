@@ -8,7 +8,8 @@
 		mc:Ignorable="d"
 		Title="Game Master" Height="720" Width="1280"
 		WindowStartupLocation="CenterScreen"
-		WindowState="Maximized">
+		WindowState="Maximized"
+        Closing="MainWindow_Closing">
     <Window.Resources>
         <local:DebugConverter x:Key="DebugConverter" />
         <local:GMConfigToBoolConverter x:Key="GMConfigToBoolConverter" />

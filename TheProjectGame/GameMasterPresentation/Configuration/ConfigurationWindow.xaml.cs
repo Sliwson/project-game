@@ -26,6 +26,8 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
+        public bool IsClosed { get; private set; } = false;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -52,13 +54,15 @@ namespace GameMasterPresentation.Configuration
             {
                 if (editWindows.First().ConfigCopy != Config)
                 {
-                    var result = MessageBox.Show("Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    var result = MessageBox.Show(this, "Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
                     if (result == MessageBoxResult.No)
                     {
                         e.Cancel = true;
+                        return;
                     }
                 }
             }
+            IsClosed = true;
         }
     }
 }

@@ -7,9 +7,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Threading;
 
-//TODO:
-//update filename in groupbox, also green text
-
 namespace GameMasterPresentation
 {
     /// <summary>
@@ -54,8 +51,6 @@ namespace GameMasterPresentation
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
-
-        private Random random = new Random();
 
         //log
         private StringBuilder logStringBuilder = new StringBuilder();
@@ -212,12 +207,30 @@ namespace GameMasterPresentation
                 if (GMConfig == null)
                     GMConfig = new Configuration.Configuration();
                 var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
+                //this line should be useful but produces weird behaviour of minimizing main window after closing child window
+                //ConfigurationWindow.Owner = this;
                 ConfigurationWindow.Show();
             }
             else
             {
                 if (configurationWindows.First().WindowState == WindowState.Minimized)
                     configurationWindows.First().WindowState = WindowState.Normal;
+            }
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if(configurationWindows.Any() == true)
+            { 
+                configurationWindows.First().Close();
+                if(configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
+                {
+                    if(confWindow.IsClosed == false)
+                    {
+                        e.Cancel = true;
+                    }
+                }
             }
         }
     }

@@ -127,7 +127,7 @@ namespace GameMasterPresentation.Configuration
         {
             if (ConfigCopy != parentWindow.Config)
             {
-                var result = MessageBox.Show("Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
+                var result = MessageBox.Show(parentWindow,"Do you want to exit without saving?", Constants.MessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (result == MessageBoxResult.No)
                 {
                     return;
