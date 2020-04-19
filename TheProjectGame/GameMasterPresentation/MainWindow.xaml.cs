@@ -233,5 +233,10 @@ namespace GameMasterPresentation
                 }
             }
         }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            gameMaster.OnDestroy();
+        }
     }
 }

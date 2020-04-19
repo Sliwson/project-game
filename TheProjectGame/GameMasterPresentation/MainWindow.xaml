@@ -9,7 +9,8 @@
 		Title="Game Master" Height="720" Width="1280"
 		WindowStartupLocation="CenterScreen"
 		WindowState="Maximized"
-        Closing="MainWindow_Closing">
+        Closing="MainWindow_Closing"
+        Closed="MainWindow_Closed">
     <Window.Resources>
         <local:DebugConverter x:Key="DebugConverter" />
         <local:GMConfigToBoolConverter x:Key="GMConfigToBoolConverter" />
