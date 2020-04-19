@@ -2,6 +2,7 @@
 using Messaging.Serialization.JsonConverters;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Messaging.Serialization
@@ -39,9 +40,10 @@ namespace Messaging.Serialization
 
         #region Deserialization
 
-        public static BaseMessage UnwrapAndDeserializeMessage(byte[] wrappedMessage)
+        public static IEnumerable<BaseMessage> UnwrapAndDeserializeMessages(byte[] wrappedMessage, int bytesRead)
         {
-            return DeserializeMessage(UnwrapMessage(wrappedMessage));
+            foreach(var serializedMessage in UnwrapMessages(wrappedMessage, bytesRead))
+                yield return DeserializeMessage(serializedMessage);
         }
 
         public static BaseMessage DeserializeMessage(string serializedMessage)
@@ -54,26 +56,30 @@ namespace Messaging.Serialization
             return JsonConvert.DeserializeObject<BaseMessage>(serializedMessage, settings);
         }
 
-        public static string UnwrapMessage(byte[] wrappedMessage)
+        public static IEnumerable<string> UnwrapMessages(byte[] wrappedMessage, int bytesRead)
         {
             string serializedMessage;
-
+            int offset = 0;
             var littleEndianBytes = new byte[2];
-            Array.Copy(wrappedMessage, littleEndianBytes, 2);
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(littleEndianBytes);
 
-            var messageLength = BitConverter.ToInt16(littleEndianBytes, 0);
-
-            if (messageLength <= (1 << 13) - 2)
+            while (offset < bytesRead)
             {
-                serializedMessage = Encoding.UTF8.GetString(wrappedMessage, 2, messageLength);
+                Array.Copy(wrappedMessage, offset, littleEndianBytes, 0, 2);
+                if (!BitConverter.IsLittleEndian)
+                    Array.Reverse(littleEndianBytes);
 
-                return serializedMessage;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException($"Received message was too long (expected maximum { 1 >> 13 }, got {messageLength + 2})");
+                var messageLength = BitConverter.ToInt16(littleEndianBytes, 0);
+
+                if (messageLength <= (1 << 13) - 2)
+                {
+                    serializedMessage = Encoding.UTF8.GetString(wrappedMessage, offset + 2, messageLength);
+                    offset += (messageLength + 2);
+                    yield return serializedMessage;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException($"Received message was too long (expected maximum { 1 << 13 }, got {messageLength + 2})");
+                }
             }
         }
 

@@ -70,7 +70,9 @@ namespace GameMaster
 
             //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
-            GameLogic.GetStartGameMessages();
+            var messages = GameLogic.GetStartGameMessages();
+            foreach (var m in messages)
+                NetworkComponent.SendMessage(m);
         }
 
         public void PauseGame()
@@ -111,7 +113,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    //TODO: send response
+                    NetworkComponent.SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -123,7 +125,9 @@ namespace GameMaster
 
                 //TODO: send
                 Logger.Get().Info("[GM] Ending game");
-                GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                foreach (var m in resultMessages)
+                    NetworkComponent.SendMessage(m);
             }
         }
 

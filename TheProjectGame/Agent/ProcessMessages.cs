@@ -83,7 +83,7 @@ namespace Agent
                 logger.Warn("Process exchange information response: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
+            //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
             return agent.MakeDecisionFromStrategy();
