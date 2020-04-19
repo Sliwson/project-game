@@ -1,7 +1,8 @@
 ﻿using GameMaster.Interfaces;
+using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Enumerators;
-using Messaging.Communication;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +37,7 @@ namespace GameMaster
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this);
-            PresentationComponent = new PresentationComponent(this);            
+            PresentationComponent = new PresentationComponent(this);
         }
 
         public void SetConfiguration(GameMasterConfiguration configuration)
