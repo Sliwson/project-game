@@ -35,7 +35,6 @@ namespace GameMaster
             ScoreComponent = new ScoreComponent(this);
             BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
             PresentationComponent = new PresentationComponent(this);
-            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
         }
 
         public void SetNetworkConfiguration(/*network configuration*/) { }
@@ -44,6 +43,8 @@ namespace GameMaster
 
         public void ApplyConfiguration()
         {
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
             currentMessageProcessor = ConnectionLogic;

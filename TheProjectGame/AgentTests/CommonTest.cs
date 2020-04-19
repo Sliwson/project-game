@@ -18,6 +18,8 @@ namespace AgentTests
             AgentConfiguration agentConfiguration = new AgentConfiguration();
             agentConfiguration.WantsToBeTeamLeader = false;
             agentConfiguration.TeamID = "Red";
+            agentConfiguration.CsIP = "127.0.0.1";
+            agentConfiguration.CsPort = 54321;
             Agent.Agent agentRed = new Agent.Agent(agentConfiguration); 
             var teamMates = new int[3] { 2, 3, 4 };
             var enemiesIds = new int[3] { 5, 7, 6 };
