@@ -16,21 +16,39 @@ namespace GameMaster
         private GameMaster gameMaster;
         private NLog.Logger logger;
 
-        public BoardLogicComponent(GameMaster gameMaster, Point size)
+        public BoardLogicComponent(GameMaster gameMaster)
         {
+            size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
             fields = new Field[size.Y, size.X];
             for (int y = 0; y < size.Y; y++)
                 for (int x = 0; x < size.X; x++)
                     fields[y, x] = new Field();
 
-            this.size = size;
+            
             this.gameMaster = gameMaster;
             logger = gameMaster.Logger.Get();
 
             piecesOnBoard = 0;
         }
 
-        public void GenerateGoals()
+        public void LoadNewConfiguration()
+        {
+            size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
+            fields = new Field[size.Y, size.X];
+            for (int y = 0; y < size.Y; y++)
+                for (int x = 0; x < size.X; x++)
+                    fields[y, x] = new Field();
+
+            piecesOnBoard = 0;
+        }
+
+        public void StartGame()
+        {
+            GenerateGoals();
+            DropPieces();
+        }
+
+        private void GenerateGoals()
         {
             logger.Info("[Board] Generating goals");
 
@@ -44,7 +62,7 @@ namespace GameMaster
             MirrorBlueGoalArea();
         }
 
-        public void DropPiecesOnGameStart()
+        private void DropPieces()
         {
             logger.Info("[Board] Dropping pieces");
             for (int i = 0; i < gameMaster.Configuration.NumberOfPieces; i++)

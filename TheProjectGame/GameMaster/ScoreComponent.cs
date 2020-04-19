@@ -18,6 +18,11 @@ namespace GameMaster
             Reset(gameMaster.Configuration.NumberOfGoals);
         }
 
+        public void LoadNewConfiguration()
+        {
+            Reset(gameMaster.Configuration.NumberOfGoals);
+        }
+
         public void Reset(int scoreTarget)
         {
             this.scoreTarget = scoreTarget;

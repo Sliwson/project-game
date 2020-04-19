@@ -119,10 +119,22 @@ namespace GameMasterTests
             var config = gameMaster.Configuration;
 
             BoardLogicComponent.Clean();
-            BoardLogicComponent.GenerateGoals();
+            BoardLogicComponent.StartGame();
 
             var goalsCount = BoardLogicComponent.GetPointsWhere(p => p.State == FieldState.Goal).Count;
             Assert.AreEqual(config.NumberOfGoals * 2, goalsCount);
+        }
+
+        [Test]
+        public void GenerateBoard_ShouldDropAllPieces()
+        {
+            var config = gameMaster.Configuration;
+
+            BoardLogicComponent.Clean();
+            BoardLogicComponent.StartGame();
+
+            var piecesCount = GetNumberOfAllPieces();
+            Assert.AreEqual(config.NumberOfPieces, piecesCount);
         }
 
         private bool IsFieldClean(Field f)
@@ -144,6 +156,20 @@ namespace GameMasterTests
             var field2 = BoardLogicComponent.GetField(pos2);
             changeField(field1, pos1);
             changeField(field2, pos2);
+        }
+
+        private int GetNumberOfAllPieces()
+        {
+            int onBoardPieces = 0;
+            for (int y = 0; y < gameMaster.Configuration.BoardY; y++)
+            {
+                for (int x = 0; x < gameMaster.Configuration.BoardX; x++)
+                {
+                    onBoardPieces += gameMaster.BoardLogic.GetField(x, y).Pieces.Count;
+                }
+            }
+            int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
+            return onBoardPieces + agentPieces;
         }
     }
 }

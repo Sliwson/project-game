@@ -22,6 +22,20 @@ namespace GameMaster
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
+        public GameMaster()
+        {
+            Logger.Get().Info("[GM] Creating GameMaster");
+            LoadDefaultConfiguration();
+
+            ConnectionLogic = new ConnectionLogicComponent(this);
+            GameLogic = new GameLogicComponent(this);
+            ScoreComponent = new ScoreComponent(this);
+            BoardLogic = new BoardLogicComponent(this);
+            PresentationComponent = new PresentationComponent(this);
+
+            //try to connect to communciation server (if connection is not successful throw exception)
+        }
+
         public GameMaster(GameMasterConfiguration configuration)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
@@ -30,10 +44,24 @@ namespace GameMaster
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
-            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            BoardLogic = new BoardLogicComponent(this);
             PresentationComponent = new PresentationComponent(this);
 
             //try to connect to communciation server (if connection is not successful throw exception)
+        }
+
+        public void SetConfiguration(GameMasterConfiguration configuration)
+        {
+            if(state == GameMasterState.Configuration)
+            {
+                Configuration = configuration;
+                ScoreComponent.LoadNewConfiguration();
+                BoardLogic.LoadNewConfiguration();
+            }
+            else
+            {
+                Logger.Get().Error("[GM] Cannot Set Configuration");
+            }
         }
 
         public void ApplyConfiguration()
@@ -54,8 +82,7 @@ namespace GameMaster
             Agents = ConnectionLogic.FlushLobby();
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;
-            BoardLogic.GenerateGoals();
-            BoardLogic.DropPiecesOnGameStart();
+            BoardLogic.StartGame();
 
             //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
