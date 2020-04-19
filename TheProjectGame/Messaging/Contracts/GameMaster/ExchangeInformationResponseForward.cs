@@ -1,9 +1,6 @@
 ﻿using Messaging.Contracts.Agent;
 using Messaging.Enumerators;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Messaging.Contracts.GameMaster
 {
@@ -37,11 +34,11 @@ namespace Messaging.Contracts.GameMaster
             BlueTeamGoalAreaInformation = blueTeamGoalAreaInformation;
         }
 
-        public ExchangeInformationResponseForward(ExchangeInformationResponse message) : this (
-            message.RespondToId,
-            message.Distances,
-            message.RedTeamGoalAreaInformation,
-            message.BlueTeamGoalAreaInformation
+        public ExchangeInformationResponseForward(Message<ExchangeInformationResponse> message) : this (
+            message.AgentId,
+            message.Payload.Distances,
+            message.Payload.RedTeamGoalAreaInformation,
+            message.Payload.BlueTeamGoalAreaInformation
         ) { }
     }
 }

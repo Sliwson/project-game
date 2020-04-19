@@ -24,7 +24,9 @@ namespace GameMaster
                 GeneratePieceDelay = new TimeSpan(5000),
                 ShamProbability = 0.3f,
                 AgentsLimit = 5,
-                DestroyPiecePenalty = new TimeSpan(700)
+                DestroyPiecePenalty = new TimeSpan(700),
+                CsIP = "192.168.0.53",
+                CsPort = 12345
             };
         }
     }

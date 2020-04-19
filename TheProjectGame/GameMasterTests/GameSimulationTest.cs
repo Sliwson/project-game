@@ -27,7 +27,8 @@ namespace GameMasterTests
             config = gameMaster.Configuration;
         }
 
-        [Test]
+        // TODO (#IO-57): Mock NetworkComponent
+        [Test, Ignore("Need offline NetworkComponent")]
         public void SimpleSimulationTest_GameMasterShouldConnectAgentsAndProcessMoveRequestsAfterGameStart()
         {
             gameMaster.ApplyConfiguration();
