@@ -42,7 +42,10 @@ namespace CommunicationServer
                 IPAddress = NetworkComponent.GetLocalIPAddress();
 
                 gameMasterListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);// ConfigComponent.GetGameMasterPort());
+                gameMasterListener.NoDelay = true;
+
                 agentListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                agentListener.NoDelay = true;
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -75,7 +78,7 @@ namespace CommunicationServer
             {
                 shouldProcessMessage.WaitOne();
 
-                if(messageQueue.TryDequeue(out message))
+                while(messageQueue.TryDequeue(out message))
                 {
                     ProcessMessage(message);
                     shouldProcessMessage.Reset();

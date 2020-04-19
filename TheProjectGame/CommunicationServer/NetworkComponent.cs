@@ -88,6 +88,8 @@ namespace CommunicationServer
 
             listener.Barrier.Set();
             var handler = listener.Listener.EndAccept(ar);
+            handler.NoDelay = true;
+
             var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
             var state = new StateObject(ref handler, listener.ClientType);
@@ -102,16 +104,17 @@ namespace CommunicationServer
             Socket handler = state.WorkSocket;
 
             int bytesRead = handler.EndReceive(ar);
-            string message;
 
             if(bytesRead > 2)
             {
                 try
                 {
-                    message = MessageSerializer.UnwrapMessage(state.Buffer);
-                    var receivedMessage = new ReceivedMessage(handler, message);
+                    foreach(var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
+                    {
+                        var receivedMessage = new ReceivedMessage(handler, message);
 
-                    server.AddMessage(receivedMessage);
+                        server.AddMessage(receivedMessage);
+                    }
                 }
                 catch(Exception e)
                 {
@@ -149,7 +152,8 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            return IPAddress.Parse("192.168.1.109");
+            // TODO: Fix getting weird IPs
+            return IPAddress.Parse("192.168.0.51");
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {

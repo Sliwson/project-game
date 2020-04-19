@@ -18,7 +18,6 @@ namespace Messaging.Communication
         private Socket socket;
 
         private ManualResetEvent connectDone;
-        private ManualResetEvent sendDone;
 
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
@@ -28,7 +27,6 @@ namespace Messaging.Communication
             communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
 
             connectDone = new ManualResetEvent(false);
-            sendDone = new ManualResetEvent(false);
         }
 
         public bool Connect()
@@ -36,6 +34,7 @@ namespace Messaging.Communication
             try
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket.NoDelay = true;
                 socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
 
@@ -73,7 +72,6 @@ namespace Messaging.Communication
             var wrappedMessage = MessageSerializer.SerializeAndWrapMessage(message);
 
             Send(socket, wrappedMessage);
-            sendDone.WaitOne();
         }
 
         public IEnumerable<BaseMessage> GetIncomingMessages()
@@ -103,25 +101,7 @@ namespace Messaging.Communication
 
         private void Send(Socket client, byte[] message)
         {
-            client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
-        }
-
-        private void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
-
-                int bytesSent = client.EndSend(ar);
-                //Console.WriteLine("Sent {0} bytes to server.", bytesSent);
-
-                sendDone.Set();
-            }
-            catch (Exception e)
-            {
-                throw;
-                //Console.WriteLine(e.ToString());
-            }
+            client.Send(message, message.Length, SocketFlags.None);
         }
 
         private void ReceiveCallback(IAsyncResult ar)
@@ -130,21 +110,22 @@ namespace Messaging.Communication
             var client = state.WorkSocket;
 
             int bytesRead = client.EndReceive(ar);
-            BaseMessage message;
 
             if (bytesRead > 2)
             {
                 try
                 {
-                    message = MessageSerializer.UnwrapAndDeserializeMessage(state.Buffer);
-                    messageQueue.Enqueue(message);
+                    foreach(var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                    {
+                        messageQueue.Enqueue(message);
+                    }
                 }
                 catch (Exception e)
                 {
                     //if (e is ArgumentOutOfRangeException)
                         //Console.WriteLine(e.Message);
                     //else
-                        throw;
+                        //throw;
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }

@@ -72,6 +72,8 @@ namespace CommunicationServer
 
         internal int GetGameMasterHostId()
         {
+            if (!mapping.TryGetValue(gmHostId, out _))
+                throw new ArgumentException("Game Master has not been registered");
             return gmHostId;
         }
     }
