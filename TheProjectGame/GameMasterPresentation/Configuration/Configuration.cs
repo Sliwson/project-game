@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -10,6 +11,8 @@ namespace GameMasterPresentation.Configuration
     [JsonObject(MemberSerialization.OptIn)]
     public class Configuration : INotifyPropertyChanged
     {
+        #region Properties with notifications and serialization
+
         //board
         private int _boardX;
 
@@ -120,6 +123,7 @@ namespace GameMasterPresentation.Configuration
             set
             {
                 _shamProbability = value;
+                _shamProbabilityString = _shamProbability.ToString(Constants.Culture);
                 NotifyPropertyChanged();
             }
         }
@@ -254,6 +258,43 @@ namespace GameMasterPresentation.Configuration
             }
         }
 
+        #endregion Properties with notifications and serialization
+
+        #region Properties with notifications without serialization
+
+        public string _fileName;
+
+        public string FileName
+        {
+            get
+            {
+                return _fileName;
+            }
+            set
+            {
+                _fileName = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private string _shamProbabilityString;
+
+        public string ShamProbabilityString
+        {
+            get
+            {
+                return _shamProbabilityString;
+            }
+            set
+            {
+                _shamProbabilityString = value;
+                _shamProbability = float.Parse(value, NumberStyles.Float, Constants.Culture);
+                NotifyPropertyChanged();
+            }
+        }
+
+        #endregion Properties with notifications without serialization
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -278,6 +319,7 @@ namespace GameMasterPresentation.Configuration
             PutPenalty = conf.PutPenalty;
             CheckForShamPenalty = conf.CheckForShamPenalty;
             DestroyPiecePenalty = conf.DestroyPiecePenalty;
+            FileName = conf.FileName;
         }
 
         public Configuration Clone()
@@ -298,7 +340,8 @@ namespace GameMasterPresentation.Configuration
                 DiscoveryPenalty = this.DiscoveryPenalty,
                 PutPenalty = this.PutPenalty,
                 CheckForShamPenalty = this.CheckForShamPenalty,
-                DestroyPiecePenalty = this.DestroyPiecePenalty
+                DestroyPiecePenalty = this.DestroyPiecePenalty,
+                FileName = this.FileName
             };
             return conf;
         }
@@ -371,6 +414,7 @@ namespace GameMasterPresentation.Configuration
                     JsonSerializer serializer = new JsonSerializer();
                     serializer.Serialize(file, this);
                 }
+                FileName = Path.GetFileName(path);
             }
             catch (Exception)
             {
@@ -393,6 +437,7 @@ namespace GameMasterPresentation.Configuration
             {
                 return null;
             }
+
             //JObject jObject = JObject.Parse(json);
             //bool isValid = jObject.IsValid(schema);
             //if(isValid==false)
@@ -401,6 +446,7 @@ namespace GameMasterPresentation.Configuration
             //}
 
             Configuration conf = JsonConvert.DeserializeObject<Configuration>(json);
+            conf.FileName = Path.GetFileName(path);
             //if (conf.Validate() == false)
             //    return null;
             return conf;

@@ -51,12 +51,13 @@ namespace GameMasterPresentation.Configuration
                 }
                 else if(conf.Validate() == false)
                 {
-                    MessageBox.Show("Configuration contains erorrs!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Configuration read successfully!\nBe aware that it contains errors.", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                    parentWindow.Config.CopyFrom(conf);
                 }
                 else
                 {
                     MessageBox.Show("Configuration read successfully!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
-                    parentWindow.Config = conf;
+                    parentWindow.Config.CopyFrom(conf);
                 }
             }
         }

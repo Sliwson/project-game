@@ -14,6 +14,7 @@
         <local:GMConfigToBoolConverter x:Key="GMConfigToBoolConverter" />
         <local:GMConfigToColorConverter x:Key="GMConfigToColorConverter" />
         <local:GMConfigToTextConverter x:Key="GMConfigToTextConverter" />
+        <local:FileNameConverter x:Key="FileNameConverter" />
         <Style TargetType="Window">
             <Setter Property="FontSize" Value="18" />
         </Style>
@@ -59,7 +60,7 @@
         </Style>
         <Style x:Key="ButtonGame" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
             <Setter Property="Height" Value="30" />
-            <Setter Property="Width" Value="100" />
+            <Setter Property="Width" Value="120" />
             <Setter Property="Margin" Value="0,5,0,5" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -96,11 +97,14 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="Game Configuration:" FontSize="25" VerticalAlignment="Center" />
-                    <Label Grid.Column="1" Content="game_config.json" FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
+                    <Label Grid.Column="1" 
+                           Content="{Binding GMConfig.FileName, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileNameConverter}}" 
+                           FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
                     <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" Click="ConfigurationButton_Click" />
                     <Label Grid.Column="3"
-                           Content="{Binding GMConfig, Converter={StaticResource GMConfigToTextConverter}}"
-                           Foreground="{Binding GMConfig, Converter={StaticResource GMConfigToColorConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                           Content="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToTextConverter}}"
+                           Foreground="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToColorConverter}}" 
+                           VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
             </GroupBox>
             <GroupBox Header="Score"

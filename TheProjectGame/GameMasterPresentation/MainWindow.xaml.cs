@@ -18,34 +18,34 @@ namespace GameMasterPresentation
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         //properties
-
         private GameMaster.GameMaster gameMaster;
 
-        private BoardComponent board;
+        private Configuration.Configuration _gmConfig;
 
-        private Configuration.Configuration gmConfig;
         public Configuration.Configuration GMConfig
         {
             get
             {
-                return gmConfig;
+                return _gmConfig;
             }
             set
             {
-                gmConfig = value;
+                _gmConfig = value;
                 NotifyPropertyChanged();
             }
         }
+
+        private BoardComponent _board;
 
         public BoardComponent Board
         {
             get
             {
-                return board;
+                return _board;
             }
             set
             {
-                board = value;
+                _board = value;
                 NotifyPropertyChanged();
             }
         }
@@ -73,22 +73,25 @@ namespace GameMasterPresentation
         {
             InitializeComponent();
 
-            
-
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
 
-            if(GMConfig == null)
-            {
-                //TODO: set OK to ERROR
-            }
+            gameMaster = new GameMaster.GameMaster(GMConfig?.ConvertToGMConfiguration());
 
             Board = new BoardComponent(BoardCanvas);
+
+            GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
-            timer.Tick += TimerEvent;            
+            timer.Tick += TimerEvent;
+            timer.Start();
+        }
+
+        private void GMConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(GMConfig));
         }
 
         private void TimerEvent(object sender, EventArgs e)
@@ -101,14 +104,15 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            timer.Start();
-            gameMaster = new GameMaster.GameMaster(GMConfig.ConvertToGMConfiguration());
+            ConnectRadioButton.Content = "Connecting";
+            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
             gameMaster.ApplyConfiguration();
             StartRadioButton.IsEnabled = true;
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            ConnectRadioButton.Content = "Connected";
             ConnectRadioButton.IsEnabled = false;
             StartRadioButton.Content = "In Game";
             if (IsStartedGamePaused == true)
@@ -171,7 +175,7 @@ namespace GameMasterPresentation
         {
             //logger.Debug("Game Started!");
             Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
-            
+
             gameMaster.StartGame();
         }
 
@@ -205,6 +209,8 @@ namespace GameMasterPresentation
             var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
             if (configurationWindows.Any() == false)
             {
+                if (GMConfig == null)
+                    GMConfig = new Configuration.Configuration();
                 var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
                 ConfigurationWindow.Show();
             }

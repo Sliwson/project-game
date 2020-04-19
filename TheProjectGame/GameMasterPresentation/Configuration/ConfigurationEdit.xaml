@@ -49,7 +49,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.BoardY" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -65,7 +65,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.BoardX" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -81,7 +81,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.GoalAreaHeight" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -97,7 +97,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.NumberOfGoals" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -130,7 +130,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.TeamSize" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -146,7 +146,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.NumberOfPieces" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="1" Max="999999"/>
+                                <local:NumberValidationRule Min="1" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -160,9 +160,9 @@
                 <TextBox 
                     Grid.Row="2" Grid.Column="1">
                     <TextBox.Text>
-                        <Binding Path="ConfigCopy.ShamProbability" UpdateSourceTrigger="PropertyChanged">
+                        <Binding Path="ConfigCopy.ShamProbabilityString" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:FloatValidationRule Min="0.0" Max="1.0"/>
+                                <local:FloatValidationRule Min="0.0" Max="1.0" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -194,7 +194,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.CSAddress" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:IPAddressValidationRule/>
+                                <local:IPAddressValidationRule ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -210,7 +210,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.CSPort" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="49152" Max="65535"/>
+                                <local:NumberValidationRule Min="49152" Max="65535" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -246,7 +246,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.MovePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -262,7 +262,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.InformationExchangePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -278,7 +278,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.DiscoveryPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -294,7 +294,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.PutPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -310,7 +310,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.CheckForShamPenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>
@@ -326,7 +326,7 @@
                     <TextBox.Text>
                         <Binding Path="ConfigCopy.DestroyPiecePenalty" UpdateSourceTrigger="PropertyChanged">
                             <Binding.ValidationRules>
-                                <local:NumberValidationRule Min="0" Max="999999"/>
+                                <local:NumberValidationRule Min="0" Max="999999" ValidatesOnTargetUpdated="True"/>
                             </Binding.ValidationRules>
                         </Binding>
                     </TextBox.Text>

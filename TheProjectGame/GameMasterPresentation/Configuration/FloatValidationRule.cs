@@ -12,7 +12,7 @@ namespace GameMasterPresentation.Configuration
         {
             if (value is string s)
             {
-                if (float.TryParse(s, out float number) == true)
+                if (float.TryParse(s, NumberStyles.Float, Constants.Culture, out float number) == true)
                 {
                     if (number >= Min && number <= Max)
                         return ValidationResult.ValidResult;

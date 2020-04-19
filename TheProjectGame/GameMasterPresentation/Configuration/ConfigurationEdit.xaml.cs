@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -37,9 +39,10 @@ namespace GameMasterPresentation.Configuration
         }
 
         public ConfigurationEdit(Configuration configuration)
-        {
-            ConfigCopy = configuration.Clone();
+        {            
             InitializeComponent();
+
+            ConfigCopy = configuration.Clone();
         }
 
         private bool Validate()
@@ -71,8 +74,16 @@ namespace GameMasterPresentation.Configuration
         {
             if (Validate())
             {
-                parentWindow.Config = ConfigCopy;
-                MessageBox.Show("Configuration saved!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                if (ConfigCopy.Validate())
+                {
+                    ConfigCopy.FileName = "";
+                    parentWindow.Config.CopyFrom(ConfigCopy);
+                    MessageBox.Show("Configuration saved!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Form contains errors!\n2 * GoalAreaHeight cannot be larger than BoardHeight!", Constants.MessageBoxName, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
             }
             else
             {

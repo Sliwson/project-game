@@ -24,32 +24,32 @@ namespace GameMasterPresentation
         private int BoardGoalAreaRows;
         private double FieldSize;
 
-        private int redTeamScore;
+        private int _redTeamScore;
 
         public int RedTeamScore
         {
             get
             {
-                return redTeamScore;
+                return _redTeamScore;
             }
             set
             {
-                redTeamScore = value;
+                _redTeamScore = value;
                 NotifyPropertyChanged();
             }
         }
 
-        private int blueTeamScore;
+        private int _blueTeamScore;
 
         public int BlueTeamScore
         {
             get
             {
-                return blueTeamScore;
+                return _blueTeamScore;
             }
             set
             {
-                blueTeamScore = value;
+                _blueTeamScore = value;
                 NotifyPropertyChanged();
             }
         }
