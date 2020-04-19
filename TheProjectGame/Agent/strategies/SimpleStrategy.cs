@@ -101,11 +101,12 @@ namespace Agent.strategies
         {
             if (!Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
             didNotAskCount++;
-            if (didNotAskCount > askInterval)
-            {
-                didNotAskCount = 0;
-                return agent.BegForInfo();
-            }
+            // TODO: Fix blocking agents
+            //if (didNotAskCount > askInterval)
+            //{
+            //    didNotAskCount = 0;
+            //    return agent.BegForInfo();
+            //}
             if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();

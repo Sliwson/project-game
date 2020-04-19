@@ -28,10 +28,7 @@ namespace GameMaster
         public List<Agent> FlushLobby()
         {
             logger.Info("[Conection] Flushing lobby with {count} agents", lobby.Count);
-            var returnLobby = new List<Agent>();
-            foreach (var a in lobby)
-                returnLobby.Add(a);
-
+            var returnLobby = new List<Agent>(lobby);
             lobby.Clear();
             return returnLobby;
         }

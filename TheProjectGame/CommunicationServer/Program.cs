@@ -1,12 +1,11 @@
-﻿using System;
-
-namespace CommunicationServer
+﻿namespace CommunicationServer
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            CommunicationServer server = new CommunicationServer();
+            server.Run();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using GameMaster.Interfaces;
 using Messaging.Contracts;
 using Messaging.Enumerators;
+using Messaging.Communication;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,6 +18,7 @@ namespace GameMaster
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
         public PresentationComponent PresentationComponent { get; private set; }
+        public INetworkComponent NetworkComponent { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
@@ -53,12 +55,22 @@ namespace GameMaster
 
         public void ApplyConfiguration()
         {
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
             //we should connect to cs after setting configuration
             //try to connect to communciation server (if connection is not successful throw exception)
+
+            ConnectToCommunicationServer();
 
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
             currentMessageProcessor = ConnectionLogic;
+        }
+
+        public void ConnectToCommunicationServer()
+        {
+            if (!NetworkComponent.Connect(ClientType.GameMaster))
+                throw new ApplicationException("Unable to connect to CS");
         }
 
         public void StartGame()
@@ -74,9 +86,10 @@ namespace GameMaster
             currentMessageProcessor = GameLogic;
             BoardLogic.StartGame();
 
-            //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
-            GameLogic.GetStartGameMessages();
+            var messages = GameLogic.GetStartGameMessages();
+            foreach (var m in messages)
+                NetworkComponent.SendMessage(m);
         }
 
         public void PauseGame()
@@ -114,7 +127,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    //TODO: send response
+                    NetworkComponent.SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -124,9 +137,10 @@ namespace GameMaster
             {
                 state = GameMasterState.Summary;
 
-                //TODO: send
                 Logger.Get().Info("[GM] Ending game");
-                GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                foreach (var m in resultMessages)
+                    NetworkComponent.SendMessage(m);
             }
         }
 
@@ -138,9 +152,10 @@ namespace GameMaster
         public void OnDestroy()
         {
             Logger.OnDestroy();
+            NetworkComponent.Disconnect();
         }
 
-        //TODO: move to messaging system
+        //TODO (#IO-39): move to messaging system
 #if DEBUG
         private List<BaseMessage> injectedMessages = new List<BaseMessage>();
 
@@ -158,7 +173,7 @@ namespace GameMaster
             injectedMessages.Clear();
             return clone;
 #endif
-            return new List<BaseMessage>();
+            return NetworkComponent.GetIncomingMessages().ToList();
         }
 
         private void LoadDefaultConfiguration()

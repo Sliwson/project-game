@@ -285,7 +285,7 @@ namespace GameMasterTests
             Assert.IsTrue(response.Payload is ExchangeInformationResponseForward);
 
             var responsePayload = response.Payload as ExchangeInformationResponseForward;
-            Assert.AreEqual(payload.RespondToId, responsePayload.RespondingId);
+            Assert.AreEqual(agent.Id, responsePayload.RespondingId);
             Assert.AreEqual(payload.Distances, responsePayload.Distances);
             Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);
             Assert.AreEqual(payload.RedTeamGoalAreaInformation, responsePayload.RedTeamGoalAreaInformation);

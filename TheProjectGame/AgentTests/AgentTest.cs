@@ -129,7 +129,8 @@ namespace AgentTests
 
         #region Check Sham
 
-        [Test]
+        // TODO (#IO-57): Mock NetworkComponent
+        [Test, Ignore("Need offline NetworkComponent")]
         public void ProcessMessage_CheckShamResponse_If_Sham_Agent_Should_Destroy_Piece()
         {
             agent.AgentState = AgentState.InGame;
@@ -220,7 +221,8 @@ namespace AgentTests
         }
 
 
-        [Test]
+        // TODO (#IO-57): Mock NetworkComponent
+        [Test, Ignore("Need offline NetworkComponent")]
         public void ProcessMessage_ExchangeInformationResponsePayload_Should_Update_Agent_Board_State()
         {
             agent.AgentState = AgentState.InGame;
@@ -271,7 +273,8 @@ namespace AgentTests
             Assert.AreEqual(agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece, 2);
         }
 
-        [Test]
+        // TODO (#IO-57): Mock NetworkComponent
+        [Test, Ignore("Need offline NetworkComponent")]
         public void ProcessMessage_MoveResponse_When_DistToPiece_Equal_Zero_Agent_Should_PickUp_Piece()
         {
             agent.AgentState = AgentState.InGame;

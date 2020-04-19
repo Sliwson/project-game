@@ -1,5 +1,6 @@
 ﻿using Agent.Interfaces;
 using Agent.strategies;
+using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
@@ -53,14 +54,17 @@ namespace Agent
 
         public AgentInformationsComponent AgentInformationsComponent { get; set; }
 
+        public INetworkComponent NetworkComponent { get; private set; }
 
         public Agent(AgentConfiguration agentConfiguration)
         {
-            TeamId teamId = agentConfiguration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue;
+            var teamId = agentConfiguration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue;
+            
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
             AgentConfiguration = agentConfiguration;
-            this.WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
+            WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
+            NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
@@ -68,6 +72,17 @@ namespace Agent
             AgentState = AgentState.Created;
             logger = NLog.LogManager.GetCurrentClassLogger();
             ProcessMessages = new ProcessMessages(this);
+        }
+
+        public void ConnectToCommunicationServer()
+        {
+            if (!NetworkComponent.Connect(ClientType.Agent))
+                throw new ApplicationException("Unable to connect to CS");
+        }
+
+        public void OnDestroy()
+        {
+            NetworkComponent.Disconnect();
         }
 
         private void SetPenalty(ActionType action)
@@ -83,6 +98,7 @@ namespace Agent
 
         public ActionResult Update(double dt)
         {
+            injectedMessages.AddRange(NetworkComponent.GetIncomingMessages());
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
             AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
             if (AgentInformationsComponent.RemainingPenalty > 0.0) return ActionResult.Continue;
@@ -288,7 +304,7 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
-            MockMessageSendFunction?.Invoke(this, message);
+            NetworkComponent.SendMessage(message);
         }
 
         public ActionResult AcceptMessage(BaseMessage message)

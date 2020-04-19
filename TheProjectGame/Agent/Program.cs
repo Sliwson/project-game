@@ -39,6 +39,8 @@ namespace Agent
                 stopwatch.Stop();
                 timeElapsed = stopwatch.Elapsed.TotalSeconds;
             }
+
+            Agent.OnDestroy();
         }
     }
 }
