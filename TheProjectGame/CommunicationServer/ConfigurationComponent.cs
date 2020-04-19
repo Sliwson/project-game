@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
 
 namespace CommunicationServer
 {
@@ -12,7 +14,7 @@ namespace CommunicationServer
                 config = GetFakeConfig();
 
             else
-                LoadConfigFromFile(configFileName);
+                config = LoadConfigFromFile(configFileName);
         }
 
         internal int GetAgentPort()
@@ -40,9 +42,9 @@ namespace CommunicationServer
             );
         }
 
-        private void LoadConfigFromFile(string configFileName)
+        private CommunicationServerConfig LoadConfigFromFile(string configFileName)
         {
-
+            return JsonConvert.DeserializeObject<CommunicationServerConfig>(File.ReadAllText(configFileName));
         }
     }
 }
