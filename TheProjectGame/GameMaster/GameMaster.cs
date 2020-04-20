@@ -171,12 +171,11 @@ namespace GameMaster
 
         private List<BaseMessage> GetIncomingMessages()
         {
-#if DEBUG
             var clone = new List<BaseMessage>(injectedMessages);
             injectedMessages.Clear();
-            return clone;
-#endif
-            return NetworkComponent.GetIncomingMessages().ToList();
+
+            //TODO: refactor
+            return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
         }
 
         private void LoadDefaultConfiguration()
