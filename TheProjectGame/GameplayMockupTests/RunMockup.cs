@@ -1,3 +1,4 @@
+using CommunicationServer;
 using GameMasterPresentation;
 using NUnit.Framework;
 using System.Threading;
@@ -7,6 +8,8 @@ namespace GameplayMockupTests
 {
     public class Tests
     {
+        private static string csConfigFilePath = @"communicationServerConfig.json";
+
         [SetUp]
         public void Setup()
         {
@@ -26,6 +29,15 @@ namespace GameplayMockupTests
             });
 
             gmThread.SetApartmentState(ApartmentState.STA);
+
+
+            var csThread = new Thread(() =>
+            {
+                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(csConfigFilePath);
+                server.Run();
+            });
+
+            csThread.Start();
             gmThread.Start();
 
             gmThread.Join();

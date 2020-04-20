@@ -72,6 +72,8 @@ namespace GameMaster
         {
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
+
+            Logger.Get().Info("[GM] Connected to Communication Server");
         }
 
         public void StartGame()
