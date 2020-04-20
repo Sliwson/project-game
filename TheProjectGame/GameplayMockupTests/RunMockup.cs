@@ -12,7 +12,7 @@ namespace GameplayMockupTests
     public class Tests
     {
         private static string csConfigFilePath = @"communicationServerConfig.json";
-        const int agentsInTeam = 1;
+        const int agentsInTeam = 2;
         const int agentSleepMs = 16;
 
         [Test]
@@ -37,46 +37,54 @@ namespace GameplayMockupTests
                 server.Run();
             });
 
-            var agentsThreads = new List<Thread>();
+            var agents = new List<Agent.Agent>();
             for (int i = 0; i < agentsInTeam * 2; i++)
             {
-                agentsThreads.Add(new Thread(() => {
-                    var agent = new Agent.Agent(new AgentConfiguration {
-                        CsIP = "127.0.0.1",
-                        CsPort = 54321,
-                        TeamID = i < agentsInTeam ? "red" : "blue",
-                        WantsToBeTeamLeader = i % agentsInTeam == 0
-                    });
+                var agent = new Agent.Agent(new AgentConfiguration
+                {
+                    CsIP = "127.0.0.1",
+                    CsPort = 54321,
+                    TeamID = i < agentsInTeam ? "red" : "blue",
+                    WantsToBeTeamLeader = i % agentsInTeam == 0
+                });
 
-                    agent.ConnectToCommunicationServer();
-
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    ActionResult actionResult = ActionResult.Continue;
-                    while (actionResult == ActionResult.Continue)
-                    {
-                        stopwatch.Stop();
-                        var timeElapsed = stopwatch.Elapsed.TotalSeconds;
-                        stopwatch.Reset();
-                        stopwatch.Start();
-
-                        actionResult = agent.Update(timeElapsed);
-                        Thread.Sleep(agentSleepMs);
-                    }
-
-                    agent.OnDestroy();
-                }));
+                agents.Add(agent);
             }
 
             csThread.Start();
             gmThread.Start();
 
             Thread.Sleep(3000);
-            foreach (var t in agentsThreads)
-                t.Start();
+            foreach (var agent in agents)
+            {
+                var agentThread = new Thread(RunAgent);
+                agentThread.Start(agent);
+            }
 
             gmThread.Join();
+        }
+
+        private void RunAgent(object o)
+        {
+            var agent = o as Agent.Agent;
+            agent.ConnectToCommunicationServer();
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            ActionResult actionResult = ActionResult.Continue;
+            while (actionResult == ActionResult.Continue)
+            {
+                stopwatch.Stop();
+                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                stopwatch.Reset();
+                stopwatch.Start();
+
+                actionResult = agent.Update(timeElapsed);
+                Thread.Sleep(agentSleepMs);
+            }
+
+            agent.OnDestroy();
         }
     }
 }
