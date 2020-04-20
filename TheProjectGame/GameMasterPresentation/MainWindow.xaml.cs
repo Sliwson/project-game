@@ -92,8 +92,11 @@ namespace GameMasterPresentation
         private void TimerEvent(object sender, EventArgs e)
         {
             stopwatch.Stop();
-            Update((double)stopwatch.ElapsedMilliseconds / 1000.0);
+            var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
+            stopwatch.Reset();
             stopwatch.Start();
+            Update(elapsed);
+
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
 
@@ -168,21 +171,17 @@ namespace GameMasterPresentation
 
         private void StartGame()
         {
-            //logger.Debug("Game Started!");
-            Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
-
             gameMaster.StartGame();
+            Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
         }
 
         private void PauseGame()
         {
-            //logger.Debug("Game Paused!");
             gameMaster.PauseGame();
         }
 
         private void ResumeGame()
         {
-            //logger.Debug("Resume Game");
             gameMaster.ResumeGame();
         }
 

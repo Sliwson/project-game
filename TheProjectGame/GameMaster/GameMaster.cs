@@ -72,6 +72,8 @@ namespace GameMaster
         {
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
+
+            Logger.Get().Info("[GM] Connected to Communication Server");
         }
 
         public void StartGame()
@@ -169,12 +171,11 @@ namespace GameMaster
 
         private List<BaseMessage> GetIncomingMessages()
         {
-#if DEBUG
             var clone = new List<BaseMessage>(injectedMessages);
             injectedMessages.Clear();
-            return clone;
-#endif
-            return NetworkComponent.GetIncomingMessages().ToList();
+
+            //TODO: refactor
+            return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
         }
 
         private void LoadDefaultConfiguration()

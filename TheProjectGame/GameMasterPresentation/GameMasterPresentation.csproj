@@ -14,6 +14,12 @@
     <ProjectReference Include="..\GameMaster\GameMaster.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Configuration\GameMasterConfiguration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
