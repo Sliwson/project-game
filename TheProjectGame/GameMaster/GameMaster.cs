@@ -50,7 +50,7 @@ namespace GameMaster
             }
             else
             {
-                Logger.Get().Error("[GM] Cannot Set Configuration");
+                Logger.Get().Error("[GM] Cannot Set Configuration, because GM is not in configuration state.");
             }
         }
 

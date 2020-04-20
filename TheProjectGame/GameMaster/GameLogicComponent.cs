@@ -242,7 +242,6 @@ namespace GameMaster
             var isTaskArea = gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position);
             var field = gameMaster.BoardLogic.GetField(agent.Position);
             var piece = agent.RemovePiece();
-            
 
             // Field is in task area
             if (isTaskArea)
