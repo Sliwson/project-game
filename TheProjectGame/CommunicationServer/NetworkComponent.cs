@@ -149,30 +149,30 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            //return IPAddress.Parse("127.0.0.1");
+            return IPAddress.Parse("127.0.0.1");
 
-            // Skip Virtual Machines' IP addresses
-            // https://stackoverflow.com/questions/8089685/c-sharp-finding-my-machines-local-ip-address-and-not-the-vms
-            //
-            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                var addr = ni.GetIPProperties().GatewayAddresses.FirstOrDefault();
-                if (addr != null && !addr.Address.ToString().Equals("0.0.0.0"))
-                {
-                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 
-                        || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                    {
-                        foreach (UnicastIPAddressInformation ip in ni.GetIPProperties().UnicastAddresses)
-                        {
-                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-                            {
-                                return ip.Address;
-                            }
-                        }
-                    }
-                }
-            }
-            throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
+            //// Skip Virtual Machines' IP addresses
+            //// https://stackoverflow.com/questions/8089685/c-sharp-finding-my-machines-local-ip-address-and-not-the-vms
+            ////
+            //foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+            //{
+            //    var addr = ni.GetIPProperties().GatewayAddresses.FirstOrDefault();
+            //    if (addr != null && !addr.Address.ToString().Equals("0.0.0.0"))
+            //    {
+            //        if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 
+            //            || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+            //        {
+            //            foreach (UnicastIPAddressInformation ip in ni.GetIPProperties().UnicastAddresses)
+            //            {
+            //                if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+            //                {
+            //                    return ip.Address;
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            //throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
         }
     }
 }
