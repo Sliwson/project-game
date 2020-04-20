@@ -28,16 +28,20 @@ namespace Agent
         {
             LoadDefaultConfiguration();
             Agent = new Agent(Configuration);
+
             Stopwatch stopwatch = new Stopwatch();
-            double timeElapsed = 0.0;
+            stopwatch.Start();
+
             ActionResult actionResult = ActionResult.Continue;
             while (actionResult == ActionResult.Continue)
             {
-                stopwatch.Start();
-                Thread.Sleep(updateInterval);
-                actionResult = Agent.Update(timeElapsed);
                 stopwatch.Stop();
-                timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                stopwatch.Reset();
+                stopwatch.Start();
+
+                actionResult = Agent.Update(timeElapsed);
+                Thread.Sleep(updateInterval);
             }
 
             Agent.OnDestroy();
