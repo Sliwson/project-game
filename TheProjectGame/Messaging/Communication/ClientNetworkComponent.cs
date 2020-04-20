@@ -109,6 +109,10 @@ namespace Messaging.Communication
             var state = (StateObject)ar.AsyncState;
             var client = state.WorkSocket;
 
+            //TODO: check if it's correct
+            if (client.Connected == false)
+                return;
+
             int bytesRead = client.EndReceive(ar);
 
             if (bytesRead > 2)

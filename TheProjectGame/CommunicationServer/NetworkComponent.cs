@@ -148,7 +148,7 @@ namespace CommunicationServer
         internal IPAddress GetLocalIPAddress()
         {
             // TODO (#IO-39): Fix getting weird IPs
-            return IPAddress.Parse("192.168.0.53");
+            return IPAddress.Parse("127.0.0.1");
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
             {

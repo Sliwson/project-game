@@ -7,7 +7,7 @@ using Messaging.Serialization;
 
 namespace CommunicationServer
 {
-    internal class CommunicationServer
+    public class CommunicationServer
     {
         // TODO: Implement loading configuration from file
         internal ConfigurationComponent ConfigComponent { get; private set; }
@@ -22,7 +22,7 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
-        internal CommunicationServer(string configFilePath = null)
+        public CommunicationServer(string configFilePath = null)
         {
             ConfigComponent = new ConfigurationComponent(configFilePath);
             NetworkComponent = new NetworkComponent(this);
@@ -33,7 +33,7 @@ namespace CommunicationServer
             shouldProcessMessage = new ManualResetEvent(false);
         }
 
-        internal void Run()
+        public void Run()
         {
             try
             {

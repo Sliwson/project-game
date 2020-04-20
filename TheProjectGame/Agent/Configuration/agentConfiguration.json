@@ -1,5 +1,5 @@
 {
-  "CsIP": "192.168.0.51",
+  "CsIP": "127.0.0.1",
   "CsPort": 54321,
   "teamID": "blue",
   "strategy": 3,
