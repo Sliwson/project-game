@@ -17,10 +17,9 @@ namespace GameMaster
 
         public BoardLogicComponent(GameMaster gameMaster)
         {
-            Init();
-
             this.gameMaster = gameMaster;
             logger = gameMaster.Logger.Get();
+            Init();            
         }
 
         public void LoadNewConfiguration()

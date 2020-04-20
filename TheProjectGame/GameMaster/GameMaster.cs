@@ -153,7 +153,7 @@ namespace GameMaster
         public void OnDestroy()
         {
             Logger.OnDestroy();
-            NetworkComponent.Disconnect();
+            NetworkComponent?.Disconnect();
         }
 
         //TODO (#IO-39): move to messaging system
