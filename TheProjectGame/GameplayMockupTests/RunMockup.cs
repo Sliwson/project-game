@@ -16,7 +16,7 @@ namespace GameplayMockupTests
         const int agentsInTeam = 1;
         const int agentSleepMs = 16;
 
-        [Test]
+        [Test, Ignore("This test is made only for running and debugging game setup with all components")]
         public void RunMockup()
         {
             var gmThread = CreateGmThread();
