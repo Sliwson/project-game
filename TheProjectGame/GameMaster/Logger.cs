@@ -24,8 +24,11 @@ namespace GameMaster
             fileTarget.FileName = "gm-log.txt";
             fileTarget.Layout = layout;
 
-            config.AddRuleForAllLevels(memoryTarget);
-            config.AddRuleForAllLevels(fileTarget);
+            config.AddRuleForOneLevel(LogLevel.Error, memoryTarget);
+            config.AddRuleForOneLevel(LogLevel.Warn, memoryTarget);
+
+            //config.AddRuleForAllLevels(memoryTarget);
+            //config.AddRuleForAllLevels(fileTarget);
 
             LogManager.Configuration = config;
         }
