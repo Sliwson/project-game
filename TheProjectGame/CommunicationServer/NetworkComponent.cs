@@ -2,7 +2,9 @@
 using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
+using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -147,14 +149,29 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            // TODO (#IO-39): Fix getting weird IPs
-            return IPAddress.Parse("192.168.0.53");
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
+            //return IPAddress.Parse("127.0.0.1");
+
+            // Skip Virtual Machines' IP addresses
+            // https://stackoverflow.com/questions/8089685/c-sharp-finding-my-machines-local-ip-address-and-not-the-vms
+            //
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                var addr = ni.GetIPProperties().GatewayAddresses.FirstOrDefault();
+                if (addr != null && !addr.Address.ToString().Equals("0.0.0.0"))
                 {
-                    return ip;
+                    if (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 
+                        || ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                    {
+                        foreach (UnicastIPAddressInformation ip in ni.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                            {
+                                //return ip.Address;
+                                Console.WriteLine($"Found IP Address: {ip.Address.ToString()}");
+
+                            }
+                        }
+                    }
                 }
             }
             throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
