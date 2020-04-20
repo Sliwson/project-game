@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameMasterPresentation", "G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging", "Messaging\Messaging.csproj", "{B8161B95-CC50-457E-B4DA-54BEE526C7CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingTests", "MessagingTests\MessagingTests.csproj", "{E5E96DAC-FB6F-43EA-9EBE-2F2E70061A40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagingTests", "MessagingTests\MessagingTests.csproj", "{E5E96DAC-FB6F-43EA-9EBE-2F2E70061A40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameplayMockupTests", "GameplayMockupTests\GameplayMockupTests.csproj", "{F1D40F2B-90A7-4E12-A888-6263710DE605}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{E5E96DAC-FB6F-43EA-9EBE-2F2E70061A40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5E96DAC-FB6F-43EA-9EBE-2F2E70061A40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5E96DAC-FB6F-43EA-9EBE-2F2E70061A40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1D40F2B-90A7-4E12-A888-6263710DE605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1D40F2B-90A7-4E12-A888-6263710DE605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1D40F2B-90A7-4E12-A888-6263710DE605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1D40F2B-90A7-4E12-A888-6263710DE605}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -220,6 +220,9 @@ namespace GameMasterPresentation
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
+            if (Application.Current == null)
+                return;
+
             var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
             if(configurationWindows.Any() == true)
             { 
