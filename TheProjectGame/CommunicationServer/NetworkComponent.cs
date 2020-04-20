@@ -166,9 +166,7 @@ namespace CommunicationServer
                         {
                             if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                             {
-                                //return ip.Address;
-                                Console.WriteLine($"Found IP Address: {ip.Address.ToString()}");
-
+                                return ip.Address;
                             }
                         }
                     }

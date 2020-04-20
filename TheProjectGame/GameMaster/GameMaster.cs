@@ -156,7 +156,7 @@ namespace GameMaster
             NetworkComponent?.Disconnect();
         }
 
-        //TODO (#IO-39): move to messaging system
+        //TODO (#IO-57): Move to mocked tests
 #if DEBUG
         private List<BaseMessage> injectedMessages = new List<BaseMessage>();
 
