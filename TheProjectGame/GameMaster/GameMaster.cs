@@ -1,11 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Drawing;
-using System.Collections.Generic;
-using Messaging.Contracts;
-using GameMaster.Interfaces;
-using Messaging.Enumerators;
+﻿using GameMaster.Interfaces;
 using Messaging.Communication;
+using Messaging.Contracts;
+using Messaging.Enumerators;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -25,25 +24,44 @@ namespace GameMaster
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster()
+        public GameMaster(GameMasterConfiguration configuration = null)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
-            LoadDefaultConfiguration();
+
+            if (configuration == null)
+                LoadDefaultConfiguration();
+            else
+                Configuration = configuration;
 
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
-            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            BoardLogic = new BoardLogicComponent(this);
             PresentationComponent = new PresentationComponent(this);
         }
 
-        public void SetNetworkConfiguration(/*network configuration*/) { }
-        public void SetBoardConfiguration(/*board configuration*/) { }
-        public void SetAgentsConfiguartion(/*agents configuration*/) { }
+        public void SetConfiguration(GameMasterConfiguration configuration)
+        {
+            if (state == GameMasterState.Configuration)
+            {
+                Configuration = configuration;
+                ScoreComponent.LoadNewConfiguration();
+                BoardLogic.LoadNewConfiguration();
+            }
+            else
+            {
+                Logger.Get().Error("[GM] Cannot Set Configuration, because GM is not in configuration state.");
+            }
+        }
 
         public void ApplyConfiguration()
         {
             NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
+            //we should connect to cs after setting configuration
+            //try to connect to communciation server (if connection is not successful throw exception)
+
+            ConnectToCommunicationServer();
 
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
@@ -67,7 +85,7 @@ namespace GameMaster
             Agents = ConnectionLogic.FlushLobby();
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;
-            BoardLogic.GenerateGoals();
+            BoardLogic.StartGame();
 
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             var messages = GameLogic.GetStartGameMessages();
@@ -99,9 +117,6 @@ namespace GameMaster
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
 
-            if (state == GameMasterState.InGame)
-                BoardLogic.Update(dt);
-            
             foreach (var agent in Agents)
                 agent.Update(dt);
 
@@ -138,7 +153,7 @@ namespace GameMaster
         public void OnDestroy()
         {
             Logger.OnDestroy();
-            NetworkComponent.Disconnect();
+            NetworkComponent?.Disconnect();
         }
 
         //TODO (#IO-39): move to messaging system
@@ -149,6 +164,7 @@ namespace GameMaster
         {
             injectedMessages.Add(message);
         }
+
 #endif
 
         private List<BaseMessage> GetIncomingMessages()

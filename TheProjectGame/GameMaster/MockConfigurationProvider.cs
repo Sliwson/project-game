@@ -5,7 +5,7 @@ using System.Text;
 
 namespace GameMaster
 {
-    class MockConfigurationProvider : IConfigurationProvider
+    public class MockConfigurationProvider : IConfigurationProvider
     {
         public GameMasterConfiguration GetConfiguration()
         {
@@ -16,15 +16,14 @@ namespace GameMaster
                 DiscoveryPenalty = new TimeSpan(700),
                 PutPenalty = new TimeSpan(500),
                 CheckForShamPenalty = new TimeSpan(1000),
+                DestroyPiecePenalty = new TimeSpan(700),
                 BoardX = 40,
                 BoardY = 40,
                 GoalAreaHeight = 5,
                 NumberOfGoals = 10,
-                NumberOfPieces = 20,
-                GeneratePieceDelay = new TimeSpan(5000),
+                NumberOfPieces = 10,
                 ShamProbability = 0.3f,
-                AgentsLimit = 5,
-                DestroyPiecePenalty = new TimeSpan(700),
+                TeamSize = 5,                
                 CsIP = "192.168.0.53",
                 CsPort = 12345
             };

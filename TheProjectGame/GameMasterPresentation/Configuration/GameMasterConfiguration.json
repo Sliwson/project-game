@@ -1,0 +1,1 @@
+{"CsIP":"192.168.0.0","CsPort":50000,"movePenalty":1500,"informationExchangePenalty":1000,"discoveryPenalty":700,"putPenalty":500,"checkForShamPenalty":700,"destroyPiecePenalty":500,"boardX":40,"boardY":40,"goalAreaHeight":5,"numberOfGoals":5,"numberOfPieces":10,"teamSize":2,"shamPieceProbability":0.5}

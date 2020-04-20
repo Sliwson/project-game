@@ -38,7 +38,7 @@ namespace GameMasterTests
 
         private void CreateAndConnectAgents()
         {
-            int limit = config.AgentsLimit;
+            int limit = config.TeamSize;
             var agentMessages = new List<BaseMessage>();
 
             for (int i = 0; i < limit * 2; i++)

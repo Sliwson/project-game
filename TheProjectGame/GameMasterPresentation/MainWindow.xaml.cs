@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
@@ -14,20 +15,34 @@ namespace GameMasterPresentation
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         //properties
-
         private GameMaster.GameMaster gameMaster;
 
-        private BoardComponent board;
+        private Configuration.Configuration _gmConfig;
+
+        public Configuration.Configuration GMConfig
+        {
+            get
+            {
+                return _gmConfig;
+            }
+            set
+            {
+                _gmConfig = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private BoardComponent _board;
 
         public BoardComponent Board
         {
             get
             {
-                return board;
+                return _board;
             }
             set
             {
-                board = value;
+                _board = value;
                 NotifyPropertyChanged();
             }
         }
@@ -36,8 +51,6 @@ namespace GameMasterPresentation
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
-
-        private Random random = new Random();
 
         //log
         private StringBuilder logStringBuilder = new StringBuilder();
@@ -55,7 +68,13 @@ namespace GameMasterPresentation
         {
             InitializeComponent();
 
-            gameMaster = new GameMaster.GameMaster();
+            GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+
+            gameMaster = new GameMaster.GameMaster(GMConfig?.ConvertToGMConfiguration());
+
+            Board = new BoardComponent(BoardCanvas);
+
+            GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
@@ -63,6 +82,11 @@ namespace GameMasterPresentation
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
             timer.Start();
+        }
+
+        private void GMConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(GMConfig));
         }
 
         private void TimerEvent(object sender, EventArgs e)
@@ -73,56 +97,17 @@ namespace GameMasterPresentation
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
 
-        //private void GetGameMasterConfiguration()
-        //{
-        //    BoardRows = gameMaster.Configuration.BoardY;
-        //    BoardColumns = gameMaster.Configuration.BoardX;
-        //    BoardGoalAreaRows = gameMaster.Configuration.GoalAreaHeight;
-        //}
-
-        //private void MockBoard()
-        //{
-        //    BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[1, 2], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[1, 4], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[2, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[2, 4], true, false);
-
-        //    BoardField.SetGoalBoardField(BoardFields[9, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 2], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 4], true, true);
-        //    BoardField.SetGoalBoardField(BoardFields[10, 5], true, false);
-        //    BoardField.SetGoalBoardField(BoardFields[11, 3], false, true);
-        //    BoardField.SetGoalBoardField(BoardFields[11, 4], true, false);
-
-        //    BoardField.SetAgentBoardField(BoardFields[4, 2], 1, false, false);
-        //    BoardField.SetAgentBoardField(BoardFields[7, 4], 2, false, true);
-        //    BoardField.SetAgentBoardField(BoardFields[6, 5], 3, true, false);
-        //    BoardField.SetAgentBoardField(BoardFields[8, 3], 4, true, false);
-
-        //    BoardField.SetPieceBoardField(BoardFields[5, 1], false);
-        //}
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            Board = new BoardComponent(BoardCanvas);
-            //InitPresentation();
-            //GetGameMasterConfiguration();
-            //GenerateBoard(BoardCanvas);
-            //MockBoard();
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            Abort();
-        }
-
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            ConnectRadioButton.Content = "Connecting";
+            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+            gameMaster.ApplyConfiguration();
+            StartRadioButton.IsEnabled = true;
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            ConnectRadioButton.Content = "Connected";
             ConnectRadioButton.IsEnabled = false;
             StartRadioButton.Content = "In Game";
             if (IsStartedGamePaused == true)
@@ -136,11 +121,8 @@ namespace GameMasterPresentation
             {
                 StartGame();
 
-                var configuration = gameMaster.Configuration;
-                Board.InitializeBoard(gameMaster.Agents.Count, configuration.BoardY, configuration.BoardX, configuration.GoalAreaHeight);
-                //SetAgentFields(BoardCanvas);
                 //TODO:
-                //do it better
+                //create agents List
                 AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
 
                 PauseRadioButton.IsEnabled = true;
@@ -160,15 +142,6 @@ namespace GameMasterPresentation
         private void BreakpointButton_Click(object sender, RoutedEventArgs e)
         {
             ;
-        }
-
-        private void SetScore()
-        {
-            int scoreRed = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Red);
-            int scoreBlue = gameMaster.ScoreComponent.GetScore(Messaging.Enumerators.TeamId.Blue);
-
-            RedTeamScoreLabel.Content = scoreRed.ToString();
-            BlueTeamScoreLabel.Content = scoreBlue.ToString();
         }
 
         private void UpdateLog(string text)
@@ -196,6 +169,8 @@ namespace GameMasterPresentation
         private void StartGame()
         {
             //logger.Debug("Game Started!");
+            Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+
             gameMaster.StartGame();
         }
 
@@ -224,20 +199,44 @@ namespace GameMasterPresentation
                 UpdateLog(log);
         }
 
-        private void Abort()
+        private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
         {
-            //TODO:
-            //fix
-            //foreach (var t in threads)
-            //    t.Abort();
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == false)
+            {
+                if (GMConfig == null)
+                    GMConfig = new Configuration.Configuration();
+                var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
+                //this line should be useful but produces weird behaviour of minimizing main window after closing child window
+                //ConfigurationWindow.Owner = this;
+                ConfigurationWindow.Show();
+            }
+            else
+            {
+                if (configurationWindows.First().WindowState == WindowState.Minimized)
+                    configurationWindows.First().WindowState = WindowState.Normal;
+            }
         }
 
-        //private void UpdateAgents()
-        //{
-        //    for (int i = 0; i < AgentFields.Length; i++)
-        //    {
-        //        SetSingleAgent(gameMaster.Agents[i], AgentFields[i]);
-        //    }
-        //}
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if(configurationWindows.Any() == true)
+            { 
+                configurationWindows.First().Close();
+                if(configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
+                {
+                    if(confWindow.IsClosed == false)
+                    {
+                        e.Cancel = true;
+                    }
+                }
+            }
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            gameMaster.OnDestroy();
+        }
     }
 }

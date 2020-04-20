@@ -155,6 +155,7 @@ namespace GameMaster
             }
 
             agent.RemovePiece();
+            gameMaster.BoardLogic.RemovePieceAndDropNew();
             return MessageFactory.GetMessage(new DestroyPieceResponse(), agent.Id);
         }
 
@@ -248,6 +249,9 @@ namespace GameMaster
                 field.Pieces.Push(piece);
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), agent.Id);
             }
+
+            //in all other cases piece will disappear so we create new one
+            gameMaster.BoardLogic.RemovePieceAndDropNew();
 
             // Sham in goal area
             if (piece.IsSham)
