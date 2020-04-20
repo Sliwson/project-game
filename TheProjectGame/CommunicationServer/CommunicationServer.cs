@@ -22,9 +22,9 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
-        internal CommunicationServer()
+        internal CommunicationServer(string configFilePath = null)
         {
-            ConfigComponent = new ConfigurationComponent(null);
+            ConfigComponent = new ConfigurationComponent(configFilePath);
             NetworkComponent = new NetworkComponent(this);
 
             HostMapping = new HostMapping();
