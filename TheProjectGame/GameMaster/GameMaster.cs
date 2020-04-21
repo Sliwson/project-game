@@ -21,7 +21,7 @@ namespace GameMaster
         public PresentationComponent PresentationComponent { get; private set; }
         public INetworkComponent NetworkComponent { get; private set; }
 
-        private GameMasterState state = GameMasterState.Configuration;
+        public GameMasterState state { get; private set; } = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
         public GameMaster(GameMasterConfiguration configuration = null)

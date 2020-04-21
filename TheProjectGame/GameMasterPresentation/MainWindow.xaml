@@ -204,7 +204,8 @@
                 </Grid.ColumnDefinitions>
                 <Label
                     Grid.Column="0"
-				    Content="Current State"                    
+				    Content="{Binding Board.GMState}"
+                    ContentStringFormat="Current State: {0}"
 				    Padding="20,0,20,5"
 				    VerticalAlignment="Center"
 				    FontSize="15" />

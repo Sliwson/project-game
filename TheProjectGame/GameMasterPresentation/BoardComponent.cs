@@ -54,6 +54,20 @@ namespace GameMasterPresentation
             }
         }
 
+        private GameMaster.GameMasterState _gmstate;
+        public GameMaster.GameMasterState GMState
+        {
+            get
+            {
+                return _gmstate;
+            }
+            set
+            {
+                _gmstate = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private int HorizontalLineZIndex = Constants.HorizontalLineZIndex;
         private int VerticalLineZIndex = Constants.VerticalLineZIndex;
         private int BackgroundZIndex = Constants.BackgroundZIndex;
@@ -112,8 +126,9 @@ namespace GameMasterPresentation
                 }
 
                 RedTeamScore = data.Score.RedTeamScore;
-                BlueTeamScore = data.Score.BlueTeamScore;
+                BlueTeamScore = data.Score.BlueTeamScore;                
             }
+            GMState = data.State;
         }
 
         private void CalculateBoardSize()
@@ -265,8 +280,6 @@ namespace GameMasterPresentation
         private void SetSingleAgent(GameMaster.PresentationAgent agent, BoardField boardField)
         {
             var pos = agent.Position;
-            //for testing
-            //double pointX2 = random.Next(0, BoardColumns * (int)FieldSize);
             double pointX = FieldSize * pos.X;
             double pointY = FieldSize * (BoardRows - 1 - pos.Y);
             bool isRed = agent.Team == Messaging.Enumerators.TeamId.Red ? true : false;
