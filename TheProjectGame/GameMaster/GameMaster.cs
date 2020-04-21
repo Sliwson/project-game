@@ -61,7 +61,7 @@ namespace GameMaster
             //we should connect to cs after setting configuration
             //try to connect to communciation server (if connection is not successful throw exception)
 
-            ConnectToCommunicationServer();
+            //ConnectToCommunicationServer();
 
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
@@ -76,12 +76,12 @@ namespace GameMaster
             Logger.Get().Info("[GM] Connected to Communication Server");
         }
 
-        public void StartGame()
+        public bool StartGame()
         {
             if (!ConnectionLogic.CanStartGame())
             {
                 Logger.Get().Error("[GM] Start game conditions not met!");
-                return;
+                return false;
             }
 
             Agents = ConnectionLogic.FlushLobby();
@@ -93,6 +93,7 @@ namespace GameMaster
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
                 NetworkComponent.SendMessage(m);
+            return true;
         }
 
         public void PauseGame()
