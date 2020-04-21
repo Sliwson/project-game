@@ -61,7 +61,7 @@ namespace GameMaster
             //we should connect to cs after setting configuration
             //try to connect to communciation server (if connection is not successful throw exception)
 
-            //ConnectToCommunicationServer();
+            ConnectToCommunicationServer();
 
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
