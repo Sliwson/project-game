@@ -52,7 +52,7 @@ namespace Agent.strategies
                 return agent.Discover();
             }
             discovered = false;
-            ret = Common.FindClosest(agent, shortTime, out Direction direction);
+            Common.FindClosest(agent, shortTime, out Direction direction);
             if (agent.AgentInformationsComponent.DeniedLastMove && direction == agent.AgentInformationsComponent.LastDirection)
                 direction = Common.GetRandomDirection();
             return agent.Move(direction);
