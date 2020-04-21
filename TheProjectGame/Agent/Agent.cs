@@ -301,7 +301,7 @@ namespace Agent
             return ActionResult.Continue;
         }
 
-        private BaseMessage GetMessage()
+        public BaseMessage GetMessage()
         {
             if (injectedMessages.Count == 0)
             {

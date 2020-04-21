@@ -287,7 +287,9 @@ namespace Agent
         public ActionResult Process(Message<UndefinedError> message)
         {
             logger.Warn("Undefined error" + " AgentID: " + agent.id.ToString());
-            return agent.MakeDecisionFromStrategy();
+            agent.BoardLogicComponent.Position = message.Payload.Position;
+            BaseMessage newMessage = agent.GetMessage();
+            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
     }
 }
