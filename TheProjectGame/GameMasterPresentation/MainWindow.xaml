@@ -220,8 +220,7 @@
                     HorizontalAlignment="Center"
                     Padding="10,0,10,5"
                     FontSize="15" />
-            </Grid>
-            
+            </Grid>            
         </Border>
     </Grid>
 </Window>

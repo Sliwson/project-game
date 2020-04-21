@@ -99,7 +99,10 @@ namespace GameMasterPresentation
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
+
+            //in development there wasn't this line
             stopwatch.Start();
+
             frameStopwatch.Start();
             timer.Start();
             
