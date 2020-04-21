@@ -21,7 +21,7 @@ namespace GameMaster
         public PresentationComponent PresentationComponent { get; private set; }
         public INetworkComponent NetworkComponent { get; private set; }
 
-        private GameMasterState state = GameMasterState.Configuration;
+        public GameMasterState state { get; private set; } = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
         public GameMaster(GameMasterConfiguration configuration = null)
@@ -76,12 +76,12 @@ namespace GameMaster
             Logger.Get().Info("[GM] Connected to Communication Server");
         }
 
-        public void StartGame()
+        public bool StartGame()
         {
             if (!ConnectionLogic.CanStartGame())
             {
                 Logger.Get().Error("[GM] Start game conditions not met!");
-                return;
+                return false;
             }
 
             Agents = ConnectionLogic.FlushLobby();
@@ -93,6 +93,7 @@ namespace GameMaster
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
                 NetworkComponent.SendMessage(m);
+            return true;
         }
 
         public void PauseGame()

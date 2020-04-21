@@ -196,11 +196,32 @@
         <!--/MainGrid-->
         <Border BorderThickness="0,2,0,0" BorderBrush="DarkGray"
 				Grid.Row="1">
-            <Label
-				Content="Current State"
-				Padding="20,0,20,5"
-				VerticalAlignment="Center"
-				FontSize="15" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="60"/>
+                </Grid.ColumnDefinitions>
+                <Label
+                    Grid.Column="0"
+				    Content="{Binding Board.GMState}"
+                    ContentStringFormat="Current State: {0}"
+				    Padding="20,0,20,5"
+				    VerticalAlignment="Center"
+				    FontSize="15" />
+                <Label
+                    Grid.Column="1"
+                    Content="FPS"
+                    HorizontalAlignment="Right"
+                    Padding="10,0,5,5"
+                    FontSize="15" />
+                <Label
+                    Grid.Column="2"
+                    Content="{Binding FPS, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                    HorizontalAlignment="Center"
+                    Padding="10,0,10,5"
+                    FontSize="15" />
+            </Grid>            
         </Border>
     </Grid>
 </Window>

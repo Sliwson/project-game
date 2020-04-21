@@ -47,10 +47,29 @@ namespace GameMasterPresentation
             }
         }
 
+        private bool IsConnecting = false;
         private bool IsStartedGamePaused = false;
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
+        private Stopwatch frameStopwatch;
+
+        private int frameCount = 0;
+        private long previousTime = 0;
+        private int fps = 0;
+
+        public int FPS
+        {
+            get
+            {
+                return fps;
+            }
+            set
+            {
+                fps = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         //log
         private StringBuilder logStringBuilder = new StringBuilder();
@@ -78,9 +97,15 @@ namespace GameMasterPresentation
 
             timer = new DispatcherTimer();
             stopwatch = new Stopwatch();
+            frameStopwatch = new Stopwatch();
             //33-> 30FPS
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
+
+            //in development there wasn't this line
+            stopwatch.Start();
+
+            frameStopwatch.Start();
             timer.Start();
         }
 
@@ -91,6 +116,14 @@ namespace GameMasterPresentation
 
         private void TimerEvent(object sender, EventArgs e)
         {
+            long currentFrame = frameStopwatch.ElapsedMilliseconds;
+            frameCount++;
+            if (currentFrame - previousTime >= 1000)
+            {
+                FPS = frameCount;
+                frameCount = 0;
+                previousTime = currentFrame;
+            }
             stopwatch.Stop();
             var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
             stopwatch.Reset();
@@ -102,19 +135,23 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            ConnectRadioButton.Content = "Connecting";
-            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
-            gameMaster.ApplyConfiguration();
-            StartRadioButton.IsEnabled = true;
+            if (IsConnecting == false)
+            {
+                ConnectRadioButton.Content = "Connecting";
+                gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+                gameMaster.ApplyConfiguration();
+                StartRadioButton.IsEnabled = true;
+                IsConnecting = true;
+            }
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            ConnectRadioButton.Content = "Connected";
-            ConnectRadioButton.IsEnabled = false;
-            StartRadioButton.Content = "In Game";
             if (IsStartedGamePaused == true)
             {
+                ConnectRadioButton.Content = "Connected";
+                ConnectRadioButton.IsEnabled = false;
+                StartRadioButton.Content = "In Game";
                 //resume game
                 ResumeGame();
                 IsStartedGamePaused = false;
@@ -122,13 +159,22 @@ namespace GameMasterPresentation
             }
             else
             {
-                StartGame();
+                if (StartGame())
+                {
+                    ConnectRadioButton.Content = "Connected";
+                    ConnectRadioButton.IsEnabled = false;
+                    StartRadioButton.Content = "In Game";
+                    //TODO:
+                    //create agents List
+                    AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
 
-                //TODO:
-                //create agents List
-                AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
-
-                PauseRadioButton.IsEnabled = true;
+                    PauseRadioButton.IsEnabled = true;
+                }
+                else
+                {
+                    ConnectRadioButton.IsChecked = true;
+                    MessageBox.Show("Error starting Game!", "Game Master", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
             }
         }
 
@@ -169,10 +215,14 @@ namespace GameMasterPresentation
             IsUserScrollingLog = true;
         }
 
-        private void StartGame()
+        private bool StartGame()
         {
-            gameMaster.StartGame();
-            Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+            if (gameMaster.StartGame())
+            {
+                Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+                return true;
+            }
+            return false;
         }
 
         private void PauseGame()
@@ -220,12 +270,12 @@ namespace GameMasterPresentation
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
-            if(configurationWindows.Any() == true)
-            { 
+            if (configurationWindows.Any() == true)
+            {
                 configurationWindows.First().Close();
-                if(configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
+                if (configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
                 {
-                    if(confWindow.IsClosed == false)
+                    if (confWindow.IsClosed == false)
                     {
                         e.Cancel = true;
                     }

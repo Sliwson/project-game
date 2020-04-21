@@ -13,7 +13,7 @@ namespace GameMaster
 
         public PresentationData GetPresentationData()
         {
-            return new PresentationData(GetPresentationScore(), GetPresentationFields(), GetPresentationAgents());
+            return new PresentationData(GetPresentationScore(), GetPresentationFields(), GetPresentationAgents(), gameMaster.state);
         }
 
         private PresentationScore GetPresentationScore()

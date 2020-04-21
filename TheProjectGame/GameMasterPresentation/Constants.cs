@@ -8,6 +8,7 @@ namespace GameMasterPresentation
     public static class Constants
     {
         public static readonly string MessageBoxName = "Configuration";
+        public static readonly string GameMasterMessageBoxName = "Game Master";
         public static readonly string ConfigurationDirectoryPath = @"Configuration";
         public static readonly string ConfigurationFilePath = @"Configuration\GameMasterConfiguration.json";
 
