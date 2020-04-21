@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -126,7 +127,8 @@ namespace GameMasterPresentation
                 }
 
                 RedTeamScore = data.Score.RedTeamScore;
-                BlueTeamScore = data.Score.BlueTeamScore;                
+                BlueTeamScore = data.Score.BlueTeamScore;
+                CheckGameResult(data.Score.GameResult);
             }
             GMState = data.State;
         }
@@ -311,6 +313,26 @@ namespace GameMasterPresentation
                     BoardField.SetGoalBoardField(boardField, true, false);
                     break;
 
+                default:
+                    break;
+            }
+        }
+
+        private void CheckGameResult(GameMaster.Enums.GameResult result)
+        {
+            switch (result)
+            {
+                case GameMaster.Enums.GameResult.None:
+                    break;
+                case GameMaster.Enums.GameResult.BlueWin:
+                    MessageBox.Show("Blue Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+                case GameMaster.Enums.GameResult.RedWin:
+                    MessageBox.Show("Red Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
+                case GameMaster.Enums.GameResult.Draw:
+                    MessageBox.Show("Draw!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                    break;
                 default:
                     break;
             }
