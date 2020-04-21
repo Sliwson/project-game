@@ -13,11 +13,12 @@ namespace Agent
         private Agent agent;
 
         private static NLog.Logger logger;
+
         public int[] teamMates { get; private set; }
 
         public Dictionary<ActionType, TimeSpan> penalties { get; private set; }
 
-        public int averageTime { get; private set; }
+        public TimeSpan averageTime { get; private set; }
 
         public float shamPieceProbability { get; private set; }
 
@@ -39,11 +40,26 @@ namespace Agent
             teamMates = new int[startGamePayload.AlliesIds.Length];
             teamMates = startGamePayload.AlliesIds;
             penalties = startGamePayload.Penalties;
-            averageTime = startGamePayload.Penalties.Count > 0 ? (int)startGamePayload.Penalties.Values.Max().TotalMilliseconds : 500;
+            averageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
             shamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
             agent.ProcessMessages = new ProcessMessages(agent);
+            int closestHigherId = 0, minId = 0;
+            int minDist = int.MaxValue;
+            for (int i = 0; i < teamMates.Length; i++)
+            {
+                if (teamMates[i] < teamMates[minId])
+                {
+                    minId = i;
+                }
+                if (teamMates[i] - agent.id > 0 && teamMates[i] - agent.id < minDist)
+                {
+                    minDist = teamMates[i] - agent.id;
+                    closestHigherId = i;
+                }
+            }
+            agent.AgentInformationsComponent.LastAskedTeammate = minDist == int.MaxValue ? minId : closestHigherId;
         }
     }
 }

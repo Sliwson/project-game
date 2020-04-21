@@ -37,5 +37,21 @@ namespace Messaging.Enumerators
             }
             return Direction.North;
         }
+
+        public static Direction GetNextDirection(this Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.North:
+                    return Direction.East;
+                case Direction.South:
+                    return Direction.West;
+                case Direction.West:
+                    return Direction.North;
+                case Direction.East:
+                    return Direction.South;
+            }
+            return Direction.North;
+        }
     }
 }

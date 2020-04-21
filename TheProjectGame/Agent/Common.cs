@@ -39,7 +39,7 @@ namespace Agent
             Point target = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, direction);
             return OnBoard(target, agent.BoardLogicComponent.BoardSize) &&
                 !InGoalArea(agent.StartGameComponent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
-                DateTime.Now - agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.StartGameComponent.averageTime);
+                !OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.averageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
@@ -56,6 +56,23 @@ namespace Agent
                     if (CouldMove(agent, direction, shortTime)) return direction;
                 return Direction.South;
             }
+        }
+
+        public static Direction GetRandomDirection()
+        {
+            long number = DateTime.Now.Ticks % 4;
+            switch (number)
+            {
+                case 0:
+                    return Direction.North;
+                case 1:
+                    return Direction.East;
+                case 2:
+                    return Direction.South;
+                case 3:
+                    return Direction.West;
+            }
+            return Direction.North;
         }
 
         public static Direction StayInGoalArea(Agent agent, int shortTime, int stayInLineCount)
@@ -84,7 +101,7 @@ namespace Agent
                 for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
                     if ((i != agent.BoardLogicComponent.Position.X || j != agent.BoardLogicComponent.Position.Y) &&
                         OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
-                        DateTime.Now - agent.BoardLogicComponent.Board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.StartGameComponent.averageTime) &&
+                        !OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.averageTime) &&
                         agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece))
                     {
                         shortest = agent.BoardLogicComponent.Board[j, i].distToPiece;
@@ -102,9 +119,15 @@ namespace Agent
             for (int i = agent.BoardLogicComponent.Position.X - 1; i <= agent.BoardLogicComponent.Position.X + 1; i++)
                 for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
                     if (OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
-                        DateTime.Now - agent.BoardLogicComponent.Board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.StartGameComponent.averageTime))
+                        OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.averageTime))
                         count++;
             return count;
+        }
+
+        public static bool OldTime(DateTime time, int multiply, TimeSpan compare)
+        {
+            TimeSpan passed = DateTime.Now - time;
+            return TimeSpan.FromTicks(passed.Ticks * multiply) > compare;
         }
     }
 }

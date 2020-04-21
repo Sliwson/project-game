@@ -11,13 +11,13 @@ namespace Agent.strategies
     {
         private const int shortPieceDistance = 40;
 
-        private const int shortTime = 1000;
+        private const int shortTime = 10;
 
         private const int smallUndiscoveredNumber = 6;
 
         private const float smallShamProbability = 0.3f;
 
-        private const int askInterval = 3;
+        private const int askInterval = 10;
 
         private readonly Dictionary<ActionType, int> actionImportance = new Dictionary<ActionType, int>
         {
@@ -43,45 +43,6 @@ namespace Agent.strategies
             return false;
         }
         private bool discovered = false;
-        public Point target;
-        public Random random = new Random();
-        private ActionResult MoveSomewhere(Agent agent)
-        {
-            if (agent.Piece != null && Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
-            {
-                return agent.Put();
-            }
-            if (agent.Piece != null)
-            {
-                return agent.Move(Common.GetGoalDirection(agent, shortTime));
-            }
-            if (agent.AgentInformationsComponent.DeniedLastMove || target.IsEmpty || (agent.BoardLogicComponent.Position.X == target.X && agent.BoardLogicComponent.Position.Y == target.Y)) target = new Point(random.Next(agent.BoardLogicComponent.BoardSize.X - 1), random.Next(agent.BoardLogicComponent.BoardSize.Y - 1));
-            if (target.X < agent.BoardLogicComponent.Position.X &&
-                Common.CouldMove(agent, Direction.West, shortTime) &&
-                agent.AgentInformationsComponent.LastDirection != Direction.East)
-            {
-                return agent.Move(Direction.West);
-            }
-            if (target.X > agent.BoardLogicComponent.Position.X &&
-                Common.CouldMove(agent, Direction.East, shortTime) &&
-                agent.AgentInformationsComponent.LastDirection != Direction.West)
-            {
-                return agent.Move(Direction.East);
-            }
-            if (target.Y > agent.BoardLogicComponent.Position.Y &&
-                Common.CouldMove(agent, Direction.North, shortTime) &&
-                agent.AgentInformationsComponent.LastDirection != Direction.South)
-            {
-                return agent.Move(Direction.North);
-            }
-            if (target.Y < agent.BoardLogicComponent.Position.Y &&
-                Common.CouldMove(agent, Direction.South, shortTime) &&
-                agent.AgentInformationsComponent.LastDirection != Direction.North)
-            {
-                return agent.Move(Direction.South);
-            }
-            return agent.Move(Common.GetGoalDirection(agent, shortTime));
-        }
 
         private ActionResult DiscoverAndMove(Agent agent)
         {
@@ -91,9 +52,9 @@ namespace Agent.strategies
                 return agent.Discover();
             }
             discovered = false;
-            Common.FindClosest(agent, shortTime, out Direction direction);
+            ret = Common.FindClosest(agent, shortTime, out Direction direction);
             if (agent.AgentInformationsComponent.DeniedLastMove && direction == agent.AgentInformationsComponent.LastDirection)
-                direction = direction.GetOppositeDirection();
+                direction = Common.GetRandomDirection();
             return agent.Move(direction);
         }
 
@@ -101,20 +62,18 @@ namespace Agent.strategies
         {
             if (!Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
             didNotAskCount++;
-            // TODO: Fix blocking agents
-            //if (didNotAskCount > askInterval)
-            //{
-            //    didNotAskCount = 0;
-            //    return agent.BegForInfo();
-            //}
+            if (didNotAskCount > askInterval && agent.StartGameComponent.teamMates.Length > 0)
+            {
+                didNotAskCount = 0;
+                return agent.BegForInfo();
+            }
             if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();
             }
             if (agent.Piece != null &&
                 !agent.Piece.isDiscovered &&
-                agent.StartGameComponent.shamPieceProbability > smallShamProbability &&
-                !IsActionExpensive(ActionType.CheckForSham, agent.StartGameComponent.penalties))
+                agent.StartGameComponent.shamPieceProbability > smallShamProbability)
             {
                 return agent.CheckPiece();
             }
@@ -129,6 +88,8 @@ namespace Agent.strategies
                 Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
+                if (agent.AgentInformationsComponent.DeniedLastMove && dir == agent.AgentInformationsComponent.LastDirection)
+                    dir = Common.GetRandomDirection();
                 if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
                 else stayInLineCount = 0;
                 return agent.Move(dir);
@@ -146,7 +107,6 @@ namespace Agent.strategies
             //{
             //    return agent.Discover();
             //}
-            //return MoveSomewhere(agent);
             //return agent.BegForInfo();
         }
     }

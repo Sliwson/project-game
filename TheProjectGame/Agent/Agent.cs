@@ -22,7 +22,9 @@ namespace Agent
 
         public bool endIfUnexpectedAction = false;
 
-        private const int maxSkipCount = int.MaxValue;
+        private readonly TimeSpan maxSkipTime = TimeSpan.FromSeconds(2.0);
+
+        private const double penaltyMultiply = 1.1;
 
         public int id;
 
@@ -85,10 +87,17 @@ namespace Agent
             NetworkComponent.Disconnect();
         }
 
+        public void SetPenalty(double add)
+        {
+            if (add <= 0.0) return;
+            AgentInformationsComponent.LastPenalty = add;
+            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
+        }
+
         private void SetPenalty(ActionType action)
         {
             var ret = StartGameComponent.penalties.TryGetValue(action, out TimeSpan span);
-            if (ret)  AgentInformationsComponent.RemainingPenalty += span.TotalSeconds;
+            if (ret) SetPenalty(span.TotalSeconds);
         }
 
         public void SetDoNothingStrategy()
@@ -127,13 +136,14 @@ namespace Agent
                     }
                     return ActionResult.Continue;
                 case AgentState.InGame:
+                    if (AgentInformationsComponent.DeniedLastRequest) return RepeatAction();
                     BaseMessage message = GetMessage();
-                    if (message == null && AgentInformationsComponent.SkipCount < maxSkipCount)
+                    if (message == null && AgentInformationsComponent.SkipTime < maxSkipTime)
                     {
-                        AgentInformationsComponent.SkipCount++;
+                        AgentInformationsComponent.SkipTime += TimeSpan.FromSeconds(dt);
                         return ActionResult.Continue;
                     }
-                    AgentInformationsComponent.SkipCount = 0;
+                    AgentInformationsComponent.SkipTime = TimeSpan.Zero;
                     ActionResult ret = message == null ? MakeDecisionFromStrategy() : AcceptMessage(message);
                     if (ret == ActionResult.Finish)
                     {
@@ -277,6 +287,20 @@ namespace Agent
             return strategy.MakeDecision(this);
         }
 
+        public ActionResult RepeatAction()
+        {
+            if (AgentState != AgentState.InGame)
+            {
+                logger.Warn("Repeat Action: Agent not in game" + " AgentID: " + id.ToString());
+                if (endIfUnexpectedAction) return ActionResult.Finish;
+            }
+            AgentInformationsComponent.DeniedLastRequest = false;
+            SetPenalty(AgentInformationsComponent.LastPenalty);
+            SendMessage(AgentInformationsComponent.LastMessage);
+            logger.Info("Repeat Action: Agent resent previous action." + " AgentID: " + id.ToString());
+            return ActionResult.Continue;
+        }
+
         private BaseMessage GetMessage()
         {
             if (injectedMessages.Count == 0)
@@ -304,6 +328,7 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
+            AgentInformationsComponent.LastMessage = message;
             NetworkComponent.SendMessage(message);
         }
 
