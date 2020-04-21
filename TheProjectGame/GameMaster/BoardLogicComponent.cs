@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using Messaging.Enumerators;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
-using Messaging.Enumerators;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -11,27 +10,41 @@ namespace GameMaster
     {
         private Field[,] fields;
         private Point size;
-        private int piecesDropped = 0;
+        private int piecesOnBoard = 0;
         private Random random = new Random();
         private GameMaster gameMaster;
-        private double timeFromLastDrop = 0;
         private NLog.Logger logger;
 
-        public BoardLogicComponent(GameMaster gameMaster, Point size)
+        public BoardLogicComponent(GameMaster gameMaster)
         {
+            this.gameMaster = gameMaster;
+            logger = gameMaster.Logger.Get();
+            Init();            
+        }
+
+        public void LoadNewConfiguration()
+        {
+            Init();
+        }
+
+        public void StartGame()
+        {
+            GenerateGoals();
+            DropPieces();
+        }
+
+        private void Init()
+        {
+            size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
             fields = new Field[size.Y, size.X];
             for (int y = 0; y < size.Y; y++)
                 for (int x = 0; x < size.X; x++)
                     fields[y, x] = new Field();
 
-            this.size = size;
-            this.gameMaster = gameMaster;
-            logger = gameMaster.Logger.Get();
-
-            piecesDropped = 0;
+            piecesOnBoard = 0;
         }
 
-        public void GenerateGoals()
+        private void GenerateGoals()
         {
             logger.Info("[Board] Generating goals");
 
@@ -40,9 +53,18 @@ namespace GameMaster
             //blue
             var rectangle = GetGoalAreaRectangle(TeamId.Blue);
             GenerateGoalFieldsInRectangle(rectangle, conf.NumberOfGoals);
-            
+
             //red
             MirrorBlueGoalArea();
+        }
+
+        private void DropPieces()
+        {
+            logger.Info("[Board] Dropping pieces");
+            for (int i = 0; i < gameMaster.Configuration.NumberOfPieces; i++)
+            {
+                DropPiece();
+            }
         }
 
         private void GenerateGoalFieldsInRectangle(Rectangle rectangle, int count)
@@ -66,7 +88,7 @@ namespace GameMaster
                     logger.Error("[Board] Cannot generate goal {nr} in rectangle {rectangle}", i, rectangle);
             }
         }
-        
+
         private void MirrorBlueGoalArea()
         {
             var conf = gameMaster.Configuration;
@@ -74,8 +96,9 @@ namespace GameMaster
             {
                 for (int x = 0; x < size.X; x++)
                 {
+                    var x1 = size.X - x - 1;
                     var y1 = size.Y - y - 1;
-                    fields[y1, x].State = fields[y, x].State;
+                    fields[y1, x1].State = fields[y, x].State;
                 }
             }
         }
@@ -138,7 +161,7 @@ namespace GameMaster
                     int tabx = x - field.X + 1;
 
                     if (!IsPointOnBoard(x, y))
-                        tab[taby, tabx] = -1;        
+                        tab[taby, tabx] = -1;
                     else
                         tab[taby, tabx] = CalculateDistanceToNearestPiece(new Point(x, y));
                 }
@@ -179,27 +202,24 @@ namespace GameMaster
             return new Point(-1, -1);
         }
 
-        public void Update(double dt)
+        public void RemovePieceAndDropNew()
         {
-            var conf = gameMaster.Configuration;
-            timeFromLastDrop += dt;
-            if (timeFromLastDrop > conf.GeneratePieceDelay.TotalSeconds)
-                DropPiece();
+            piecesOnBoard--;
+            DropPiece();
         }
 
         private void DropPiece()
         {
-            if (piecesDropped >= gameMaster.Configuration.NumberOfPieces)
+            if (piecesOnBoard >= gameMaster.Configuration.NumberOfPieces)
                 return;
 
-            timeFromLastDrop = 0;
             var point = GetRandomPointInRectangle(GetGameAreaRectangle());
             var isSham = random.NextDouble() < gameMaster.Configuration.ShamProbability;
             var piece = new Piece(isSham);
             fields[point.Y, point.X].Pieces.Push(piece);
-            piecesDropped++;
+            piecesOnBoard++;
 
-            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesDropped, point, isSham);
+            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesOnBoard, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
@@ -208,9 +228,9 @@ namespace GameMaster
             field.Agent = null;
             var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
-            
-            logger.Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint); 
-           
+
+            logger.Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint);
+
             newField.Agent = agent;
             agent.Position = newPoint;
         }
@@ -237,7 +257,7 @@ namespace GameMaster
 
         private int GetDistance(Point p1, Point p2)
         {
-            return Math.Abs(p1.X - p2.X) +  Math.Abs(p1.Y - p2.Y);
+            return Math.Abs(p1.X - p2.X) + Math.Abs(p1.Y - p2.Y);
         }
 
         private Point GetPointInDirection(Point p, Direction direction)
@@ -246,10 +266,13 @@ namespace GameMaster
             {
                 case Direction.East:
                     return new Point(p.X + 1, p.Y);
+
                 case Direction.North:
                     return new Point(p.X, p.Y + 1);
+
                 case Direction.South:
                     return new Point(p.X, p.Y - 1);
+
                 case Direction.West:
                     return new Point(p.X - 1, p.Y);
             }
@@ -291,7 +314,7 @@ namespace GameMaster
             else
                 return new Rectangle(0, size.Y - config.GoalAreaHeight, size.X, config.GoalAreaHeight);
         }
-        
+
         private Rectangle GetGameAreaRectangle()
         {
             var config = gameMaster.Configuration;

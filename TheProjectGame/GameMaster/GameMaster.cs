@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Drawing;
-using System.Collections.Generic;
+﻿using GameMaster.Interfaces;
+using Messaging.Communication;
 using Messaging.Contracts;
-using GameMaster.Interfaces;
 using Messaging.Enumerators;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -19,45 +19,80 @@ namespace GameMaster
         public ScoreComponent ScoreComponent { get; private set; }
         public GameMasterConfiguration Configuration { get; private set; }
         public PresentationComponent PresentationComponent { get; private set; }
+        public INetworkComponent NetworkComponent { get; private set; }
 
         private GameMasterState state = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster()
+        public GameMaster(GameMasterConfiguration configuration = null)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
-            LoadDefaultConfiguration();
+
+            if (configuration == null)
+                LoadDefaultConfiguration();
+            else
+                Configuration = configuration;
 
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
-            BoardLogic = new BoardLogicComponent(this, new Point(Configuration.BoardX, Configuration.BoardY));
+            BoardLogic = new BoardLogicComponent(this);
             PresentationComponent = new PresentationComponent(this);
-
-            //try to connect to communciation server
         }
 
-        public void SetNetworkConfiguration(/*network configuration*/) { }
-        public void SetBoardConfiguration(/*board configuration*/) { }
-        public void SetAgentsConfiguartion(/*agents configuration*/) { }
+        public void SetConfiguration(GameMasterConfiguration configuration)
+        {
+            if (state == GameMasterState.Configuration)
+            {
+                Configuration = configuration;
+                ScoreComponent.LoadNewConfiguration();
+                BoardLogic.LoadNewConfiguration();
+            }
+            else
+            {
+                Logger.Get().Error("[GM] Cannot Set Configuration, because GM is not in configuration state.");
+            }
+        }
 
         public void ApplyConfiguration()
         {
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
+            //we should connect to cs after setting configuration
+            //try to connect to communciation server (if connection is not successful throw exception)
+
+            ConnectToCommunicationServer();
+
             //if ok start accepting agents
             state = GameMasterState.ConnectingAgents;
             currentMessageProcessor = ConnectionLogic;
         }
 
+        public void ConnectToCommunicationServer()
+        {
+            if (!NetworkComponent.Connect(ClientType.GameMaster))
+                throw new ApplicationException("Unable to connect to CS");
+
+            Logger.Get().Info("[GM] Connected to Communication Server");
+        }
+
         public void StartGame()
         {
+            if (!ConnectionLogic.CanStartGame())
+            {
+                Logger.Get().Error("[GM] Start game conditions not met!");
+                return;
+            }
+
             Agents = ConnectionLogic.FlushLobby();
             state = GameMasterState.InGame;
             currentMessageProcessor = GameLogic;
-            BoardLogic.GenerateGoals();
+            BoardLogic.StartGame();
 
-            //TODO: send
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
-            GameLogic.GetStartGameMessages();
+            var messages = GameLogic.GetStartGameMessages();
+            foreach (var m in messages)
+                NetworkComponent.SendMessage(m);
         }
 
         public void PauseGame()
@@ -84,9 +119,6 @@ namespace GameMaster
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
 
-            if (state == GameMasterState.InGame)
-                BoardLogic.Update(dt);
-            
             foreach (var agent in Agents)
                 agent.Update(dt);
 
@@ -98,7 +130,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    //TODO: send response
+                    NetworkComponent.SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -108,9 +140,10 @@ namespace GameMaster
             {
                 state = GameMasterState.Summary;
 
-                //TODO: send
                 Logger.Get().Info("[GM] Ending game");
-                GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
+                foreach (var m in resultMessages)
+                    NetworkComponent.SendMessage(m);
             }
         }
 
@@ -122,9 +155,10 @@ namespace GameMaster
         public void OnDestroy()
         {
             Logger.OnDestroy();
+            NetworkComponent?.Disconnect();
         }
 
-        //TODO: move to messaging system
+        //TODO (#IO-57): Move to mocked tests
 #if DEBUG
         private List<BaseMessage> injectedMessages = new List<BaseMessage>();
 
@@ -132,16 +166,16 @@ namespace GameMaster
         {
             injectedMessages.Add(message);
         }
+
 #endif
 
         private List<BaseMessage> GetIncomingMessages()
         {
-#if DEBUG
             var clone = new List<BaseMessage>(injectedMessages);
             injectedMessages.Clear();
-            return clone;
-#endif
-            return new List<BaseMessage>();
+
+            //TODO: refactor
+            return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
         }
 
         private void LoadDefaultConfiguration()

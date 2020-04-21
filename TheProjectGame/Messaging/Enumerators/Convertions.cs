@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Messaging.Enumerators
 {
@@ -21,9 +19,8 @@ namespace Messaging.Enumerators
                 case MessageId.PutDownPieceRequest:
                     return ActionType.PutPiece;
                 case MessageId.ExchangeInformationRequest:
-                    return ActionType.InformationRequest;
                 case MessageId.ExchangeInformationResponse:
-                    return ActionType.InformationResponse;
+                    return ActionType.InformationExchange;
                 default:
                     throw new ArgumentException();
             }

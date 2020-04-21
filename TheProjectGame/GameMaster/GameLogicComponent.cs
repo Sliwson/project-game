@@ -112,7 +112,7 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new IgnoredDelayError(TimeSpan.FromSeconds(agent.Timeout)), agent.Id);
             }
 
-            if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationMessage)
+            if (agent.HaveToExchange() && message.MessageId != MessageId.ExchangeInformationResponse)
             {
                 logger.Info("[Logic] Agent has to exchange information");
                 NLog.NestedDiagnosticsContext.Pop();
@@ -155,6 +155,7 @@ namespace GameMaster
             }
 
             agent.RemovePiece();
+            gameMaster.BoardLogic.RemovePieceAndDropNew();
             return MessageFactory.GetMessage(new DestroyPieceResponse(), agent.Id);
         }
 
@@ -174,7 +175,7 @@ namespace GameMaster
             }
 
             targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
-            return MessageFactory.GetMessage(new ExchangeInformationPayload(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
+            return MessageFactory.GetMessage(new ExchangeInformationRequestForward(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
         }
 
         private BaseMessage Process(Message<ExchangeInformationResponse> message, Agent agent)
@@ -186,7 +187,7 @@ namespace GameMaster
             }
 
             agent.ClearExchangeState();
-            return MessageFactory.GetMessage(message.Payload, message.Payload.RespondToId);
+            return MessageFactory.GetMessage(new ExchangeInformationResponseForward(message), message.Payload.RespondToId);
         }
 
         private BaseMessage Process(Message<JoinRequest> message, Agent agent)
@@ -248,6 +249,9 @@ namespace GameMaster
                 field.Pieces.Push(piece);
                 return MessageFactory.GetMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), agent.Id);
             }
+
+            //in all other cases piece will disappear so we create new one
+            gameMaster.BoardLogic.RemovePieceAndDropNew();
 
             // Sham in goal area
             if (piece.IsSham)

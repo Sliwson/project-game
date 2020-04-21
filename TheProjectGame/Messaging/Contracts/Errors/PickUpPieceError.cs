@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using Newtonsoft.Json;
 
 namespace Messaging.Contracts.Errors
 {
@@ -6,6 +7,8 @@ namespace Messaging.Contracts.Errors
     {
         public MessageId GetMessageId() => MessageId.PickUpPieceError;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "errorSubtype")]
         public PickUpPieceErrorSubtype ErrorSubtype { get; private set; }
 
         public PickUpPieceError(PickUpPieceErrorSubtype errorSubtype)

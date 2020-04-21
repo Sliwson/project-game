@@ -17,18 +17,21 @@ namespace Agent.strategies
 
         private const float smallShamProbability = 0.3f;
 
+        private const int askInterval = 3;
+
         private readonly Dictionary<ActionType, int> actionImportance = new Dictionary<ActionType, int>
         {
-            { ActionType.InformationResponse, 5 },
             { ActionType.CheckForSham, 4 },
             { ActionType.PutPiece, 3 },
             { ActionType.Move, 2 },
             { ActionType.Discovery, 1 },
-            { ActionType.InformationRequest, 0 },
+            { ActionType.InformationExchange, 0 },
             { ActionType.DestroyPiece, 6 }
         };
 
         private int stayInLineCount = 0;
+
+        private int didNotAskCount = 0;
 
         private bool IsActionExpensive(ActionType action, Dictionary<ActionType, TimeSpan> penalties)
         {
@@ -44,36 +47,36 @@ namespace Agent.strategies
         public Random random = new Random();
         private ActionResult MoveSomewhere(Agent agent)
         {
-            if (agent.piece != null && Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
+            if (agent.Piece != null && Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 return agent.Put();
             }
-            if (agent.piece != null)
+            if (agent.Piece != null)
             {
                 return agent.Move(Common.GetGoalDirection(agent, shortTime));
             }
-            if (agent.deniedLastMove || target.IsEmpty || (agent.position.X == target.X && agent.position.Y == target.Y)) target = new Point(random.Next(agent.boardSize.X - 1), random.Next(agent.boardSize.Y - 1));
-            if (target.X < agent.position.X &&
+            if (agent.AgentInformationsComponent.DeniedLastMove || target.IsEmpty || (agent.BoardLogicComponent.Position.X == target.X && agent.BoardLogicComponent.Position.Y == target.Y)) target = new Point(random.Next(agent.BoardLogicComponent.BoardSize.X - 1), random.Next(agent.BoardLogicComponent.BoardSize.Y - 1));
+            if (target.X < agent.BoardLogicComponent.Position.X &&
                 Common.CouldMove(agent, Direction.West, shortTime) &&
-                agent.lastDirection != Direction.East)
+                agent.AgentInformationsComponent.LastDirection != Direction.East)
             {
                 return agent.Move(Direction.West);
             }
-            if (target.X > agent.position.X &&
+            if (target.X > agent.BoardLogicComponent.Position.X &&
                 Common.CouldMove(agent, Direction.East, shortTime) &&
-                agent.lastDirection != Direction.West)
+                agent.AgentInformationsComponent.LastDirection != Direction.West)
             {
                 return agent.Move(Direction.East);
             }
-            if (target.Y > agent.position.Y &&
+            if (target.Y > agent.BoardLogicComponent.Position.Y &&
                 Common.CouldMove(agent, Direction.North, shortTime) &&
-                agent.lastDirection != Direction.South)
+                agent.AgentInformationsComponent.LastDirection != Direction.South)
             {
                 return agent.Move(Direction.North);
             }
-            if (target.Y < agent.position.Y &&
+            if (target.Y < agent.BoardLogicComponent.Position.Y &&
                 Common.CouldMove(agent, Direction.South, shortTime) &&
-                agent.lastDirection != Direction.North)
+                agent.AgentInformationsComponent.LastDirection != Direction.North)
             {
                 return agent.Move(Direction.South);
             }
@@ -89,41 +92,48 @@ namespace Agent.strategies
             }
             discovered = false;
             Common.FindClosest(agent, shortTime, out Direction direction);
-            if (agent.deniedLastMove && direction == agent.lastDirection)
+            if (agent.AgentInformationsComponent.DeniedLastMove && direction == agent.AgentInformationsComponent.LastDirection)
                 direction = direction.GetOppositeDirection();
             return agent.Move(direction);
         }
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize)) stayInLineCount = 0;
-            if (agent.waitingPlayers.Count > 0 && !IsActionExpensive(ActionType.InformationResponse, agent.penalties))
+            if (!Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
+            didNotAskCount++;
+            // TODO: Fix blocking agents
+            //if (didNotAskCount > askInterval)
+            //{
+            //    didNotAskCount = 0;
+            //    return agent.BegForInfo();
+            //}
+            if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();
             }
-            if (agent.piece != null &&
-                !agent.piece.isDiscovered &&
-                agent.shamPieceProbability > smallShamProbability &&
-                !IsActionExpensive(ActionType.CheckForSham, agent.penalties))
+            if (agent.Piece != null &&
+                !agent.Piece.isDiscovered &&
+                agent.StartGameComponent.shamPieceProbability > smallShamProbability &&
+                !IsActionExpensive(ActionType.CheckForSham, agent.StartGameComponent.penalties))
             {
                 return agent.CheckPiece();
             }
-            if (agent.piece != null &&
+            if (agent.Piece != null &&
                 !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
+                Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 stayInLineCount = 0;
                 return agent.Put();
             }
-            if (agent.piece != null &&
-                Common.InGoalArea(agent.team, agent.position, agent.boardSize, agent.goalAreaSize))
+            if (agent.Piece != null &&
+                Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
                 if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
                 else stayInLineCount = 0;
                 return agent.Move(dir);
             }
-            if (agent.piece != null)
+            if (agent.Piece != null)
             {
                 return agent.Move(Common.GetGoalDirection(agent, shortTime));
             }

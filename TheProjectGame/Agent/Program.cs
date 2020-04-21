@@ -9,38 +9,42 @@ namespace Agent
 {
     class Program
     {
-        public AgentConfiguration Configuration { get; private set; }
-        public static Agent agent { get; set; }
         private const int updateInterval = 10;
+
+        public static AgentConfiguration Configuration { get; private set; }
+        public static Agent Agent { get; set; }
+
         static void Main(string[] args)
         {
             CreateAgent();
         }
 
-        private static AgentConfiguration LoadDefaultConfiguration()
+        private static void LoadDefaultConfiguration()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            return agentConfiguration.GetConfiguration();
+            Configuration = AgentConfiguration.GetConfiguration();
         }
      
         private static void CreateAgent()
         {
-            agent = new Agent(TeamId.Blue);
-            AgentConfiguration agentConfiguration = LoadDefaultConfiguration();
-            agent.CsIP = agentConfiguration.CsIP;
-            agent.CsPort = agentConfiguration.CsPort;
-            agent.team = agentConfiguration.teamID == "red" ? TeamId.Red : TeamId.Blue;
+            LoadDefaultConfiguration();
+            Agent = new Agent(Configuration);
+
             Stopwatch stopwatch = new Stopwatch();
-            double timeElapsed = 0.0;
+            stopwatch.Start();
+
             ActionResult actionResult = ActionResult.Continue;
             while (actionResult == ActionResult.Continue)
             {
-                stopwatch.Start();
-                Thread.Sleep(updateInterval);
-                actionResult = agent.Update(timeElapsed);
                 stopwatch.Stop();
-                timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                stopwatch.Reset();
+                stopwatch.Start();
+
+                actionResult = Agent.Update(timeElapsed);
+                Thread.Sleep(updateInterval);
             }
+
+            Agent.OnDestroy();
         }
     }
 }

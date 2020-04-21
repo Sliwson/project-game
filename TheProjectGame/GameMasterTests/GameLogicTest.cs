@@ -3,6 +3,7 @@ using GameMaster;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using Messaging.Contracts;
 using Messaging.Contracts.GameMaster;
 using Messaging.Contracts.Agent;
@@ -200,7 +201,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -215,12 +216,12 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         [Test]
@@ -235,14 +236,14 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.IsTrue(payload.Leader);
             Assert.IsTrue(receipent.HaveToExchange());
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         #endregion
@@ -260,7 +261,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -281,8 +282,14 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
-            Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.IsTrue(response.Payload is ExchangeInformationResponseForward);
+
+            var responsePayload = response.Payload as ExchangeInformationResponseForward;
+            Assert.AreEqual(agent.Id, responsePayload.RespondingId);
+            Assert.AreEqual(payload.Distances, responsePayload.Distances);
+            Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);
+            Assert.AreEqual(payload.RedTeamGoalAreaInformation, responsePayload.RedTeamGoalAreaInformation);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         #endregion
@@ -602,6 +609,20 @@ namespace GameMasterTests
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
         {
             return MessageFactory.GetMessage(payload, agentFromId);
+        }
+
+        private int GetNumberOfAllPieces()
+        {
+            int onBoardPieces = 0;
+            for (int y = 0; y < configuration.BoardY; y++)
+            {
+                for (int x = 0; x < configuration.BoardX; x++)
+                {
+                    onBoardPieces += gameMaster.BoardLogic.GetField(x, y).Pieces.Count;
+                }
+            }
+            int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
+            return onBoardPieces + agentPieces;
         }
     }
 }

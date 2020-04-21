@@ -1,22 +1,21 @@
-using NUnit.Framework;
 using GameMaster;
-using System.Drawing;
-using System.Collections.Generic;
+using NUnit.Framework;
 using System;
+using System.Drawing;
 
 namespace GameMasterTests
 {
     public class BoardLogicTest
     {
         private GameMaster.GameMaster gameMaster;
-        private BoardLogicComponent boardLogicComponent;
+        private BoardLogicComponent BoardLogicComponent;
         private Point size;
 
         [SetUp]
         public void Setup()
         {
             gameMaster = new GameMaster.GameMaster();
-            boardLogicComponent = gameMaster.BoardLogic;
+            BoardLogicComponent = gameMaster.BoardLogic;
             size = new Point(gameMaster.Configuration.BoardX, gameMaster.Configuration.BoardY);
         }
 
@@ -25,38 +24,38 @@ namespace GameMasterTests
         {
             for (int y = 0; y < size.Y; y++)
                 for (int x = 0; x < size.X; x++)
-                    Assert.IsNotNull(boardLogicComponent.GetField(new Point(x, y)));
+                    Assert.IsNotNull(BoardLogicComponent.GetField(new Point(x, y)));
         }
 
         [Test]
         public void Clean_ShouldCleanAllFields()
         {
             ChangeBoard();
-            boardLogicComponent.Clean();
+            BoardLogicComponent.Clean();
             for (int y = 0; y < size.Y; y++)
                 for (int x = 0; x < size.X; x++)
-                    Assert.IsTrue(IsFieldClean(boardLogicComponent.GetField(x, y)));
+                    Assert.IsTrue(IsFieldClean(BoardLogicComponent.GetField(x, y)));
         }
 
         [Test]
         public void GetPointWhere_ShouldReturnAgentIfExists()
         {
-            boardLogicComponent.Clean();
-            var field = boardLogicComponent.GetField(4, 4);
-            var agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, new Point(4,4));
+            BoardLogicComponent.Clean();
+            var field = BoardLogicComponent.GetField(4, 4);
+            var agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, new Point(4, 4));
             field.Agent = agent;
 
-            Assert.AreEqual(new Point(4, 4), boardLogicComponent.GetPointWhere(p => p.Agent == agent).Value);
+            Assert.AreEqual(new Point(4, 4), BoardLogicComponent.GetPointWhere(p => p.Agent == agent).Value);
         }
 
         [Test]
         public void GetDiscoverArray_ShouldCalculateDistancesCorrectly()
         {
-            boardLogicComponent.Clean();
+            BoardLogicComponent.Clean();
             ChangeBoard();
 
             int[,] schema = { { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 } };
-            var result = boardLogicComponent.GetDiscoverArray(new Point(1, 1));
+            var result = BoardLogicComponent.GetDiscoverArray(new Point(1, 1));
             for (int y = 0; y < 3; y++)
                 for (int x = 0; x < 3; x++)
                     Assert.AreEqual(schema[y, x], result[y, x]);
@@ -68,16 +67,16 @@ namespace GameMasterTests
             var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
             for (int y = 0; y < goalAreaHeight; y++)
                 for (int x = 0; x < size.X; x++)
-                    Assert.IsTrue(boardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
+                    Assert.IsTrue(BoardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
         }
-        
+
         [Test]
         public void IsFieldInGoalArea_ShouldReturnTrueForRedTeam()
         {
             var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
             for (int y = size.Y - 1; y >= size.Y - goalAreaHeight; y--)
                 for (int x = 0; x < size.X; x++)
-                    Assert.IsTrue(boardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
+                    Assert.IsTrue(BoardLogicComponent.IsFieldInGoalArea(new Point(x, y)));
         }
 
         [Test]
@@ -86,7 +85,7 @@ namespace GameMasterTests
             var goalAreaHeight = gameMaster.Configuration.GoalAreaHeight;
             for (int y = goalAreaHeight; y < size.Y - goalAreaHeight; y++)
                 for (int x = 0; x < size.X; x++)
-                    Assert.IsTrue(boardLogicComponent.IsFieldInTaskArea(new Point(x, y)));
+                    Assert.IsTrue(BoardLogicComponent.IsFieldInTaskArea(new Point(x, y)));
         }
 
         [Test]
@@ -117,11 +116,23 @@ namespace GameMasterTests
         {
             var config = gameMaster.Configuration;
 
-            boardLogicComponent.Clean();
-            boardLogicComponent.GenerateGoals();
+            BoardLogicComponent.Clean();
+            BoardLogicComponent.StartGame();
 
-            var goalsCount = boardLogicComponent.GetPointsWhere(p => p.State == FieldState.Goal).Count;
+            var goalsCount = BoardLogicComponent.GetPointsWhere(p => p.State == FieldState.Goal).Count;
             Assert.AreEqual(config.NumberOfGoals * 2, goalsCount);
+        }
+
+        [Test]
+        public void GenerateBoard_ShouldDropAllPieces()
+        {
+            var config = gameMaster.Configuration;
+
+            BoardLogicComponent.Clean();
+            BoardLogicComponent.StartGame();
+
+            var piecesCount = GetNumberOfAllPieces();
+            Assert.AreEqual(config.NumberOfPieces, piecesCount);
         }
 
         private bool IsFieldClean(Field f)
@@ -131,17 +142,32 @@ namespace GameMasterTests
 
         private void ChangeBoard()
         {
-            Action<Field, Point> changeField = (Field f, Point position) => {
+            Action<Field, Point> changeField = (Field f, Point position) =>
+            {
                 f.Agent = new Agent(0, Messaging.Enumerators.TeamId.Blue, position);
                 f.Pieces.Push(new Piece(false));
             };
 
             var pos1 = new Point(0, 0);
             var pos2 = new Point(size.X - 1, size.Y - 1);
-            var field1 = boardLogicComponent.GetField(pos1);
-            var field2 = boardLogicComponent.GetField(pos2);
+            var field1 = BoardLogicComponent.GetField(pos1);
+            var field2 = BoardLogicComponent.GetField(pos2);
             changeField(field1, pos1);
             changeField(field2, pos2);
+        }
+
+        private int GetNumberOfAllPieces()
+        {
+            int onBoardPieces = 0;
+            for (int y = 0; y < gameMaster.Configuration.BoardY; y++)
+            {
+                for (int x = 0; x < gameMaster.Configuration.BoardX; x++)
+                {
+                    onBoardPieces += gameMaster.BoardLogic.GetField(x, y).Pieces.Count;
+                }
+            }
+            int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
+            return onBoardPieces + agentPieces;
         }
     }
 }

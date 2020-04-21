@@ -18,9 +18,15 @@ namespace GameMaster
             Reset(gameMaster.Configuration.NumberOfGoals);
         }
 
+        public void LoadNewConfiguration()
+        {
+            Reset(gameMaster.Configuration.NumberOfGoals);
+        }
+
         public void Reset(int scoreTarget)
         {
             this.scoreTarget = scoreTarget;
+            scores.Clear();
             scores.Add(TeamId.Blue, 0);
             scores.Add(TeamId.Red, 0);
         }

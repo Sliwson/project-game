@@ -27,7 +27,8 @@ namespace GameMasterTests
             config = gameMaster.Configuration;
         }
 
-        [Test]
+        // TODO (#IO-57): Mock NetworkComponent
+        [Test, Ignore("Need offline NetworkComponent")]
         public void SimpleSimulationTest_GameMasterShouldConnectAgentsAndProcessMoveRequestsAfterGameStart()
         {
             gameMaster.ApplyConfiguration();
@@ -37,7 +38,7 @@ namespace GameMasterTests
 
         private void CreateAndConnectAgents()
         {
-            int limit = config.AgentsLimit;
+            int limit = config.TeamSize;
             var agentMessages = new List<BaseMessage>();
 
             for (int i = 0; i < limit * 2; i++)

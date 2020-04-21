@@ -9,4 +9,10 @@
     <ProjectReference Include="..\Messaging\Messaging.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="communicationServerConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

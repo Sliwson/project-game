@@ -36,15 +36,15 @@ namespace Agent
 
         public static bool CouldMove(Agent agent, Direction direction, int shortTime)
         {
-            Point target = Common.GetFieldInDirection(agent.position, direction);
-            return OnBoard(target, agent.boardSize) &&
-                !InGoalArea(agent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.boardSize, agent.goalAreaSize) &&
-                DateTime.Now - agent.board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.averageTime);
+            Point target = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, direction);
+            return OnBoard(target, agent.BoardLogicComponent.BoardSize) &&
+                !InGoalArea(agent.StartGameComponent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
+                DateTime.Now - agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove > shortTime * TimeSpan.FromMilliseconds(agent.StartGameComponent.averageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
         {
-            if (agent.team == TeamId.Red)
+            if (agent.StartGameComponent.team == TeamId.Red)
             {
                 foreach (var direction in new[] { Direction.North, Direction.West, Direction.East })
                     if (CouldMove(agent, direction, shortTime)) return direction;
@@ -60,7 +60,7 @@ namespace Agent
 
         public static Direction StayInGoalArea(Agent agent, int shortTime, int stayInLineCount)
         {
-            if (stayInLineCount > agent.boardSize.X) return GetGoalDirection(agent, shortTime);
+            if (stayInLineCount > agent.BoardLogicComponent.BoardSize.X) return GetGoalDirection(agent, shortTime);
             if (CouldMove(agent, Direction.East, shortTime)) return Direction.East;
             if (CouldMove(agent, Direction.West, shortTime)) return Direction.West;
             return GetGoalDirection(agent, shortTime);
@@ -73,24 +73,24 @@ namespace Agent
 
         public static bool DoesAgentKnowGoalInfo(Agent agent)
         {
-            return agent.board[agent.position.Y, agent.position.X].goalInfo != GoalInformation.NoInformation;
+            return agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].goalInfo != GoalInformation.NoInformation;
         }
 
         public static int FindClosest(Agent agent, int shortTime, out Direction direction)
         {
             int shortest = int.MaxValue;
             direction = Direction.North;
-            for (int i = agent.position.X - 1; i <= agent.position.X + 1; i++)
-                for (int j = agent.position.Y - 1; j <= agent.position.Y + 1; j++)
-                    if ((i != agent.position.X || j != agent.position.Y) &&
-                        OnBoard(new Point(i, j), agent.boardSize) &&
-                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.averageTime) &&
-                        agent.board[j, i].distToPiece < Math.Min(shortest, agent.board[agent.position.Y, agent.position.X].distToPiece))
+            for (int i = agent.BoardLogicComponent.Position.X - 1; i <= agent.BoardLogicComponent.Position.X + 1; i++)
+                for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
+                    if ((i != agent.BoardLogicComponent.Position.X || j != agent.BoardLogicComponent.Position.Y) &&
+                        OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
+                        DateTime.Now - agent.BoardLogicComponent.Board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.StartGameComponent.averageTime) &&
+                        agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece))
                     {
-                        shortest = agent.board[j, i].distToPiece;
-                        if (j > agent.position.Y) direction = Direction.North;
-                        else if (j < agent.position.Y) direction = Direction.South;
-                        else if (i < agent.position.X) direction = Direction.West;
+                        shortest = agent.BoardLogicComponent.Board[j, i].distToPiece;
+                        if (j > agent.BoardLogicComponent.Position.Y) direction = Direction.North;
+                        else if (j < agent.BoardLogicComponent.Position.Y) direction = Direction.South;
+                        else if (i < agent.BoardLogicComponent.Position.X) direction = Direction.West;
                         else direction = Direction.East;
                     }
             return shortest;
@@ -99,10 +99,10 @@ namespace Agent
         public static int CountUndiscoveredFields(Agent agent, int shortTime)
         {
             int count = 0;
-            for (int i = agent.position.X - 1; i <= agent.position.X + 1; i++)
-                for (int j = agent.position.Y - 1; j <= agent.position.Y + 1; j++)
-                    if (OnBoard(new Point(i, j), agent.boardSize) &&
-                        DateTime.Now - agent.board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.averageTime))
+            for (int i = agent.BoardLogicComponent.Position.X - 1; i <= agent.BoardLogicComponent.Position.X + 1; i++)
+                for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
+                    if (OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
+                        DateTime.Now - agent.BoardLogicComponent.Board[j, i].distLearned > TimeSpan.FromMilliseconds(shortTime * agent.StartGameComponent.averageTime))
                         count++;
             return count;
         }

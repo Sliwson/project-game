@@ -1,4 +1,5 @@
 ﻿using Messaging.Enumerators;
+using Newtonsoft.Json;
 
 namespace Messaging.Contracts.GameMaster
 {
@@ -6,6 +7,8 @@ namespace Messaging.Contracts.GameMaster
     {
         public MessageId GetMessageId() => MessageId.EndGameMessage;
 
+        [JsonRequired]
+        [JsonProperty(PropertyName = "winner")]
         public TeamId Winner { get; private set; }
 
         public EndGamePayload(TeamId winner)
