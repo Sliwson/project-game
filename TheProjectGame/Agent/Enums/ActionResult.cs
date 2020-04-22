@@ -4,8 +4,9 @@ using System.Text;
 
 namespace Agent
 {
-    interface IStrategy
+    public enum ActionResult
     {
-        void MakeDecision(Agent agent);
+        Continue = 1,
+        Finish = 2
     }
 }

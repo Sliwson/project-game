@@ -1,209 +1,291 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace GameMasterPresentation
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         //properties
-        private List<Line> BoardMesh;
+        private GameMaster.GameMaster gameMaster;
 
-        private List<Label> BoardGoalAreas;
+        private Configuration.Configuration _gmConfig;
 
-        private BoardField[,] BoardFields;
-        private int BoardRows;
-        private int BoardColumns;
-        private int BoardGoalAreaRows;
+        public Configuration.Configuration GMConfig
+        {
+            get
+            {
+                return _gmConfig;
+            }
+            set
+            {
+                _gmConfig = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private BoardComponent _board;
+
+        public BoardComponent Board
+        {
+            get
+            {
+                return _board;
+            }
+            set
+            {
+                _board = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool IsConnecting = false;
+        private bool IsStartedGamePaused = false;
+
+        private DispatcherTimer timer;
+        private Stopwatch stopwatch;
+        private Stopwatch frameStopwatch;
+
+        private int frameCount = 0;
+        private long previousTime = 0;
+        private int fps = 0;
+
+        public int FPS
+        {
+            get
+            {
+                return fps;
+            }
+            set
+            {
+                fps = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        //log
+        private StringBuilder logStringBuilder = new StringBuilder();
+
+        private bool IsUserScrollingLog = false;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public MainWindow()
         {
-            BoardRows = 12;
-            BoardColumns = 7;
-            BoardGoalAreaRows = 3;
             InitializeComponent();
+
+            GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+
+            gameMaster = new GameMaster.GameMaster(GMConfig?.ConvertToGMConfiguration());
+
+            Board = new BoardComponent(BoardCanvas);
+
+            GMConfig.PropertyChanged += GMConfig_PropertyChanged;
+
+            timer = new DispatcherTimer();
+            stopwatch = new Stopwatch();
+            frameStopwatch = new Stopwatch();
+            //33-> 30FPS
+            timer.Interval = TimeSpan.FromMilliseconds(33);
+            timer.Tick += TimerEvent;
+
+            //in development there wasn't this line
+            stopwatch.Start();
+
+            frameStopwatch.Start();
+            timer.Start();
         }
 
-        private void GenerateBoard(Canvas canvas)
+        private void GMConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            //canvas.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            //canvas.Arrange(new Rect(0, 0, canvas.DesiredSize.Width, canvas.DesiredSize.Height));
-
-            double widthStep = canvas.ActualWidth / (double)BoardColumns;
-            double heightStep = canvas.ActualHeight / (double)BoardRows;
-
-            if (widthStep < 20)
-                widthStep = 20;
-            if (heightStep < 20)
-                heightStep = 20;
-
-            double min = Math.Min(heightStep, widthStep);
-            heightStep = min;
-            widthStep = min;
-            canvas.Width = widthStep * BoardColumns;
-            canvas.Height = heightStep * BoardRows;
-
-            SetBoardMesh(canvas, widthStep, heightStep);
-            SetGoalAreasBackgrounds(canvas, widthStep, heightStep);
-            SetBoardFields(canvas, widthStep, heightStep);
+            NotifyPropertyChanged(nameof(GMConfig));
         }
 
-        private void SetBoardMesh(Canvas canvas, double widthStep, double heightStep)
+        private void TimerEvent(object sender, EventArgs e)
         {
-            BoardMesh = new List<Line>();
-            //lines
-            double pointX = 0d;
-            double pointY = 0d;
-            double point2X = 0d;
-            double point2Y = heightStep * BoardRows;
-            //vertical
-            for (int i = 0; i < BoardColumns + 1; i++)
+            long currentFrame = frameStopwatch.ElapsedMilliseconds;
+            frameCount++;
+            if (currentFrame - previousTime >= 1000)
             {
-                int lineThickness = 1;
-                if (i == 0 || i == BoardColumns)
-                    lineThickness = 3;
-
-                Line line = new Line
-                {
-                    X1 = pointX,
-                    Y1 = pointY,
-                    X2 = point2X,
-                    Y2 = point2Y,
-                    StrokeThickness = lineThickness,
-                    Stroke = new SolidColorBrush(Colors.Black)
-                };
-                BoardMesh.Add(line);
-                Panel.SetZIndex(line, 20);
-                canvas.Children.Add(line);
-                pointX += widthStep;
-                point2X += widthStep;
+                FPS = frameCount;
+                frameCount = 0;
+                previousTime = currentFrame;
             }
-            //horizontal
-            pointX = 0d;
-            pointY = 0d;
-            point2X = widthStep * BoardColumns;
-            point2Y = 0d;
-            for (int i = 0; i < BoardRows + 1; i++)
+            stopwatch.Stop();
+            var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
+            stopwatch.Reset();
+            stopwatch.Start();
+            Update(elapsed);
+
+            Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
+        }
+
+        private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (IsConnecting == false)
             {
-                int lineThickness = 1;
-                if (i == 0 || i == BoardRows || i == BoardGoalAreaRows || i == BoardRows - BoardGoalAreaRows)
-                    lineThickness = 3;
-                Line line = new Line
-                {
-                    X1 = pointX,
-                    Y1 = pointY,
-                    X2 = point2X,
-                    Y2 = point2Y,
-                    StrokeThickness = lineThickness,
-                    Stroke = new SolidColorBrush(Colors.Black)
-                };
-                BoardMesh.Add(line);
-                Panel.SetZIndex(line, 100);
-                canvas.Children.Add(line);
-                pointY += heightStep;
-                point2Y += heightStep;
+                ConnectRadioButton.Content = "Connecting";
+                gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+                gameMaster.ApplyConfiguration();
+                StartRadioButton.IsEnabled = true;
+                IsConnecting = true;
             }
         }
 
-        private void SetGoalAreasBackgrounds(Canvas canvas, double widthStep, double heightStep)
+        private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            BoardGoalAreas = new List<Label>();
-
-            Label label1 = new Label
+            if (IsStartedGamePaused == true)
             {
-                Background = new SolidColorBrush(Color.FromRgb(115, 194, 251)),
-                Width = widthStep * BoardColumns,
-                Height = heightStep * BoardGoalAreaRows
-            };
-            Canvas.SetLeft(label1, 0);
-            Canvas.SetTop(label1, heightStep * (BoardRows - BoardGoalAreaRows));
-            Panel.SetZIndex(label1, 10);
-
-            BoardGoalAreas.Add(label1);
-            canvas.Children.Add(label1);
-
-            Label label2 = new Label
+                ConnectRadioButton.Content = "Connected";
+                ConnectRadioButton.IsEnabled = false;
+                StartRadioButton.Content = "In Game";
+                //resume game
+                ResumeGame();
+                IsStartedGamePaused = false;
+                PauseRadioButton.Content = "Pause";
+            }
+            else
             {
-                Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
-                Width = widthStep * BoardColumns,
-                Height = heightStep * (BoardRows - 2 * BoardGoalAreaRows)
-            };
-
-            Canvas.SetLeft(label2, 0);
-            Canvas.SetTop(label2, heightStep * BoardGoalAreaRows);
-            Panel.SetZIndex(label2, 10);
-
-            BoardGoalAreas.Add(label2);
-            canvas.Children.Add(label2);
-
-            Label label3 = new Label
-            {
-                Background = new SolidColorBrush(Color.FromRgb(255, 190, 188)),
-                Width = widthStep * BoardColumns,
-                Height = heightStep * BoardGoalAreaRows
-            };
-
-            Canvas.SetLeft(label3, 0);
-            Canvas.SetTop(label3, 0);
-            Panel.SetZIndex(label3, 10);
-
-            BoardGoalAreas.Add(label3);
-            canvas.Children.Add(label3);
-        }
-
-        private void SetBoardFields(Canvas canvas, double widthStep, double heightStep)
-        {
-            BoardFields = new BoardField[BoardRows, BoardColumns];
-            //fields
-            double pointX = 0d;
-            double pointY = heightStep * (BoardRows - 1);
-            for (int y = 0; y < BoardRows; y++)
-            {
-                for (int x = 0; x < BoardColumns; x++)
+                if (StartGame())
                 {
-                    BoardFields[y, x] = new BoardField(canvas, widthStep, heightStep, pointX, pointY, Colors.Transparent);
-                    pointX += widthStep;
+                    ConnectRadioButton.Content = "Connected";
+                    ConnectRadioButton.IsEnabled = false;
+                    StartRadioButton.Content = "In Game";
+                    //TODO:
+                    //create agents List
+                    AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
+
+                    PauseRadioButton.IsEnabled = true;
                 }
-                pointX = 0d;
-                pointY -= heightStep;
-                if (pointY < 0)
-                    pointY = 0d;
+                else
+                {
+                    ConnectRadioButton.IsChecked = true;
+                    MessageBox.Show("Error starting Game!", "Game Master", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
             }
         }
 
-        private void MockBoard()
+        private void PauseRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            BoardField.SetGoalBoardField(BoardFields[0, 3], true, true);
-            BoardField.SetGoalBoardField(BoardFields[1, 2], false, true);
-            BoardField.SetGoalBoardField(BoardFields[1, 4], true, true);
-            BoardField.SetGoalBoardField(BoardFields[2, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[2, 4], true, false);
+            StartRadioButton.Content = "Resume";
+            PauseRadioButton.Content = "Paused";
+            IsStartedGamePaused = true;
 
-            BoardField.SetGoalBoardField(BoardFields[9, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 2], false, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 4], true, true);
-            BoardField.SetGoalBoardField(BoardFields[10, 5], true, false);
-            BoardField.SetGoalBoardField(BoardFields[11, 3], false, true);
-            BoardField.SetGoalBoardField(BoardFields[11, 4], true, false);
-
-            BoardField.SetAgentBoardField(BoardFields[4, 2], 1, false, false);
-            BoardField.SetAgentBoardField(BoardFields[7, 4], 2, false, true);
-            BoardField.SetAgentBoardField(BoardFields[6, 5], 3, true, false);
-            BoardField.SetAgentBoardField(BoardFields[8, 3], 4, true, false);
-
-            BoardField.SetPieceBoardField(BoardFields[5, 1], false);
+            //pause game in game master
+            PauseGame();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void BreakpointButton_Click(object sender, RoutedEventArgs e)
         {
-            GenerateBoard(BoardCanvas);
-            MockBoard();
+            ;
+        }
+
+        private void UpdateLog(string text)
+        {
+            logStringBuilder.AppendLine(text);
+            LogTextBlock.Text = logStringBuilder.ToString();
+            if (IsUserScrollingLog == false)
+            {
+                //TODO: allow user to scroll
+                LogScrollViewer.ScrollToEnd();
+                //IsUserScrollingLog = false;
+            }
+        }
+
+        private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = false;
+        }
+
+        private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = true;
+        }
+
+        private bool StartGame()
+        {
+            if (gameMaster.StartGame())
+            {
+                Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
+                return true;
+            }
+            return false;
+        }
+
+        private void PauseGame()
+        {
+            gameMaster.PauseGame();
+        }
+
+        private void ResumeGame()
+        {
+            gameMaster.ResumeGame();
+        }
+
+        private void Update(double dt)
+        {
+            gameMaster.Update(dt);
+            FlushLogs();
+        }
+
+        private void FlushLogs()
+        {
+            var logs = gameMaster.Logger.GetPendingLogs();
+            foreach (var log in logs)
+                UpdateLog(log);
+        }
+
+        private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == false)
+            {
+                if (GMConfig == null)
+                    GMConfig = new Configuration.Configuration();
+                var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
+                //this line should be useful but produces weird behaviour of minimizing main window after closing child window
+                //ConfigurationWindow.Owner = this;
+                ConfigurationWindow.Show();
+            }
+            else
+            {
+                if (configurationWindows.First().WindowState == WindowState.Minimized)
+                    configurationWindows.First().WindowState = WindowState.Normal;
+            }
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == true)
+            {
+                configurationWindows.First().Close();
+                if (configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
+                {
+                    if (confWindow.IsClosed == false)
+                    {
+                        e.Cancel = true;
+                    }
+                }
+            }
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            gameMaster.OnDestroy();
         }
     }
 }

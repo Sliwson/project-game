@@ -3,6 +3,7 @@ using GameMaster;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using Messaging.Contracts;
 using Messaging.Contracts.GameMaster;
 using Messaging.Contracts.Agent;
@@ -42,7 +43,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             agent.AddTimeout(10.0);
-            var startTime = DateTime.Now.AddSeconds(10);
+            var initialDelay = TimeSpan.FromSeconds(10.0);
 
             gameMaster.Agents.Add(agent);
 
@@ -51,7 +52,7 @@ namespace GameMasterTests
             Assert.AreEqual(MessageId.IgnoredDelayError, response.MessageId);
 
             var payload = response.Payload as IgnoredDelayError;
-            var timeDiff = startTime - payload.WaitUntil;
+            var timeDiff = initialDelay - payload.RemainingDelay;
             Assert.AreEqual(0, (int)timeDiff.TotalSeconds);
         }
 
@@ -200,7 +201,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -215,12 +216,12 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         [Test]
@@ -235,18 +236,17 @@ namespace GameMasterTests
             var message = GetBaseMessage(new ExchangeInformationRequest(333), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.ExchangeInformationMessage, response.MessageId);
+            Assert.AreEqual(MessageId.ExchangeInformationRequestForward, response.MessageId);
 
-            var payload = response.Payload as ExchangeInformationPayload;
+            var payload = response.Payload as ExchangeInformationRequestForward;
             Assert.AreEqual(666, payload.AskingAgentId);
             Assert.AreEqual(TeamId.Blue, payload.TeamId);
             Assert.IsTrue(payload.Leader);
             Assert.IsTrue(receipent.HaveToExchange());
-            Assert.AreEqual(configuration.AskPenalty.TotalSeconds, sender.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, sender.Timeout);
         }
 
         #endregion
-
 
         #region Exchange information (response)
 
@@ -261,7 +261,7 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
@@ -282,12 +282,17 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(333, response.AgentId);
-            Assert.AreEqual(payload, response.Payload as ExchangeInformationResponse);
-            Assert.AreEqual(configuration.ResponsePenalty.TotalSeconds, agent.Timeout);
+            Assert.IsTrue(response.Payload is ExchangeInformationResponseForward);
+
+            var responsePayload = response.Payload as ExchangeInformationResponseForward;
+            Assert.AreEqual(agent.Id, responsePayload.RespondingId);
+            Assert.AreEqual(payload.Distances, responsePayload.Distances);
+            Assert.AreEqual(payload.BlueTeamGoalAreaInformation, responsePayload.BlueTeamGoalAreaInformation);
+            Assert.AreEqual(payload.RedTeamGoalAreaInformation, responsePayload.RedTeamGoalAreaInformation);
+            Assert.AreEqual(configuration.InformationExchangePenalty.TotalSeconds, agent.Timeout);
         }
 
         #endregion
-
 
         #region Join
 
@@ -437,6 +442,7 @@ namespace GameMasterTests
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
             var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
 
             gameMaster.Agents.Add(agent);
             field.Agent = agent;
@@ -448,39 +454,19 @@ namespace GameMasterTests
 
             var payload = response.Payload as PutDownPieceError;
             Assert.AreEqual(PutDownPieceErrorSubtype.AgentNotHolding, payload.ErrorSubtype);
+            Assert.AreEqual(initialScore, gameMaster.ScoreComponent.GetScore(agent.Team));
             Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
         }
 
         [Test]
-        public void ProcessMessage_PutDownPieceRequest_ShouldReturnErrorIfGoalAlreadyCompleted()
+        public void ProcessMessage_PutDownPieceRequest_ShouldLeavePieceInTaskArea()
         {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
-            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
-            var piece1 = new Piece(false);
-            var piece2 = new Piece(false);
-
-            gameMaster.Agents.Add(agent);
-            agent.PickUpPiece(piece1);
-            field.Pieces.Push(piece2);
-            field.State = FieldState.Goal;
-            field.Agent = agent;
-
-            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
-
-            dynamic response = gameLogicComponent.ProcessMessage(message);
-            Assert.AreEqual(MessageId.PutDownPieceError, response.MessageId);
-
-            var payload = response.Payload as PutDownPieceError;
-            Assert.AreEqual(PutDownPieceErrorSubtype.CannotPutThere, payload.ErrorSubtype);
-            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
-        }
-
-        [Test]
-        public void ProcessMessage_PutDownPieceRequest_ShouldLeavePieceIfFieldIsEmpty()
-        {
-            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
-            var field = gameMaster.BoardLogic.GetField(new Point(3, 3));
+            var agent = new Agent(666, TeamId.Blue, new Point(10, 10));
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            // Make sure the field is in task area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position));
             var piece = new Piece(false);
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
 
             gameMaster.Agents.Add(agent);
             agent.PickUpPiece(piece);
@@ -490,13 +476,132 @@ namespace GameMasterTests
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceResponse;
+
+            Assert.AreEqual(PutDownPieceResult.TaskField, payload.Result);
             Assert.IsNull(agent.Piece);
             Assert.AreEqual(1, field.Pieces.Count);
             Assert.AreEqual(piece, field.Pieces.Peek());
+            Assert.AreEqual(initialScore, gameMaster.ScoreComponent.GetScore(agent.Team));
             Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
         }
 
-        // TODO: Add more test cases for put down when changes in specification are decided
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldDestroyNormalPieceInGoalArea()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
+            var piece = new Piece(false);
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
+
+            gameMaster.Agents.Add(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceResponse;
+
+            Assert.AreEqual(PutDownPieceResult.NormalOnNonGoalField, payload.Result);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(0, field.Pieces.Count);
+            Assert.AreEqual(initialScore, gameMaster.ScoreComponent.GetScore(agent.Team));
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldDestroyShamInGoalArea()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
+            var piece = new Piece(true);
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
+
+            gameMaster.Agents.Add(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceResponse;
+
+            Assert.AreEqual(PutDownPieceResult.ShamOnGoalArea, payload.Result);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(0, field.Pieces.Count);
+            Assert.AreEqual(initialScore, gameMaster.ScoreComponent.GetScore(agent.Team));
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldCompleteGoalIfPieceIsNormal()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
+            field.State = FieldState.Goal;
+            var piece = new Piece(false);
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
+
+            gameMaster.Agents.Add(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceResponse;
+
+            Assert.AreEqual(PutDownPieceResult.NormalOnGoalField, payload.Result);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(0, field.Pieces.Count);
+            Assert.AreEqual(1, gameMaster.ScoreComponent.GetScore(agent.Team) - initialScore);
+            Assert.AreEqual(FieldState.CompletedGoal, field.State);
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
+
+        [Test]
+        public void ProcessMessage_PutDownPieceRequest_ShouldNotCompleteGoalIfPieceIsSham()
+        {
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            var field = gameMaster.BoardLogic.GetField(agent.Position);
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
+            field.State = FieldState.Goal;
+            var piece = new Piece(true);
+            var initialScore = gameMaster.ScoreComponent.GetScore(agent.Team);
+
+            gameMaster.Agents.Add(agent);
+            agent.PickUpPiece(piece);
+            field.Agent = agent;
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+            Assert.AreEqual(MessageId.PutDownPieceResponse, response.MessageId);
+
+            var payload = response.Payload as PutDownPieceResponse;
+
+            Assert.AreEqual(PutDownPieceResult.ShamOnGoalArea, payload.Result);
+            Assert.IsNull(agent.Piece);
+            Assert.AreEqual(0, field.Pieces.Count);
+            Assert.AreEqual(initialScore, gameMaster.ScoreComponent.GetScore(agent.Team));
+            Assert.AreEqual(FieldState.Goal, field.State);
+            Assert.AreEqual(configuration.PutPenalty.TotalSeconds, agent.Timeout);
+        }
 
         #endregion
 
@@ -504,6 +609,20 @@ namespace GameMasterTests
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
         {
             return MessageFactory.GetMessage(payload, agentFromId);
+        }
+
+        private int GetNumberOfAllPieces()
+        {
+            int onBoardPieces = 0;
+            for (int y = 0; y < configuration.BoardY; y++)
+            {
+                for (int x = 0; x < configuration.BoardX; x++)
+                {
+                    onBoardPieces += gameMaster.BoardLogic.GetField(x, y).Pieces.Count;
+                }
+            }
+            int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
+            return onBoardPieces + agentPieces;
         }
     }
 }
