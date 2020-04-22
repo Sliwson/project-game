@@ -102,7 +102,7 @@ namespace Agent
                 agent.AgentInformationsComponent.DeniedLastMove = false;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = message.Payload.ClosestPiece;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
-                if (message.Payload.ClosestPiece == 0/* && board[position.Y, position.X].goalInfo == GoalInformation.NoInformation*/)
+                if (message.Payload.ClosestPiece == 0 && agent.Piece == null)
                 {
                     logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.id.ToString());
                     return agent.PickUp();
@@ -167,15 +167,15 @@ namespace Agent
                 logger.Warn("Process exchange information payload: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            if (!Array.Exists(agent.StartGameComponent.teamMates, id => id == message.Payload.AskingAgentId))
-            {
-                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString());
-                return agent.MakeDecisionFromStrategy();
-            }
             if (message.Payload.Leader)
             {
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.id.ToString());
                 return agent.GiveInfo(message.Payload.AskingAgentId);
+            }
+            if (!Array.Exists(agent.StartGameComponent.teamMates, id => id == message.Payload.AskingAgentId))
+            {
+                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString());
+                return agent.MakeDecisionFromStrategy();
             }
             else
             {
@@ -239,9 +239,10 @@ namespace Agent
                 logger.Warn("Process ignoreed delay error: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
+            agent.AgentInformationsComponent.DeniedLastRequest = true;
             logger.Warn("IgnoredDelay error" + " AgentID: " + agent.id.ToString());
             var time = message.Payload.RemainingDelay;
-            agent.AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, time.TotalSeconds);
+            agent.SetPenalty(time.TotalSeconds);
             return ActionResult.Continue;
         }
 
@@ -286,7 +287,9 @@ namespace Agent
         public ActionResult Process(Message<UndefinedError> message)
         {
             logger.Warn("Undefined error" + " AgentID: " + agent.id.ToString());
-            return agent.MakeDecisionFromStrategy();
+            agent.BoardLogicComponent.Position = message.Payload.Position;
+            BaseMessage newMessage = agent.GetMessage();
+            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
     }
 }
