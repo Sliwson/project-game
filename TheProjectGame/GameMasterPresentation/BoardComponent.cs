@@ -56,6 +56,7 @@ namespace GameMasterPresentation
         }
 
         private GameMaster.GameMasterState _gmstate;
+
         public GameMaster.GameMasterState GMState
         {
             get
@@ -68,6 +69,8 @@ namespace GameMasterPresentation
                 NotifyPropertyChanged();
             }
         }
+
+        private bool HasShowedGameResult = false;
 
         private int HorizontalLineZIndex = Constants.HorizontalLineZIndex;
         private int VerticalLineZIndex = Constants.VerticalLineZIndex;
@@ -320,21 +323,31 @@ namespace GameMasterPresentation
 
         private void CheckGameResult(GameMaster.Enums.GameResult result)
         {
-            switch (result)
+            if (HasShowedGameResult == false)
             {
-                case GameMaster.Enums.GameResult.None:
-                    break;
-                case GameMaster.Enums.GameResult.BlueWin:
-                    MessageBox.Show("Blue Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
-                    break;
-                case GameMaster.Enums.GameResult.RedWin:
-                    MessageBox.Show("Red Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
-                    break;
-                case GameMaster.Enums.GameResult.Draw:
-                    MessageBox.Show("Draw!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
-                    break;
-                default:
-                    break;
+                switch (result)
+                {
+                    case GameMaster.Enums.GameResult.None:
+                        break;
+
+                    case GameMaster.Enums.GameResult.BlueWin:
+                        MessageBox.Show("Blue Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                        HasShowedGameResult = true;
+                        break;
+
+                    case GameMaster.Enums.GameResult.RedWin:
+                        MessageBox.Show("Red Team Won!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                        HasShowedGameResult = true;
+                        break;
+
+                    case GameMaster.Enums.GameResult.Draw:
+                        MessageBox.Show("Draw!", Constants.GameMasterMessageBoxName, MessageBoxButton.OK, MessageBoxImage.Information);
+                        HasShowedGameResult = true;
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
     }
