@@ -7,7 +7,7 @@ Product Owner is the same person as Project Manager, Team Leader, Architect and 
 I decided to be a Scrum Master - Szymon.
 Apart from that, we are all developers responsible mostly for specific modules:
 
-* Game Master - Mateusz, Micha≥
+* Game Master - Mateusz, Micha≈Ç
 * Agent - Marta, Weronika
 * Communication server - Szymon
 * Intermodule Communication - Everyone
