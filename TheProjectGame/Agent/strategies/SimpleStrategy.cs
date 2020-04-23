@@ -61,13 +61,13 @@ namespace Agent.strategies
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
+            if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea)) stayInLineCount = 0;
             didNotAskCount++;
             if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();
             }
-            if (didNotAskCount > askInterval && agent.StartGameComponent.TeamMates.Length > 0)
+            if (didNotAskCount > askInterval && agent.StartGameComponent.TeamMatesToAsk.Length > 0)
             {
                 didNotAskCount = 0;
                 return agent.BegForInfo();
@@ -80,15 +80,15 @@ namespace Agent.strategies
             }
             if (agent.Piece != null &&
                 !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
             {
                 stayInLineCount = 0;
                 return agent.Put();
             }
             if (agent.Piece != null &&
-                Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
             {
-                var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
+                var dir = Common.StayInRectangle(agent, shortTime, stayInLineCount, out bool shouldComeBack);
                 if (agent.AgentInformationsComponent.DeniedLastMove && dir == agent.AgentInformationsComponent.LastDirection)
                     dir = Common.GetRandomDirection();
                 if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
@@ -97,7 +97,7 @@ namespace Agent.strategies
             }
             if (agent.Piece != null)
             {
-                return agent.Move(Common.GetGoalDirection(agent, shortTime));
+                return agent.Move(Common.GetOwnGoalDirection(agent, shortTime));
             }
             return DiscoverAndMove(agent);
             //if (Common.FindClosest(agent, shortTime, out Direction direction) <= shortPieceDistance)
