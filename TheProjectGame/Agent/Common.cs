@@ -29,6 +29,14 @@ namespace Agent
             return team == TeamId.Red ? position.Y >= boardSize.Y - goalAreaSize : position.Y < goalAreaSize;
         }
 
+        public static bool InRectangle(Point position, (Point, Point) rectangle)
+        {
+            return position.X >= Math.Min(rectangle.Item1.X, rectangle.Item2.X) &&
+                position.X <= Math.Max(rectangle.Item1.X, rectangle.Item2.X) &&
+                position.Y >= Math.Min(rectangle.Item1.Y, rectangle.Item2.Y) &&
+                position.Y <= Math.Max(rectangle.Item1.Y, rectangle.Item2.Y);
+        }
+
         public static bool OnBoard(Point position, Point boardSize)
         {
             return position.X >= 0 && position.Y >= 0 && position.X < boardSize.X && position.Y < boardSize.Y;
@@ -42,20 +50,56 @@ namespace Agent
                 !OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
         }
 
-        public static Direction GetGoalDirection(Agent agent, int shortTime)
+        public static Direction GetGoalDirection(Agent agent, int shortTime, out bool shouldComeBack)
         {
             if (agent.StartGameComponent.Team == TeamId.Red)
             {
                 foreach (var direction in new[] { Direction.North, Direction.West, Direction.East })
-                    if (CouldMove(agent, direction, shortTime)) return direction;
+                    if (CouldMove(agent, direction, shortTime))
+                    {
+                        shouldComeBack = false;
+                        return direction;
+                    }
+                shouldComeBack = true;
                 return Direction.North;
             }
             else
             {
                 foreach (var direction in new[] { Direction.South, Direction.West, Direction.East })
-                    if (CouldMove(agent, direction, shortTime)) return direction;
+                    if (CouldMove(agent, direction, shortTime))
+                    {
+                        shouldComeBack = false;
+                        return direction;
+                    }
+                shouldComeBack = true;
                 return Direction.South;
             }
+        }
+
+        public static Direction GetOwnGoalDirection(Agent agent, int shortTime)
+        {
+            int desiredY = agent.StartGameComponent.Team == TeamId.Red ?
+                Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y) :
+                Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y);
+            int minDesiredX = Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.X, agent.StartGameComponent.OwnGoalArea.Item2.X);
+            int maxDesiredX = Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.X, agent.StartGameComponent.OwnGoalArea.Item2.X);
+            if (desiredY > agent.BoardLogicComponent.Position.Y && CouldMove(agent, Direction.North, shortTime))
+                return Direction.North;
+            if (desiredY < agent.BoardLogicComponent.Position.Y && CouldMove(agent, Direction.South, shortTime))
+               return Direction.South;
+            if (minDesiredX > agent.BoardLogicComponent.Position.X && CouldMove(agent, Direction.East, shortTime))
+                return Direction.East;
+            if (maxDesiredX < agent.BoardLogicComponent.Position.X && CouldMove(agent, Direction.West, shortTime))
+               return Direction.West;
+            if (CouldMove(agent, Direction.East, shortTime))
+                return Direction.East;
+            if (CouldMove(agent, Direction.West, shortTime))
+                return Direction.West;
+            if (desiredY > agent.BoardLogicComponent.Position.Y)
+                return Direction.North;
+            if (desiredY < agent.BoardLogicComponent.Position.Y)
+                return Direction.South;
+            return GetGoalDirection(agent, shortTime, out _);
         }
 
         public static Direction GetRandomDirection()
@@ -75,12 +119,42 @@ namespace Agent
             return Direction.North;
         }
 
+        // deprecated, do not use
         public static Direction StayInGoalArea(Agent agent, int shortTime, int stayInLineCount)
         {
-            if (stayInLineCount > agent.BoardLogicComponent.BoardSize.X) return GetGoalDirection(agent, shortTime);
+            if (stayInLineCount > agent.BoardLogicComponent.BoardSize.X) return GetGoalDirection(agent, shortTime, out _);
             if (CouldMove(agent, Direction.East, shortTime)) return Direction.East;
             if (CouldMove(agent, Direction.West, shortTime)) return Direction.West;
-            return GetGoalDirection(agent, shortTime);
+            return GetGoalDirection(agent, shortTime, out _);
+        }
+
+        public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, out bool shouldComeBack)
+        {
+            if (stayInLineCount > 2 * Math.Abs(agent.StartGameComponent.OwnGoalArea.Item2.X - agent.StartGameComponent.OwnGoalArea.Item1.X))
+            {
+                Direction direction = GetGoalDirection(agent, shortTime, out bool should);
+                if (!should && InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea))
+                {
+                    shouldComeBack = false;
+                    return direction;
+                }
+            }
+            foreach (var direction in new[] { Direction.East, Direction.West })
+            {
+                if (InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea) && CouldMove(agent, direction, shortTime))
+                {
+                    shouldComeBack = false;
+                    return direction;
+                }
+            }
+            return GetGoalDirection(agent, shortTime, out shouldComeBack);
+        }
+
+        public static bool IsBack(Agent agent)
+        {
+            return agent.StartGameComponent.Team == TeamId.Red?
+                agent.BoardLogicComponent.Position.Y == Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y) :
+                agent.BoardLogicComponent.Position.Y == Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y);
         }
 
         public static bool IsDirectionGoalDirection(Direction direction)

@@ -16,6 +16,9 @@ namespace Agent
 
         public int[] TeamMates { get; private set; }
 
+        public int[] TeamMatesToAsk { get; set; }
+
+        public (Point, Point) OwnGoalArea { get; set; }
         public Dictionary<ActionType, TimeSpan> Penalties { get; private set; }
 
         public TimeSpan AverageTime { get; private set; }
@@ -43,18 +46,29 @@ namespace Agent
             ShamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
-            agent.ProcessMessages = new ProcessMessages(agent);
+            AssignToOwnGoalArea(startGamePayload);
+        }
+
+        private void AssignToOwnGoalArea(StartGamePayload startGamePayload)
+        {
+            //TODO
+            TeamMatesToAsk = new int[TeamMates.Length];
+            for (int i = 0; i < TeamMates.Length; i++)
+                TeamMatesToAsk[i] = TeamMates[i];
+            OwnGoalArea = Team == TeamId.Red ?
+                    (new Point(0, startGamePayload.BoardSize.Y - startGamePayload.GoalAreaHeight), new Point(startGamePayload.BoardSize.X - 1, startGamePayload.BoardSize.Y - 1)) :
+                    (new Point(0, startGamePayload.GoalAreaHeight - 1), new Point(startGamePayload.BoardSize.X - 1, 0));    
             int closestHigherId = 0, minId = 0;
             int minDist = int.MaxValue;
-            for (int i = 0; i < TeamMates.Length; i++)
+            for (int i = 0; i < TeamMatesToAsk.Length; i++)
             {
-                if (TeamMates[i] < TeamMates[minId])
+                if (TeamMatesToAsk[i] < TeamMatesToAsk[minId])
                 {
                     minId = i;
                 }
-                if (TeamMates[i] - agent.id > 0 && TeamMates[i] - agent.id < minDist)
+                if (TeamMatesToAsk[i] - agent.id > 0 && TeamMatesToAsk[i] - agent.id < minDist)
                 {
-                    minDist = TeamMates[i] - agent.id;
+                    minDist = TeamMatesToAsk[i] - agent.id;
                     closestHigherId = i;
                 }
             }

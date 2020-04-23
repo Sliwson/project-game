@@ -200,16 +200,16 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            if (StartGameComponent.TeamMates.Length == 0)
+            if (StartGameComponent.TeamMatesToAsk.Length == 0)
             {
                 logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
             AgentInformationsComponent.LastAskedTeammate++;
-            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMates.Length;
+            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMatesToAsk.Length;
             SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMates[AgentInformationsComponent.LastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
