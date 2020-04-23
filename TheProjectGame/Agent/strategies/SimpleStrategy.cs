@@ -63,14 +63,14 @@ namespace Agent.strategies
         {
             if (!Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
             didNotAskCount++;
+            if (agent.WaitingPlayers.Count > 0)
+            {
+                return agent.GiveInfo();
+            }
             if (didNotAskCount > askInterval && agent.StartGameComponent.TeamMates.Length > 0)
             {
                 didNotAskCount = 0;
                 return agent.BegForInfo();
-            }
-            if (agent.WaitingPlayers.Count > 0)
-            {
-                return agent.GiveInfo();
             }
             if (agent.Piece != null &&
                 !agent.Piece.isDiscovered &&

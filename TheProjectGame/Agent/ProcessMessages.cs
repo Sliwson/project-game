@@ -172,7 +172,7 @@ namespace Agent
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.id.ToString());
                 return agent.GiveInfo(message.Payload.AskingAgentId);
             }
-            if (!Array.Exists(agent.StartGameComponent.teamMates, id => id == message.Payload.AskingAgentId))
+            if (message.Payload.TeamId != agent.StartGameComponent.Team)
             {
                 logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.id.ToString());
                 return agent.MakeDecisionFromStrategy();
@@ -267,8 +267,12 @@ namespace Agent
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Pick up piece error" + " AgentID: " + agent.id.ToString());
-            agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
-            agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = int.MaxValue;
+            if (message.Payload.ErrorSubtype == PickUpPieceErrorSubtype.NothingThere)
+            {
+                agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
+                agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = int.MaxValue;
+
+            }
             return agent.MakeDecisionFromStrategy();
         }
 
