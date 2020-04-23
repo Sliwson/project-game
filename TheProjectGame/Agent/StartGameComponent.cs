@@ -14,48 +14,47 @@ namespace Agent
 
         private static NLog.Logger logger;
 
-        public int[] teamMates { get; private set; }
+        public int[] TeamMates { get; private set; }
 
-        public Dictionary<ActionType, TimeSpan> penalties { get; private set; }
+        public Dictionary<ActionType, TimeSpan> Penalties { get; private set; }
 
-        public TimeSpan averageTime { get; private set; }
+        public TimeSpan AverageTime { get; private set; }
 
-        public float shamPieceProbability { get; private set; }
+        public float ShamPieceProbability { get; private set; }
 
-        public TeamId team { get; private set; }
+        public TeamId Team { get; private set; }
 
-        public bool isLeader { get; private set; }
+        public bool IsLeader { get; private set; }
 
         public StartGameComponent(Agent agent, TeamId teamId)
         {
             this.agent = agent;
-            team = teamId;
+            Team = teamId;
             logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
         public void Initialize(StartGamePayload startGamePayload)
         {
-            isLeader = agent.id == startGamePayload.LeaderId ? true : false;
-            team = startGamePayload.TeamId;
-            teamMates = new int[startGamePayload.AlliesIds.Length];
-            teamMates = startGamePayload.AlliesIds;
-            penalties = startGamePayload.Penalties;
-            averageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
-            shamPieceProbability = startGamePayload.ShamPieceProbability;
+            IsLeader = agent.id == startGamePayload.LeaderId ? true : false;
+            Team = startGamePayload.TeamId;
+            TeamMates = startGamePayload.AlliesIds;
+            Penalties = startGamePayload.Penalties;
+            AverageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
+            ShamPieceProbability = startGamePayload.ShamPieceProbability;
             logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
             agent.ProcessMessages = new ProcessMessages(agent);
             int closestHigherId = 0, minId = 0;
             int minDist = int.MaxValue;
-            for (int i = 0; i < teamMates.Length; i++)
+            for (int i = 0; i < TeamMates.Length; i++)
             {
-                if (teamMates[i] < teamMates[minId])
+                if (TeamMates[i] < TeamMates[minId])
                 {
                     minId = i;
                 }
-                if (teamMates[i] - agent.id > 0 && teamMates[i] - agent.id < minDist)
+                if (TeamMates[i] - agent.id > 0 && TeamMates[i] - agent.id < minDist)
                 {
-                    minDist = teamMates[i] - agent.id;
+                    minDist = TeamMates[i] - agent.id;
                     closestHigherId = i;
                 }
             }

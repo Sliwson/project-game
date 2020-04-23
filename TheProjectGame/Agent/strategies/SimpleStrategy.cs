@@ -33,6 +33,8 @@ namespace Agent.strategies
 
         private int didNotAskCount = 0;
 
+        private bool discovered = false;
+
         private bool IsActionExpensive(ActionType action, Dictionary<ActionType, TimeSpan> penalties)
         {
             if (!penalties.ContainsKey(action)) return false;
@@ -42,7 +44,6 @@ namespace Agent.strategies
             if (thisAction > 2 * averageAction) return true;
             return false;
         }
-        private bool discovered = false;
 
         private ActionResult DiscoverAndMove(Agent agent)
         {
@@ -60,9 +61,9 @@ namespace Agent.strategies
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
+            if (!Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize)) stayInLineCount = 0;
             didNotAskCount++;
-            if (didNotAskCount > askInterval && agent.StartGameComponent.teamMates.Length > 0)
+            if (didNotAskCount > askInterval && agent.StartGameComponent.TeamMates.Length > 0)
             {
                 didNotAskCount = 0;
                 return agent.BegForInfo();
@@ -73,19 +74,19 @@ namespace Agent.strategies
             }
             if (agent.Piece != null &&
                 !agent.Piece.isDiscovered &&
-                agent.StartGameComponent.shamPieceProbability > smallShamProbability)
+                agent.StartGameComponent.ShamPieceProbability > smallShamProbability)
             {
                 return agent.CheckPiece();
             }
             if (agent.Piece != null &&
                 !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
+                Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 stayInLineCount = 0;
                 return agent.Put();
             }
             if (agent.Piece != null &&
-                Common.InGoalArea(agent.StartGameComponent.team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
+                Common.InGoalArea(agent.StartGameComponent.Team, agent.BoardLogicComponent.Position, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize))
             {
                 var dir = Common.StayInGoalArea(agent, shortTime, stayInLineCount);
                 if (agent.AgentInformationsComponent.DeniedLastMove && dir == agent.AgentInformationsComponent.LastDirection)

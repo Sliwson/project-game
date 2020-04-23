@@ -38,13 +38,13 @@ namespace Agent
         {
             Point target = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, direction);
             return OnBoard(target, agent.BoardLogicComponent.BoardSize) &&
-                !InGoalArea(agent.StartGameComponent.team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
-                !OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.averageTime);
+                !InGoalArea(agent.StartGameComponent.Team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
+                !OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime)
         {
-            if (agent.StartGameComponent.team == TeamId.Red)
+            if (agent.StartGameComponent.Team == TeamId.Red)
             {
                 foreach (var direction in new[] { Direction.North, Direction.West, Direction.East })
                     if (CouldMove(agent, direction, shortTime)) return direction;
@@ -101,7 +101,7 @@ namespace Agent
                 for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
                     if ((i != agent.BoardLogicComponent.Position.X || j != agent.BoardLogicComponent.Position.Y) &&
                         OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
-                        !OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.averageTime) &&
+                        !OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.AverageTime) &&
                         agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece))
                     {
                         shortest = agent.BoardLogicComponent.Board[j, i].distToPiece;
@@ -119,7 +119,7 @@ namespace Agent
             for (int i = agent.BoardLogicComponent.Position.X - 1; i <= agent.BoardLogicComponent.Position.X + 1; i++)
                 for (int j = agent.BoardLogicComponent.Position.Y - 1; j <= agent.BoardLogicComponent.Position.Y + 1; j++)
                     if (OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
-                        OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.averageTime))
+                        OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.AverageTime))
                         count++;
             return count;
         }

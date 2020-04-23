@@ -22,13 +22,9 @@ namespace Agent
 
         public bool endIfUnexpectedAction = false;
 
-        private readonly TimeSpan maxSkipTime = TimeSpan.FromSeconds(2.0);
-
         private const double penaltyMultiply = 1.1;
 
         public int id;
-
-        private ISender sender;
 
         private IStrategy strategy;
 
@@ -96,7 +92,7 @@ namespace Agent
 
         private void SetPenalty(ActionType action)
         {
-            var ret = StartGameComponent.penalties.TryGetValue(action, out TimeSpan span);
+            var ret = StartGameComponent.Penalties.TryGetValue(action, out TimeSpan span);
             if (ret) SetPenalty(span.TotalSeconds);
         }
 
@@ -114,7 +110,7 @@ namespace Agent
             switch (AgentState)
             {
                 case AgentState.Created:
-                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.team, WantsToBeLeader)));
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)));
                     AgentState = AgentState.WaitingForJoin;
                     return ActionResult.Continue;
                 case AgentState.WaitingForJoin:
@@ -138,7 +134,7 @@ namespace Agent
                 case AgentState.InGame:
                     if (AgentInformationsComponent.DeniedLastRequest) return RepeatAction();
                     BaseMessage message = GetMessage();
-                    if (message == null && AgentInformationsComponent.SkipTime < maxSkipTime)
+                    if (message == null && AgentInformationsComponent.SkipTime < StartGameComponent.AverageTime)
                     {
                         AgentInformationsComponent.SkipTime += TimeSpan.FromSeconds(dt);
                         return ActionResult.Continue;
@@ -204,16 +200,16 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            if (StartGameComponent.teamMates.Length == 0)
+            if (StartGameComponent.TeamMates.Length == 0)
             {
                 logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
             AgentInformationsComponent.LastAskedTeammate++;
-            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.teamMates.Length;
+            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMates.Length;
             SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.teamMates[AgentInformationsComponent.LastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMates[AgentInformationsComponent.LastAskedTeammate])));
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
