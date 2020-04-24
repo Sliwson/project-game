@@ -292,8 +292,8 @@ namespace Agent
         {
             logger.Warn("Undefined error" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent.Position = message.Payload.Position;
-            BaseMessage newMessage = agent.GetMessage();
-            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
+            BaseMessage messageFromLeader = agent.GetMessageFromLeader();
+            return messageFromLeader == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(messageFromLeader);
         }
     }
 }

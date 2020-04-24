@@ -22,7 +22,7 @@ namespace Agent
 
         public bool endIfUnexpectedAction = false;
 
-        private const double penaltyMultiply = 1.1;
+        private const double penaltyMultiply = 1.5;
 
         public int id;
 
@@ -312,7 +312,19 @@ namespace Agent
         private BaseMessage GetMessage(MessageId messageId)
         {
             var message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
-            if (message == null) message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
+            if (message != null) injectedMessages.Remove(message);
+            return message;
+        }
+
+        public BaseMessage GetMessageFromLeader()
+        {
+            var message = injectedMessages.FirstOrDefault(m =>
+            {
+                if (m.MessageId != MessageId.ExchangeInformationRequestForward) return false;
+                var exchangeMessage = m as Message<ExchangeInformationRequestForward>;
+                if (exchangeMessage == null) return false;
+                return exchangeMessage.Payload.Leader;
+            });
             if (message != null) injectedMessages.Remove(message);
             return message;
         }
@@ -330,6 +342,7 @@ namespace Agent
 
         public ActionResult AcceptMessage(BaseMessage message)
         {
+            AgentInformationsComponent.Discovered = false;
             dynamic dynamicMessage = message;
             return ProcessMessages.Process(dynamicMessage);
         }
