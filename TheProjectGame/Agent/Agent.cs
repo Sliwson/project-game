@@ -24,6 +24,8 @@ namespace Agent
 
         private const double penaltyMultiply = 1.5;
 
+        private const int maxSkip = 10;
+
         public int id;
 
         private IStrategy strategy;
@@ -83,17 +85,17 @@ namespace Agent
             NetworkComponent.Disconnect();
         }
 
-        public void SetPenalty(double add, bool shouldUpdateLastRequestPenalty)
+        public void SetPenalty(double add, bool shouldRepeat)
         {
             if (add <= 0.0) return;
             AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
-            if (shouldUpdateLastRequestPenalty) AgentInformationsComponent.LastRequestPenalty = add;
+            if (shouldRepeat) AgentInformationsComponent.LastRequestPenalty = add;
         }
 
-        private void SetPenalty(ActionType action, bool shouldUpdateLastRequestPenalty)
+        private void SetPenalty(ActionType action, bool shouldRepeat)
         {
             var ret = StartGameComponent.Penalties.TryGetValue(action, out TimeSpan span);
-            if (ret) SetPenalty(span.TotalSeconds, shouldUpdateLastRequestPenalty);
+            if (ret) SetPenalty(span.TotalSeconds, shouldRepeat);
         }
 
         public void SetDoNothingStrategy()
@@ -110,7 +112,7 @@ namespace Agent
             switch (AgentState)
             {
                 case AgentState.Created:
-                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)));
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)), false);
                     AgentState = AgentState.WaitingForJoin;
                     return ActionResult.Continue;
                 case AgentState.WaitingForJoin:
@@ -134,7 +136,7 @@ namespace Agent
                 case AgentState.InGame:
                     if (AgentInformationsComponent.DeniedLastRequest) return RepeatRequest();
                     BaseMessage message = GetMessage();
-                    if (message == null && AgentInformationsComponent.SkipTime < StartGameComponent.AverageTime)
+                    if (message == null && AgentInformationsComponent.SkipTime < TimeSpan.FromTicks(StartGameComponent.AverageTime.Ticks * maxSkip))
                     {
                         AgentInformationsComponent.SkipTime += TimeSpan.FromSeconds(dt);
                         return ActionResult.Continue;
@@ -162,7 +164,7 @@ namespace Agent
             }
             AgentInformationsComponent.LastDirection = direction;
             SetPenalty(ActionType.Move, true);
-            SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
+            SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)), true);
             logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -174,7 +176,7 @@ namespace Agent
                 logger.Warn("Pick up: Agent not in game" + " AgentID: " + id.ToString());
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
-            SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
+            SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()), true);
             logger.Info("Pick up: Agent sent pick up piece request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -187,7 +189,7 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
             SetPenalty(ActionType.PutPiece, true);
-            SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
+            SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()), true);
             logger.Info("Put: Agent sent put down piece request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -209,7 +211,7 @@ namespace Agent
             AgentInformationsComponent.LastAskedTeammate++;
             AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMatesToAsk.Length;
             SetPenalty(ActionType.InformationExchange, true);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
             logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -234,7 +236,11 @@ namespace Agent
             }
             else if (respondToId == -1) return MakeDecisionFromStrategy();
             SetPenalty(ActionType.InformationExchange, false);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, BoardLogicComponent.GetDistances(), BoardLogicComponent.GetRedTeamGoalAreaInformation(), BoardLogicComponent.GetBlueTeamGoalAreaInformation())));
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId,
+                BoardLogicComponent.GetDistances(),
+                BoardLogicComponent.GetRedTeamGoalAreaInformation(),
+                BoardLogicComponent.GetBlueTeamGoalAreaInformation())),
+                false);
             logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString() + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -247,7 +253,7 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
             SetPenalty(ActionType.CheckForSham, true);
-            SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
+            SendMessage(MessageFactory.GetMessage(new CheckShamRequest()), true);
             logger.Info("Check piece: Agent sent check scham request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -260,7 +266,7 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
             SetPenalty(ActionType.Discovery, true);
-            SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
+            SendMessage(MessageFactory.GetMessage(new DiscoverRequest()), true);
             logger.Info("Discover: Agent sent discover request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -273,7 +279,7 @@ namespace Agent
                 if (endIfUnexpectedAction) return ActionResult.Finish;
             }
             SetPenalty(ActionType.DestroyPiece, true);
-            SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
+            SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()), true);
             logger.Info("Destroy Piece: Agent sent destroy piece request." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -292,7 +298,7 @@ namespace Agent
             }
             AgentInformationsComponent.DeniedLastRequest = false;
             SetPenalty(AgentInformationsComponent.LastRequestPenalty, true);
-            SendMessage(AgentInformationsComponent.LastRequest);
+            SendMessage(AgentInformationsComponent.LastRequest, true);
             logger.Info("Repeat Action: Agent resent previous action." + " AgentID: " + id.ToString());
             return ActionResult.Continue;
         }
@@ -334,9 +340,9 @@ namespace Agent
             injectedMessages.Add(message);
         }
 
-        public void SendMessage(BaseMessage message)
+        public void SendMessage(BaseMessage message, bool shouldRepeat)
         {
-            if (message.MessageId != MessageId.ExchangeInformationResponse)
+            if (shouldRepeat)
                 AgentInformationsComponent.LastRequest = message;
             NetworkComponent.SendMessage(message);
         }
