@@ -12,8 +12,8 @@ namespace Agent
 
         public int LastAskedTeammate;
         public Direction LastDirection { get; set; }
-        public BaseMessage LastMessage { get; set; }
-        public double LastPenalty { get; set; }
+        public BaseMessage LastRequest { get; set; }
+        public double LastRequestPenalty { get; set; }
         public bool DeniedLastMove { get; set; }
         public bool DeniedLastRequest { get; set; }
         public bool Discovered { get; set; }
@@ -28,7 +28,7 @@ namespace Agent
         {
             this.agent = agent;
             LastAskedTeammate = 0;
-            LastPenalty = 0.0;
+            LastRequestPenalty = 0.0;
             DeniedLastMove = false;
             DeniedLastRequest = false;
             Discovered = false;

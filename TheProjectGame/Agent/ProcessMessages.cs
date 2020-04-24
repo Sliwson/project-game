@@ -240,10 +240,10 @@ namespace Agent
                 logger.Warn("Process ignoreed delay error: Agent not in game" + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
-            agent.AgentInformationsComponent.DeniedLastRequest = true;
             logger.Warn("IgnoredDelay error" + " AgentID: " + agent.id.ToString());
+            agent.AgentInformationsComponent.DeniedLastRequest = true;
             var time = message.Payload.RemainingDelay;
-            agent.SetPenalty(time.TotalSeconds);
+            agent.SetPenalty(time.TotalSeconds, false);
             return ActionResult.Continue;
         }
 
@@ -293,7 +293,16 @@ namespace Agent
             logger.Warn("Undefined error" + " AgentID: " + agent.id.ToString());
             agent.BoardLogicComponent.Position = message.Payload.Position;
             BaseMessage messageFromLeader = agent.GetMessageFromLeader();
-            return messageFromLeader == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(messageFromLeader);
+            if (messageFromLeader == null)
+            {
+                return agent.MakeDecisionFromStrategy();
+            }
+            else
+            {
+                var result = agent.AcceptMessage(messageFromLeader);
+                agent.AgentInformationsComponent.DeniedLastRequest = true;
+                return result;
+            }
         }
     }
 }
