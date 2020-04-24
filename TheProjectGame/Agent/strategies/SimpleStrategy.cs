@@ -9,15 +9,11 @@ namespace Agent.strategies
 {
     class SimpleStrategy : IStrategy
     {
-        private const int shortPieceDistance = 40;
-
         private const int shortTime = 10;
-
-        private const int smallUndiscoveredNumber = 6;
 
         private const float smallShamProbability = 0.3f;
 
-        private const int askInterval = 10;
+        private const int askInterval = 20;
 
         private readonly Dictionary<ActionType, int> actionImportance = new Dictionary<ActionType, int>
         {
@@ -29,16 +25,6 @@ namespace Agent.strategies
             { ActionType.DestroyPiece, 6 }
         };
 
-        private int stayInLineCount = 0;
-
-        private int didNotAskCount = 0;
-
-        private bool discovered = false;
-
-        private bool isComingBack = false;
-
-        private Direction directionEastWest = Direction.East;
-
         private bool IsActionExpensive(ActionType action, Dictionary<ActionType, TimeSpan> penalties)
         {
             if (!penalties.ContainsKey(action)) return false;
@@ -49,36 +35,26 @@ namespace Agent.strategies
             return false;
         }
 
-        private ActionResult DiscoverAndMove(Agent agent)
-        {
-            if (!discovered)
-            {
-                discovered = true;
-                return agent.Discover();
-            }
-            discovered = false;
-            Common.FindClosest(agent, shortTime, out Direction direction);
-            if (agent.AgentInformationsComponent.DeniedLastMove && direction == agent.AgentInformationsComponent.LastDirection)
-                direction = Common.GetRandomDirection();
-            return agent.Move(direction);
-        }
-
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea)) stayInLineCount = 0;
-            if (isComingBack && Common.IsBack(agent))
+            if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
             {
-                isComingBack = false;
-                stayInLineCount = 0;
+                agent.AgentInformationsComponent.StayInLineCount = 0;
             }
-            didNotAskCount++;
+            if (agent.AgentInformationsComponent.IsComingBack && Common.IsBack(agent))
+            {
+                agent.AgentInformationsComponent.IsComingBack = false;
+                agent.AgentInformationsComponent.StayInLineCount = 0;
+            }
+            agent.AgentInformationsComponent.DidNotAskCount = agent.AgentInformationsComponent.DidNotAskCount + 1;
             if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();
             }
-            if (didNotAskCount > askInterval && agent.StartGameComponent.TeamMatesToAsk.Length > 0)
+            if (agent.AgentInformationsComponent.DidNotAskCount > askInterval &&
+                agent.StartGameComponent.TeamMatesToAsk.Length > 0)
             {
-                didNotAskCount = 0;
+                agent.AgentInformationsComponent.DidNotAskCount = 0;
                 return agent.BegForInfo();
             }
             if (agent.Piece != null &&
@@ -91,25 +67,25 @@ namespace Agent.strategies
                 !Common.DoesAgentKnowGoalInfo(agent) &&
                 Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
             {
-                stayInLineCount = 0;
+                agent.AgentInformationsComponent.StayInLineCount = 0;
                 return agent.Put();
             }
             if (agent.Piece != null &&
                 Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) &&
-                !isComingBack)
+                !agent.AgentInformationsComponent.IsComingBack)
             {
-                var dir = Common.StayInRectangle(agent, shortTime, stayInLineCount, directionEastWest, out bool shouldComeBack);
+                var dir = Common.StayInRectangle(agent, shortTime, agent.AgentInformationsComponent.StayInLineCount, agent.AgentInformationsComponent.DirectionEastWest, out bool shouldComeBack);
                 if (shouldComeBack)
                 {
-                    isComingBack = true;
+                    agent.AgentInformationsComponent.IsComingBack = true;
                 }
                 else
                 {
                     if (!Common.IsDirectionGoalDirection(dir))
                     {
-                        if (dir == directionEastWest)
+                        if (dir == agent.AgentInformationsComponent.DirectionEastWest)
                         {
-                            stayInLineCount++;
+                            agent.AgentInformationsComponent.StayInLineCount = agent.AgentInformationsComponent.StayInLineCount + 1;
                         }
                         else
                         {
@@ -117,17 +93,19 @@ namespace Agent.strategies
                             if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, dir), agent.StartGameComponent.OwnGoalArea) ||
                                 !Common.CouldMove(agent, dir, shortTime))
                             {
-                                isComingBack = true;
+                                agent.AgentInformationsComponent.IsComingBack = true;
                             }
                         }
                     }
                     if (Common.IsDirectionGoalDirection(dir))
                     {
-                        stayInLineCount = 0;
-                        directionEastWest = directionEastWest == Direction.West ? Direction.East : Direction.West;
+                        agent.AgentInformationsComponent.StayInLineCount = 0;
+                        agent.AgentInformationsComponent.DirectionEastWest =
+                            agent.AgentInformationsComponent.DirectionEastWest == Direction.West ?
+                            Direction.East : Direction.West;
                     }
                 }
-                if (!isComingBack)
+                if (!agent.AgentInformationsComponent.IsComingBack)
                 {
                     return agent.Move(dir);
                 }
@@ -136,7 +114,17 @@ namespace Agent.strategies
             {
                 return agent.Move(Common.GetOwnGoalDirection(agent, shortTime));
             }
-            return DiscoverAndMove(agent);
+            if (!agent.AgentInformationsComponent.Discovered)
+            {
+                return agent.Discover();
+            }
+            Common.FindClosest(agent, shortTime, out Direction direction);
+            if (agent.AgentInformationsComponent.DeniedLastMove &&
+                direction == agent.AgentInformationsComponent.LastDirection)
+            {
+                direction = Common.GetRandomDirection();
+            }
+            return agent.Move(direction);
         }
     }
 }

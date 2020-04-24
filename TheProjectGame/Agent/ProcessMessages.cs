@@ -59,6 +59,7 @@ namespace Agent
                 logger.Warn("Process discover response: Agent not in game." + " AgentID: " + agent.id.ToString());
                 if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
             }
+            agent.AgentInformationsComponent.Discovered = true;
             DateTime now = DateTime.Now;
             for (int y = agent.BoardLogicComponent.Position.Y - 1; y <= agent.BoardLogicComponent.Position.Y + 1; y++)
             {
@@ -271,7 +272,6 @@ namespace Agent
             {
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = int.MaxValue;
-
             }
             return agent.MakeDecisionFromStrategy();
         }
