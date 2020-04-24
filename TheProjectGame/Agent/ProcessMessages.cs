@@ -26,7 +26,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process check scham response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             if (message.Payload.Sham)
             {
@@ -46,7 +46,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process destroy piece response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             agent.Piece = null;
             return agent.MakeDecisionFromStrategy();
@@ -57,7 +57,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process discover response: Agent not in game." + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             agent.AgentInformationsComponent.Discovered = true;
             DateTime now = DateTime.Now;
@@ -82,7 +82,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process exchange information response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
@@ -95,7 +95,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process move response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
@@ -124,7 +124,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process pick up piece response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             if (agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece == 0)
             {
@@ -139,7 +139,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process put down piece response: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             agent.Piece = null;
             switch (message.Payload.Result)
@@ -166,7 +166,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process exchange information payload: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             if (message.Payload.Leader)
             {
@@ -190,7 +190,7 @@ namespace Agent
             if (agent.AgentState != AgentState.WaitingForJoin)
             {
                 logger.Warn("Process join response: Agent not waiting for join" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             if (message.Payload.Accepted)
             {
@@ -211,7 +211,7 @@ namespace Agent
             if (agent.AgentState != AgentState.WaitingForStart)
             {
                 logger.Warn("Process start game payload: Agent not waiting for startjoin" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             agent.StartGameComponent.Initialize(message.Payload);
             if (agent.id != message.Payload.AgentId)
@@ -227,7 +227,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process end game payload: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Info("Process End Game: end game" + " AgentID: " + agent.id.ToString());
             return ActionResult.Finish;
@@ -238,7 +238,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process ignoreed delay error: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("IgnoredDelay error" + " AgentID: " + agent.id.ToString());
             agent.AgentInformationsComponent.DeniedLastRequest = true;
@@ -252,7 +252,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process move error: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Move error" + " AgentID: " + agent.id.ToString());
             agent.AgentInformationsComponent.DeniedLastMove = true;
@@ -265,7 +265,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process pick up piece error: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Pick up piece error" + " AgentID: " + agent.id.ToString());
             if (message.Payload.ErrorSubtype == PickUpPieceErrorSubtype.NothingThere)
@@ -281,7 +281,7 @@ namespace Agent
             if (agent.AgentState != AgentState.InGame)
             {
                 logger.Warn("Process put down piece error: Agent not in game" + " AgentID: " + agent.id.ToString());
-                if (agent.endIfUnexpectedMessage) return ActionResult.Finish;
+                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
             logger.Warn("Put down piece error" + " AgentID: " + agent.id.ToString());
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) agent.Piece = null;
