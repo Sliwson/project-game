@@ -35,6 +35,10 @@ namespace Agent.strategies
 
         private bool discovered = false;
 
+        private bool isComingBack = false;
+
+        private Direction directionEastWest = Direction.East;
+
         private bool IsActionExpensive(ActionType action, Dictionary<ActionType, TimeSpan> penalties)
         {
             if (!penalties.ContainsKey(action)) return false;
@@ -62,6 +66,11 @@ namespace Agent.strategies
         public ActionResult MakeDecision(Agent agent)
         {
             if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea)) stayInLineCount = 0;
+            if (isComingBack && Common.IsBack(agent))
+            {
+                isComingBack = false;
+                stayInLineCount = 0;
+            }
             didNotAskCount++;
             if (agent.WaitingPlayers.Count > 0)
             {
@@ -86,29 +95,48 @@ namespace Agent.strategies
                 return agent.Put();
             }
             if (agent.Piece != null &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) &&
+                !isComingBack)
             {
-                var dir = Common.StayInRectangle(agent, shortTime, stayInLineCount, out bool shouldComeBack);
-                if (agent.AgentInformationsComponent.DeniedLastMove && dir == agent.AgentInformationsComponent.LastDirection)
-                    dir = Common.GetRandomDirection();
-                if (!Common.IsDirectionGoalDirection(dir)) stayInLineCount++;
-                else stayInLineCount = 0;
-                return agent.Move(dir);
+                var dir = Common.StayInRectangle(agent, shortTime, stayInLineCount, directionEastWest, out bool shouldComeBack);
+                if (shouldComeBack)
+                {
+                    isComingBack = true;
+                }
+                else
+                {
+                    if (!Common.IsDirectionGoalDirection(dir))
+                    {
+                        if (dir == directionEastWest)
+                        {
+                            stayInLineCount++;
+                        }
+                        else
+                        {
+                            dir = agent.StartGameComponent.Team == TeamId.Red ? Direction.North : Direction.South;
+                            if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, dir), agent.StartGameComponent.OwnGoalArea) ||
+                                !Common.CouldMove(agent, dir, shortTime))
+                            {
+                                isComingBack = true;
+                            }
+                        }
+                    }
+                    if (Common.IsDirectionGoalDirection(dir))
+                    {
+                        stayInLineCount = 0;
+                        directionEastWest = directionEastWest == Direction.West ? Direction.East : Direction.West;
+                    }
+                }
+                if (!isComingBack)
+                {
+                    return agent.Move(dir);
+                }
             }
             if (agent.Piece != null)
             {
                 return agent.Move(Common.GetOwnGoalDirection(agent, shortTime));
             }
             return DiscoverAndMove(agent);
-            //if (Common.FindClosest(agent, shortTime, out Direction direction) <= shortPieceDistance)
-            //{
-            //    return agent.Move(direction);
-            //}
-            //if (Common.CountUndiscoveredFields(agent, shortTime) > smallUndiscoveredNumber)
-            //{
-            //    return agent.Discover();
-            //}
-            //return agent.BegForInfo();
         }
     }
 }

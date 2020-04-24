@@ -44,10 +44,10 @@ namespace Agent
 
         public static bool CouldMove(Agent agent, Direction direction, int shortTime)
         {
-            Point target = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, direction);
+            Point target = GetFieldInDirection(agent.BoardLogicComponent.Position, direction);
             return OnBoard(target, agent.BoardLogicComponent.BoardSize) &&
                 !InGoalArea(agent.StartGameComponent.Team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
-                !OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
+                OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime, out bool shouldComeBack)
@@ -128,9 +128,9 @@ namespace Agent
             return GetGoalDirection(agent, shortTime, out _);
         }
 
-        public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, out bool shouldComeBack)
+        public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, Direction directionEastWest, out bool shouldComeBack)
         {
-            if (stayInLineCount > 2 * Math.Abs(agent.StartGameComponent.OwnGoalArea.Item2.X - agent.StartGameComponent.OwnGoalArea.Item1.X))
+            if (stayInLineCount >= Math.Abs(agent.StartGameComponent.OwnGoalArea.Item2.X - agent.StartGameComponent.OwnGoalArea.Item1.X))
             {
                 Direction direction = GetGoalDirection(agent, shortTime, out bool should);
                 if (!should && InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea))
@@ -139,7 +139,10 @@ namespace Agent
                     return direction;
                 }
             }
-            foreach (var direction in new[] { Direction.East, Direction.West })
+            List<Direction> directionsToCheck = directionEastWest == Direction.East ?
+                new List<Direction>() { Direction.East, Direction.West } :
+                new List<Direction>() { Direction.West, Direction.East };
+            foreach (var direction in directionsToCheck)
             {
                 if (InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea) && CouldMove(agent, direction, shortTime))
                 {
