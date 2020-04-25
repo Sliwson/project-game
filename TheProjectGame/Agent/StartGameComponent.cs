@@ -75,9 +75,15 @@ namespace Agent
                     int groupSize = 2;
                     int numberOfGroups = allIds.Length / groupSize;
                     int widthOnBoard = startGamePayload.BoardSize.X / numberOfGroups;
-                    int groupId = ownId * numberOfGroups / allIds.Length;
-                    int beginBoard = groupId * widthOnBoard, endBoard = Math.Min((groupId + 1) * widthOnBoard, startGamePayload.BoardSize.X) - 1;
-                    int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize, allIds.Length) - 1;
+                    int groupId = ownId / groupSize;
+                    int biggerBoard = (groupId == numberOfGroups - 1 &&
+                        numberOfGroups * widthOnBoard < startGamePayload.BoardSize.X) ?
+                        1 : 0;
+                    int biggerMates = (groupId == numberOfGroups - 1 &&
+                        numberOfGroups * groupSize < allIds.Length) ?
+                        1 : 0;
+                    int beginBoard = groupId * widthOnBoard, endBoard = Math.Min((groupId + 1) * widthOnBoard + biggerBoard, startGamePayload.BoardSize.X) - 1;
+                    int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize + biggerMates, allIds.Length) - 1;
                     OwnGoalArea = Team == TeamId.Red ?
                         (new Point(beginBoard, startGamePayload.BoardSize.Y - startGamePayload.GoalAreaHeight), new Point(endBoard, startGamePayload.BoardSize.Y - 1)) :
                         (new Point(beginBoard, startGamePayload.GoalAreaHeight - 1), new Point(endBoard, 0));
@@ -89,16 +95,21 @@ namespace Agent
                         TeamMatesToAsk[mate] = allIds[i];
                         mate++;
                     }
-                    
                 }
                 else
                 {
                     int groupSize = 2;
                     int numberOfGroups = allIds.Length / groupSize;
                     int heighthOnBoard = startGamePayload.GoalAreaHeight / numberOfGroups;
-                    int groupId = ownId * numberOfGroups / allIds.Length;
-                    int beginBoard = groupId * heighthOnBoard, endBoard = Math.Min((groupId + 1) * heighthOnBoard, startGamePayload.GoalAreaHeight) - 1;
-                    int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize, allIds.Length) - 1;
+                    int groupId = ownId / groupSize;
+                    int biggerBoard = (groupId == numberOfGroups - 1 &&
+                        numberOfGroups * heighthOnBoard < startGamePayload.GoalAreaHeight) ?
+                        1 : 0;
+                    int biggerMates = (groupId == numberOfGroups - 1 &&
+                        numberOfGroups * groupSize < allIds.Length) ?
+                        1 : 0;
+                    int beginBoard = groupId * heighthOnBoard, endBoard = Math.Min((groupId + 1) * heighthOnBoard + biggerBoard, startGamePayload.GoalAreaHeight) - 1;
+                    int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize + biggerMates, allIds.Length) - 1;
                     OwnGoalArea = Team == TeamId.Red ?
                         (new Point(0, beginBoard), new Point(startGamePayload.BoardSize.X - 1, endBoard)) :
                         (new Point(0, endBoard), new Point(startGamePayload.BoardSize.X - 1, beginBoard));
