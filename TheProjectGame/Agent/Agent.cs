@@ -328,8 +328,10 @@ namespace Agent
 
         public void SendMessage(BaseMessage message)
         {
+            if (strategy is DoNothingStrategy)
+                return;
             AgentInformationsComponent.LastMessage = message;
-            NetworkComponent.SendMessage(message);
+            NetworkComponent?.SendMessage(message);
         }
 
         public ActionResult AcceptMessage(BaseMessage message)
