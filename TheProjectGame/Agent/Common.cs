@@ -119,15 +119,6 @@ namespace Agent
             return Direction.North;
         }
 
-        // deprecated, do not use
-        public static Direction StayInGoalArea(Agent agent, int shortTime, int stayInLineCount)
-        {
-            if (stayInLineCount > agent.BoardLogicComponent.BoardSize.X) return GetGoalDirection(agent, shortTime, out _);
-            if (CouldMove(agent, Direction.East, shortTime)) return Direction.East;
-            if (CouldMove(agent, Direction.West, shortTime)) return Direction.West;
-            return GetGoalDirection(agent, shortTime, out _);
-        }
-
         public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, Direction directionEastWest, out bool shouldComeBack)
         {
             if (stayInLineCount >= Math.Abs(agent.StartGameComponent.OwnGoalArea.Item2.X - agent.StartGameComponent.OwnGoalArea.Item1.X))
