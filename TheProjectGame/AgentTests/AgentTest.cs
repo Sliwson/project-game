@@ -50,7 +50,7 @@ namespace AgentTests
             startGamePayload = new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5,5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
 
             agent.StartGameComponent.Initialize(startGamePayload);
-            Assert.AreEqual(agent.StartGameComponent.isLeader, true);
+            Assert.AreEqual(agent.StartGameComponent.IsLeader, true);
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace AgentTests
 
             startGamePayload = new StartGamePayload(2, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5, 5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
 
-            Assert.AreEqual(agent.StartGameComponent.isLeader, false);
+            Assert.AreEqual(agent.StartGameComponent.IsLeader, false);
         }
 
         [Test]
