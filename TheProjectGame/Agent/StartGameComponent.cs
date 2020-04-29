@@ -53,7 +53,7 @@ namespace Agent
 
         private void AssignToOwnGoalArea(StartGamePayload startGamePayload)
         {
-            if (!agent.DivideAgents)
+            if (!agent.DivideAgents || TeamMates.Length == 0)
             {
                 TeamMatesToAsk = new int[TeamMates.Length];
                 for (int i = 0; i < TeamMates.Length; i++)
