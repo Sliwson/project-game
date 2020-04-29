@@ -35,8 +35,6 @@ namespace Agent
 
         private List<BaseMessage> injectedMessages;
 
-        private bool doNothing;
-
         public bool WantsToBeLeader { get; private set; }
 
         public List<int> WaitingPlayers { get; private set; }
@@ -73,7 +71,6 @@ namespace Agent
             Piece = null;
             WaitingPlayers = new List<int>();
             strategy = new SimpleStrategy();
-            doNothing = false;
             injectedMessages = new List<BaseMessage>();
             AgentState = AgentState.Created;
             logger = NLog.LogManager.GetCurrentClassLogger();
@@ -106,7 +103,7 @@ namespace Agent
 
         public void SetDoNothingStrategy()
         {
-            doNothing = true;
+            strategy = new DoNothingStrategy();
         }
 
         public ActionResult Update(double dt)
@@ -163,8 +160,6 @@ namespace Agent
 
         public ActionResult Move(Direction direction)
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Move: Agent not in game" + " AgentID: " + id.ToString());
@@ -179,8 +174,6 @@ namespace Agent
 
         public ActionResult PickUp()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Pick up: Agent not in game" + " AgentID: " + id.ToString());
@@ -193,8 +186,6 @@ namespace Agent
 
         public ActionResult Put()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Put: Agent not in game" + " AgentID: " + id.ToString());
@@ -208,8 +199,6 @@ namespace Agent
 
         public ActionResult BegForInfo()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Beg for info: Agent not in game" + " AgentID: " + id.ToString());
@@ -232,8 +221,6 @@ namespace Agent
 
         public ActionResult GiveInfo(int respondToId = -1)
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Give info: Agent not in game" + " AgentID: " + id.ToString());
@@ -263,8 +250,6 @@ namespace Agent
 
         public ActionResult CheckPiece()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Check piece: Agent not in game" + " AgentID: " + id.ToString());
@@ -278,8 +263,6 @@ namespace Agent
 
         public ActionResult Discover()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Discover: Agent not in game" + " AgentID: " + id.ToString());
@@ -293,8 +276,6 @@ namespace Agent
 
         public ActionResult DestroyPiece()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + id.ToString());
@@ -308,8 +289,6 @@ namespace Agent
 
         public ActionResult MakeDecisionFromStrategy()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             return strategy.MakeDecision(this);
         }
 
@@ -320,8 +299,6 @@ namespace Agent
 
         public ActionResult RepeatRequest()
         {
-            if (doNothing)
-                return ActionResult.Continue;
             if (AgentState != AgentState.InGame)
             {
                 logger.Warn("Repeat Action: Agent not in game" + " AgentID: " + id.ToString());
