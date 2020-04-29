@@ -212,6 +212,7 @@ namespace AgentTests
         public void ProcessMessage_ExchangeInformationPayload_If_Not_TeamLeader_Asking_Should_Be_Added_To_Waiting_List()
         {
             agent.AgentState = AgentState.InGame;
+            agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationRequestForward(2, false, Messaging.Enumerators.TeamId.Blue), 1));
 
@@ -391,7 +392,6 @@ namespace AgentTests
             agentConfiguration.WantsToBeTeamLeader = false;
             agentConfiguration.TeamID = "Blue";
             agent = new Agent.Agent(agentConfiguration);
-            agent.SetDoNothingStrategy();
             agent.AgentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
             Assert.AreEqual(agent.AgentState, AgentState.WaitingForStart);
@@ -405,7 +405,6 @@ namespace AgentTests
             agnetConfiguration.WantsToBeTeamLeader = false;
             agnetConfiguration.TeamID = "Blue";
             agent = new Agent.Agent(agnetConfiguration);
-            agent.SetDoNothingStrategy();
             agent.AgentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
             Assert.AreEqual(agent.AgentState, AgentState.WaitingForJoin);
