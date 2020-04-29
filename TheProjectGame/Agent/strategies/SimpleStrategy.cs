@@ -1,4 +1,5 @@
-﻿using Messaging.Enumerators;
+﻿using Agent.Enums;
+using Messaging.Enumerators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -33,6 +34,21 @@ namespace Agent.strategies
             int averageAction = (int)penalties.Where(a => actionImportance[a.Key] < actionImportance[action]).Average(x => (int)x.Value.TotalMilliseconds);
             if (thisAction > 2 * averageAction) return true;
             return false;
+        }
+
+        public ActionResult MakeForcedDecision(Agent agent, SpecificActionType action, int argument = -1)
+        {
+            switch (action)
+            {
+                case SpecificActionType.DestroyPiece:
+                    return agent.DestroyPiece();
+                case SpecificActionType.GiveInfo:
+                    return agent.GiveInfo(argument);
+                case SpecificActionType.PickUp:
+                    return agent.PickUp();
+                default:
+                    return MakeDecision(agent);
+            }
         }
 
         public ActionResult MakeDecision(Agent agent)

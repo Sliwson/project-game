@@ -1,4 +1,5 @@
-﻿using Messaging.Contracts;
+﻿using Agent.Enums;
+using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
@@ -31,7 +32,7 @@ namespace Agent
             if (message.Payload.Sham)
             {
                 logger.Info("Process check scham response: Agent checked sham and destroy piece." + " AgentID: " + agent.id.ToString());
-                return agent.DestroyPiece();
+                return agent.MakeForcedDecision(SpecificActionType.DestroyPiece);
             }
             else
             {
@@ -106,7 +107,7 @@ namespace Agent
                 if (message.Payload.ClosestPiece == 0 && agent.Piece == null)
                 {
                     logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.id.ToString());
-                    return agent.PickUp();
+                    return agent.MakeForcedDecision(SpecificActionType.PickUp);
                 }
             }
             else
@@ -171,7 +172,7 @@ namespace Agent
             if (message.Payload.Leader)
             {
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.id.ToString());
-                return agent.GiveInfo(message.Payload.AskingAgentId);
+                return agent.MakeForcedDecision(SpecificActionType.GiveInfo, message.Payload.AskingAgentId);
             }
             if (message.Payload.TeamId != agent.StartGameComponent.Team)
             {

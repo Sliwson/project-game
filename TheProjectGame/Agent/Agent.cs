@@ -1,4 +1,5 @@
-﻿using Agent.Interfaces;
+﻿using Agent.Enums;
+using Agent.Interfaces;
 using Agent.strategies;
 using Messaging.Communication;
 using Messaging.Contracts;
@@ -289,6 +290,11 @@ namespace Agent
         public ActionResult MakeDecisionFromStrategy()
         {
             return strategy.MakeDecision(this);
+        }
+
+        public ActionResult MakeForcedDecision(SpecificActionType action, int argument = -1)
+        {
+            return strategy.MakeForcedDecision(this, action, argument);
         }
 
         public ActionResult RepeatRequest()
