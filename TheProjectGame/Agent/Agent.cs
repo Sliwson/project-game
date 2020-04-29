@@ -103,7 +103,7 @@ namespace Agent
 
         public void SetDoNothingStrategy()
         {
-            this.strategy = new DoNothingStrategy();
+            strategy = new DoNothingStrategy();
         }
 
         public ActionResult Update(double dt)
