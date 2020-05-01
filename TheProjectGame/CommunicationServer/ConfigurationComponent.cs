@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Messaging.Communication;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 
@@ -20,7 +21,7 @@ namespace CommunicationServer
         internal int GetAgentPort()
         {
             if (config == null)
-                throw new ArgumentNullException("Config has not been set");
+                throw new CommunicationErrorException(CommunicationExceptionType.NoConfig);
 
             return config.AgentPort;
         }
@@ -28,7 +29,7 @@ namespace CommunicationServer
         internal int GetGameMasterPort()
         {
             if (config == null)
-                throw new ArgumentNullException("Config has not been set");
+                throw new CommunicationErrorException(CommunicationExceptionType.NoConfig);
 
             return config.GameMasterPort;
         }
@@ -44,7 +45,14 @@ namespace CommunicationServer
 
         private CommunicationServerConfig LoadConfigFromFile(string configFileName)
         {
-            return JsonConvert.DeserializeObject<CommunicationServerConfig>(File.ReadAllText(configFileName));
+            try
+            {
+                return JsonConvert.DeserializeObject<CommunicationServerConfig>(File.ReadAllText(configFileName));
+            }
+            catch(Exception ex)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidConfigFile, ex);
+            }
         }
     }
 }

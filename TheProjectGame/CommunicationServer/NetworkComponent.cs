@@ -43,10 +43,21 @@ namespace CommunicationServer
                 agentsThread.Start(extendedAgentListener);
                 Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{server.ConfigComponent.GetAgentPort()}");
             }
-            catch (Exception e)
+            catch (ArgumentNullException e)
             {
-                Console.WriteLine(e.Message);
-                throw;
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
+            catch (SocketException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
+            }
+            catch (ObjectDisposedException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
             }
         }
 
@@ -54,7 +65,14 @@ namespace CommunicationServer
         {
             var messageData = MessageSerializer.SerializeAndWrapMessage(message);
             
-            handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+            try
+            {
+                handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+            }
+            catch(Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
         }
 
         private void StartListener(object obj)
@@ -77,8 +95,7 @@ namespace CommunicationServer
             }
             catch (SocketException e)
             {
-                Console.WriteLine("SocketException: {0}", e);
-                throw;
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -103,32 +120,36 @@ namespace CommunicationServer
             var state = (StateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
 
-            int bytesRead = handler.EndReceive(ar);
-
-            if(bytesRead > 2)
+            try
             {
-                try
+                int bytesRead = handler.EndReceive(ar);
+
+                if (bytesRead > 2)
                 {
-                    foreach(var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
+                    try
                     {
-                        var receivedMessage = new ReceivedMessage(handler, message);
+                        foreach (var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
+                        {
+                            var receivedMessage = new ReceivedMessage(handler, message);
 
-                        server.AddMessage(receivedMessage);
+                            server.AddMessage(receivedMessage);
+                        }
                     }
-                }
-                catch(Exception e)
-                {
-                    if (e is ArgumentOutOfRangeException)
+                    catch (ArgumentOutOfRangeException e)
+                    {
                         Console.WriteLine(e.Message);
-                    else
-                        throw;
+                    }
+                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
                 }
-                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                else if (bytesRead > 0)
+                {
+                    Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                }
             }
-            else if(bytesRead > 0)
+            catch(Exception e)
             {
-                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
-                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -143,7 +164,7 @@ namespace CommunicationServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -172,7 +193,7 @@ namespace CommunicationServer
             //        }
             //    }
             //}
-            //throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
+            //throw new CommunicationErrorException(CommunicationExceptionType.NoIpAddress);
         }
     }
 }
