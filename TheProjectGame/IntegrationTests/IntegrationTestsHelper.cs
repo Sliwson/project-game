@@ -7,7 +7,8 @@ using System.Threading;
 namespace IntegrationTests
 {
     public static class IntegrationTestsHelper
-    {
+    { 
+
         public static Thread CreateGmThread(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
         {
             var gmThread = new Thread(() =>
@@ -18,16 +19,45 @@ namespace IntegrationTests
             return gmThread;
         }
 
+        public static void RunGameMaster(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
+        {
+            for (int i = 0; i < 200; i++)
+            {
+                gameMaster.Update(gameMasterSleepMs / 1000.0);
+                Thread.Sleep(gameMasterSleepMs);
+            }
+        }
+
+        public static void RunGameMaster(object state)
+        {
+            var gameMasterState = (GameMasterTaskState)state;
+            RunGameMaster(gameMasterState.GameMaster, gameMasterState.GameMasterSleepMs);
+        }
+
         public static Thread CreateCsThread()
         {
             var csThread = new Thread(() =>
             {
-                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer();
-                server.Run();
+                RunCommunicationServer();
             });
 
             csThread.IsBackground = true;
             return csThread;
+        }
+
+        public static void RunCommunicationServer()
+        {
+            CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer();
+
+            try
+            {
+                server.Run();
+            }
+            catch
+            {
+                server.OnDestroy();
+                throw;
+            }
         }
 
         public static List<Agent.Agent> CreateAgents(int agentsInTeam)
@@ -71,13 +101,10 @@ namespace IntegrationTests
             agent.OnDestroy();
         }
 
-        public static void RunGameMaster(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
+        public class GameMasterTaskState
         {
-            for (int i = 0; i < 200; i++)
-            {
-                gameMaster.Update(gameMasterSleepMs / 1000.0);
-                Thread.Sleep(gameMasterSleepMs);
-            }
+            public GameMaster.GameMaster GameMaster { get; set; }
+            public int GameMasterSleepMs { get; set; }
         }
     }
 }
