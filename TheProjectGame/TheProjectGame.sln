@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessagingTests", "Messaging
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameplayMockupTests", "GameplayMockupTests\GameplayMockupTests.csproj", "{360E44D7-D88E-4351-A411-22780DF238ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{4A797FE4-BDE2-4495-A3C0-B1EBF0A58C10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{360E44D7-D88E-4351-A411-22780DF238ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{360E44D7-D88E-4351-A411-22780DF238ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{360E44D7-D88E-4351-A411-22780DF238ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A797FE4-BDE2-4495-A3C0-B1EBF0A58C10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A797FE4-BDE2-4495-A3C0-B1EBF0A58C10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A797FE4-BDE2-4495-A3C0-B1EBF0A58C10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A797FE4-BDE2-4495-A3C0-B1EBF0A58C10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
