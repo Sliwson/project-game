@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Messaging.Communication
+﻿namespace Messaging.Communication
 {
     public enum CommunicationExceptionType
     {
@@ -48,6 +44,8 @@ namespace Messaging.Communication
                     return "Supplied IP Address or port is invalid";
                 case CommunicationExceptionType.NoIpAddress:
                     return "No network adapters with an IPv4 address found in the system";
+                case CommunicationExceptionType.InvalidMessageSize:
+                    return "Requested message has invalid size (empty or too long)";
             }
 
             return "";
