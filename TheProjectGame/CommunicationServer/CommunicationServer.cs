@@ -6,6 +6,9 @@ using System.Collections.Concurrent;
 using Messaging.Serialization;
 using Messaging.Communication;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("CommunicationServerTests")]
 
 namespace CommunicationServer
 {
