@@ -26,6 +26,8 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
+        private bool gameMasterDisconnected = false;
+
         public CommunicationServer(string configFilePath = null)
         {
             ConfigComponent = new ConfigurationComponent(configFilePath);
@@ -59,11 +61,34 @@ namespace CommunicationServer
             ProcessMessages();
         }
 
+        public void OnDestroy()
+        {
+            NetworkComponent?.Disconnect();
+        }
+
         // Call this method from other threads
         internal void AddMessage(ReceivedMessage receivedMessage)
         {
             messageQueue.Enqueue(receivedMessage);
             shouldProcessMessage.Set();
+        }
+
+        // Call this method from other threads
+        internal bool CheckIfClientDisconnected(Socket socket)
+        {
+            if(socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
+            {
+                var disconectedId = HostMapping.GetHostIdForSocket(socket);
+                if(HostMapping.IsHostGameMaster(disconectedId))
+                {
+                    gameMasterDisconnected = true;
+                    shouldProcessMessage.Set();
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private void ProcessMessages()
@@ -73,6 +98,8 @@ namespace CommunicationServer
             while(true)
             {
                 shouldProcessMessage.WaitOne();
+                if (gameMasterDisconnected)
+                    throw new CommunicationErrorException(CommunicationExceptionType.GameMasterDisconnected);
 
                 while(messageQueue.TryDequeue(out message))
                 {

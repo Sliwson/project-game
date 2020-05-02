@@ -17,6 +17,9 @@ namespace CommunicationServer
         private ManualResetEvent gmAccepted = new ManualResetEvent(false);
         private ManualResetEvent agentAccepted = new ManualResetEvent(false);
 
+        private Socket gameMasterSocket;
+        private Socket agentSocket;
+
         internal NetworkComponent(CommunicationServer communicationServer)
         {
             server = communicationServer;
@@ -24,6 +27,9 @@ namespace CommunicationServer
 
         internal void StartListening(Socket gameMasterListener, Socket agentListener)
         {
+            gameMasterSocket = gameMasterListener;
+            agentSocket = agentListener;
+
             var gameMasterEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetGameMasterPort());
             var agentEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetAgentPort());
 
@@ -75,6 +81,31 @@ namespace CommunicationServer
             }
         }
 
+        internal void Disconnect()
+        {
+            Disconnect(ClientType.GameMaster);
+            Disconnect(ClientType.Agent);
+        }
+
+        internal void Disconnect(ClientType clientType)
+        {
+            var socket = clientType == ClientType.GameMaster ? gameMasterSocket : agentSocket;
+
+            try
+            {
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+            }
+            catch (Exception)
+            {
+
+            }
+            finally
+            {
+                Console.WriteLine($"Socket for {clientType} has been closed");
+            }
+        }
+
         private void StartListener(object obj)
         {
             ExtendedListener listener = (ExtendedListener)obj;
@@ -120,36 +151,33 @@ namespace CommunicationServer
             var state = (StateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
 
-            try
+            int bytesRead = handler.EndReceive(ar);
+
+            if (bytesRead > 2)
             {
-                int bytesRead = handler.EndReceive(ar);
-
-                if (bytesRead > 2)
+                try
                 {
-                    try
+                    foreach (var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
                     {
-                        foreach (var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
-                        {
-                            var receivedMessage = new ReceivedMessage(handler, message);
+                        var receivedMessage = new ReceivedMessage(handler, message);
 
-                            server.AddMessage(receivedMessage);
-                        }
+                        server.AddMessage(receivedMessage);
                     }
-                    catch (ArgumentOutOfRangeException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
                 }
-                else if (bytesRead > 0)
+                catch (ArgumentOutOfRangeException e)
                 {
-                    Console.WriteLine("Received message was too short (expected more than 2 bytes)");
-                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                    Console.WriteLine(e.Message);
                 }
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
-            catch(Exception e)
+            else if (bytesRead > 0)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if(!server.CheckIfClientDisconnected(handler))
+            {
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
         }
 
