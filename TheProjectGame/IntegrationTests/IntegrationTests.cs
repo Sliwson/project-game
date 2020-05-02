@@ -125,7 +125,7 @@ namespace IntegrationTests
         {
             for (int i=0; i<200; i++)
             {
-                gameMaster.Update(1.0);
+                gameMaster.Update(gameMasterSleepMs / 1000.0);
                 Thread.Sleep(gameMasterSleepMs);
             }
         }
