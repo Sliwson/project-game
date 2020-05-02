@@ -9,29 +9,27 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using System.Linq;
 
 namespace IntegrationTests
 {
     public class IntegrationTests
     {
         private static string csConfigFilePath = @"communicationServerConfig.json";
-        const int agentsInTeam = 1;
+        int agentsInTeam = 1;
         const int agentSleepMs = 16;
+        const int gameMasterSleepMs = 16;
         private GameMaster.GameMaster gameMaster;
-        private GameMasterConfiguration config;
-        private ConnectionLogicComponent connectionLogic;
 
         [SetUp]
         public void Setup()
         {
             gameMaster = new GameMaster.GameMaster();
-            config = gameMaster.Configuration;
-            connectionLogic = gameMaster.ConnectionLogic;
+            agentsInTeam = gameMaster.Configuration.TeamSize;
         }
 
-
         [Test]
-        public void IntegrationTest()
+        public void ConnectingAgentsState_ShouldConnectAgent()
         {
             var csThread = CreateCsThread();
             var gmThread = CreateGmThread();
@@ -39,7 +37,9 @@ namespace IntegrationTests
             csThread.Start();
             gmThread.Start();
 
-            Thread.Sleep(3000); //time for connecting gm with cs
+            Thread.Sleep(1000);
+
+            gameMaster.ApplyConfiguration();
 
             var agents = CreateAgents();
             foreach (var agent in agents)
@@ -50,16 +50,22 @@ namespace IntegrationTests
             }
 
             gmThread.Join();
+
+            List<GameMaster.Agent> lobby = gameMaster.ConnectionLogic.FlushLobby();
+
+            Assert.AreEqual(agentsInTeam * 2, lobby.Count);
+            Assert.AreEqual(2, lobby.Where(agent => agent.IsTeamLeader).Count());
+            Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Blue).Count());
+            Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Red).Count());
         }
-        
+
         private Thread CreateGmThread()
         {
             var gmThread = new Thread(() =>
             {
-                Play();
+                RunGameMaster();
             });
 
-            gmThread.SetApartmentState(ApartmentState.STA);
             return gmThread;
         }
         
@@ -117,12 +123,13 @@ namespace IntegrationTests
             agent.OnDestroy();
         }
 
-
-        private void Play()
+        private void RunGameMaster()
         {
-
-            gameMaster.Update(1.0);
-
+            for (int i=0; i<200; i++)
+            {
+                gameMaster.Update(1.0);
+                Thread.Sleep(gameMasterSleepMs);
+            }
         }
     }
 }
