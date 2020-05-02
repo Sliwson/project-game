@@ -13,7 +13,8 @@
         DuplicatedHostId,
         InvalidEndpoint,
         NoIpAddress,
-        InvalidMessageSize
+        InvalidMessageSize,
+        GameMasterDisconnected
     }
 
     public static class CommunicationExceptionTypeExtensions
@@ -46,6 +47,8 @@
                     return "No network adapters with an IPv4 address found in the system";
                 case CommunicationExceptionType.InvalidMessageSize:
                     return "Requested message has invalid size (empty or too long)";
+                case CommunicationExceptionType.GameMasterDisconnected:
+                    return "Game Master has been disconnected";
             }
 
             return "";
