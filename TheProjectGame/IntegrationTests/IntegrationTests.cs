@@ -37,8 +37,6 @@ namespace IntegrationTests
             csThread.Start();
             gmThread.Start();
 
-            Thread.Sleep(1000);
-
             gameMaster.ApplyConfiguration();
 
             var agents = CreateAgents();
