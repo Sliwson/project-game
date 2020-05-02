@@ -31,20 +31,20 @@ namespace IntegrationTests
         [Test]
         public void ConnectingAgentsState_ShouldConnectAgent()
         {
-            var csThread = CreateCsThread();
-            var gmThread = CreateGmThread();
+            var csThread = IntegrationTestsHelper.CreateCsThread();
+            var gmThread = IntegrationTestsHelper.CreateGmThread(gameMaster, gameMasterSleepMs);
 
             csThread.Start();
             gmThread.Start();
 
             gameMaster.ApplyConfiguration();
 
-            var agents = CreateAgents();
+            var agents = IntegrationTestsHelper.CreateAgents(agentsInTeam);
             foreach (var agent in agents)
             {
-                var agentThread = new Thread(RunAgent);
+                var agentThread = new Thread(() => IntegrationTestsHelper.RunAgent(agent, agentSleepMs));
                 agentThread.IsBackground = true; //background threads for termination at test exit
-                agentThread.Start(agent);
+                agentThread.Start();
             }
 
             gmThread.Join();
@@ -55,79 +55,6 @@ namespace IntegrationTests
             Assert.AreEqual(2, lobby.Where(agent => agent.IsTeamLeader).Count());
             Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Blue).Count());
             Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Red).Count());
-        }
-
-        private Thread CreateGmThread()
-        {
-            var gmThread = new Thread(() =>
-            {
-                RunGameMaster();
-            });
-
-            return gmThread;
-        }
-        
-        private Thread CreateCsThread()
-        {
-            var csThread = new Thread(() =>
-            {
-                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(csConfigFilePath);
-                server.Run();
-            });
-
-            csThread.IsBackground = true;
-            return csThread;
-        }
-
-        private List<Agent.Agent> CreateAgents()
-        {
-            var agents = new List<Agent.Agent>();
-            for (int i = 0; i < agentsInTeam * 2; i++)
-            {
-                var agent = new Agent.Agent(new AgentConfiguration
-                {
-                    CsIP = "127.0.0.1",
-                    CsPort = 54321,
-                    TeamID = i < agentsInTeam ? "red" : "blue",
-                    WantsToBeTeamLeader = i % agentsInTeam == 0
-                });
-
-                agents.Add(agent);
-            }
-
-            return agents;
-        }
-
-        private void RunAgent(object o)
-        {
-            var agent = o as Agent.Agent;
-            agent.ConnectToCommunicationServer();
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            ActionResult actionResult = ActionResult.Continue;
-            while (actionResult == ActionResult.Continue)
-            {
-                stopwatch.Stop();
-                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
-                stopwatch.Reset();
-                stopwatch.Start();
-
-                actionResult = agent.Update(timeElapsed);
-                Thread.Sleep(agentSleepMs);
-            }
-
-            agent.OnDestroy();
-        }
-
-        private void RunGameMaster()
-        {
-            for (int i=0; i<200; i++)
-            {
-                gameMaster.Update(gameMasterSleepMs / 1000.0);
-                Thread.Sleep(gameMasterSleepMs);
-            }
         }
     }
 }

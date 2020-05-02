@@ -1,6 +1,7 @@
 using Agent;
 using CommunicationServer;
 using GameMasterPresentation;
+using IntegrationTests;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -16,18 +17,19 @@ namespace GameplayMockupTests
         const int agentsInTeam = 1;
         const int agentSleepMs = 16;
 
-        [Test, Ignore("This test is made only for running and debugging game setup with all components")]
+        [Ignore("This test is made only for running and debugging game setup with all components")]
+        [Test]
         public void RunMockup()
         {
             var gmThread = CreateGmThread();
-            var csThread = CreateCsThread();
+            var csThread = IntegrationTestsHelper.CreateCsThread();
             
             csThread.Start();
             gmThread.Start();
 
             Thread.Sleep(3000); //time for connecting gm with cs
 
-            var agents = CreateAgents();
+            var agents = IntegrationTestsHelper.CreateAgents(agentsInTeam);
             foreach (var agent in agents)
             {
                 var agentThread = new Thread(RunAgent);
@@ -53,37 +55,6 @@ namespace GameplayMockupTests
 
             gmThread.SetApartmentState(ApartmentState.STA);
             return gmThread;
-        }
-
-        private Thread CreateCsThread()
-        {
-            var csThread = new Thread(() =>
-            {
-                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(csConfigFilePath);
-                server.Run();
-            });
-
-            csThread.IsBackground = true;
-            return csThread;
-        }
-
-        private List<Agent.Agent> CreateAgents()
-        {
-            var agents = new List<Agent.Agent>();
-            for (int i = 0; i < agentsInTeam * 2; i++)
-            {
-                var agent = new Agent.Agent(new AgentConfiguration
-                {
-                    CsIP = "127.0.0.1",
-                    CsPort = 54321,
-                    TeamID = i < agentsInTeam ? "red" : "blue",
-                    WantsToBeTeamLeader = i % agentsInTeam == 0
-                });
-
-                agents.Add(agent);
-            }
-
-            return agents;
         }
 
         private void RunAgent(object o)

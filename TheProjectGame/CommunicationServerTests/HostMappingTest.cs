@@ -1,6 +1,5 @@
 using CommunicationServer;
 using Messaging.Communication;
-using Microsoft.VisualBasic;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Net;
