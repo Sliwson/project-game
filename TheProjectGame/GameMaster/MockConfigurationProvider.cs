@@ -24,8 +24,8 @@ namespace GameMaster
                 NumberOfPieces = 10,
                 ShamProbability = 0.3f,
                 TeamSize = 5,                
-                CsIP = "192.168.0.53",
-                CsPort = 12345
+                CsIP = "127.0.0.1",
+                CsPort = 54322
             };
         }
     }

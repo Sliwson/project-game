@@ -39,7 +39,7 @@ namespace CommunicationServer
             return new CommunicationServerConfig
             (
                 agentPort: 54321,
-                gameMasterPort: 12345
+                gameMasterPort: 54322
             );
         }
 

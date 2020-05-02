@@ -9,7 +9,6 @@ using System.Threading;
 
 namespace Messaging.Communication
 {
-    // TODO (#IO-45): Add exception handling and logging (GM and Agent) 
     public class ClientNetworkComponent : INetworkComponent
     {
         private ConcurrentQueue<BaseMessage> messageQueue;
@@ -22,11 +21,17 @@ namespace Messaging.Communication
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
             messageQueue = new ConcurrentQueue<BaseMessage>();
-
-            var ipAddress = IPAddress.Parse(serverIPAddress);
-            communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
-
             connectDone = new ManualResetEvent(false);
+
+            try
+            {
+                var ipAddress = IPAddress.Parse(serverIPAddress);
+                communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
+            }
+            catch(Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
         }
 
         public bool Connect(ClientType clientType)
@@ -43,10 +48,16 @@ namespace Messaging.Communication
 
                 return true;
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
-                //Console.WriteLine("Exception: {0}", e);
-                return false;
+                if (socket == null)
+                    throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated);
+
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+            catch(ObjectDisposedException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -57,13 +68,16 @@ namespace Messaging.Communication
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
 
-                //Console.WriteLine("Closed");
+                Console.WriteLine("Connection with CommunicationServer has been closed");
                 return true;
             }
-            catch (Exception e)
+            catch (ObjectDisposedException)
             {
-                //Console.WriteLine("Unable to disconnect: {0}", e);
-                return false;
+                return true;
+            }
+            catch (SocketException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -88,20 +102,31 @@ namespace Messaging.Communication
                 Socket client = (Socket)ar.AsyncState;
 
                 client.EndConnect(ar);
-
-                //Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
-
                 connectDone.Set();
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e.ToString());
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
         private void Send(Socket client, byte[] message)
         {
-            client.Send(message, message.Length, SocketFlags.None);
+            try
+            {
+                if (message != null && message.Length > 0)
+                    client.Send(message, message.Length, SocketFlags.None);
+                else
+                    throw new CommunicationErrorException(CommunicationExceptionType.InvalidMessageSize);
+            }
+            catch(CommunicationErrorException)
+            {
+                throw;
+            }
+            catch(Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
         }
 
         private void ReceiveCallback(IAsyncResult ar)
@@ -109,34 +134,37 @@ namespace Messaging.Communication
             var state = (StateObject)ar.AsyncState;
             var client = state.WorkSocket;
 
-            //TODO: check if it's correct
             if (client.Connected == false)
                 return;
 
-            int bytesRead = client.EndReceive(ar);
+            try
+            {
+                int bytesRead = client.EndReceive(ar);
 
-            if (bytesRead > 2)
-            {
-                try
+                if (bytesRead > 2)
                 {
-                    foreach(var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                    try
                     {
-                        messageQueue.Enqueue(message);
+                        foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                        {
+                            messageQueue.Enqueue(message);
+                        }
                     }
+                    catch (ArgumentOutOfRangeException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
                 }
-                catch (Exception e)
+                else if (bytesRead > 0)
                 {
-                    //if (e is ArgumentOutOfRangeException)
-                        //Console.WriteLine(e.Message);
-                    //else
-                        //throw;
+                    Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
                 }
-                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
-            else if (bytesRead > 0)
+            catch(Exception e)
             {
-                //Console.WriteLine("Received message was too short (expected more than 2 bytes)");
-                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
     }

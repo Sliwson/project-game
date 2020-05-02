@@ -16,7 +16,8 @@ namespace Messaging.Communication
         DuplicatedGameMaster,
         DuplicatedHostId,
         InvalidEndpoint,
-        NoIpAddress
+        NoIpAddress,
+        InvalidMessageSize
     }
 
     public static class CommunicationExceptionTypeExtensions

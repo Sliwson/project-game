@@ -85,7 +85,7 @@ namespace Agent
 
         public void OnDestroy()
         {
-            NetworkComponent.Disconnect();
+            NetworkComponent?.Disconnect();
         }
 
         public void SetPenalty(double add, bool shouldRepeat)
@@ -352,7 +352,20 @@ namespace Agent
         {
             if (shouldRepeat)
                 AgentInformationsComponent.LastRequest = message;
-            NetworkComponent.SendMessage(message);
+
+            try
+            {
+                NetworkComponent.SendMessage(message);
+            }
+            catch (CommunicationErrorException e)
+            {
+                if (e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    // TODO: Should terminate
+                }
+
+                Console.WriteLine(e.Message);
+            }
         }
 
         public ActionResult AcceptMessage(BaseMessage message)
