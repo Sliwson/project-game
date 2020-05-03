@@ -29,12 +29,9 @@ namespace Agent
             {
                 Console.WriteLine("Enter path: ");
                 var line = Console.ReadLine();
-                try
-                {
-                    var newConfig = AgentConfiguration.LoadFromFile(line);
+                var newConfig = AgentConfiguration.LoadFromFile(line);
+                if (newConfig != null)
                     config = newConfig;
-                }
-                catch { }
             }
 
             return new Agent(config);
