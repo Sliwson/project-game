@@ -5,50 +5,38 @@ using Messaging.Contracts.Agent;
 using Messaging.Enumerators;
 using Messaging.Implementation;
 using NUnit.Framework;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Threading;
 using System.Linq;
 using Messaging.Contracts.GameMaster;
-using Newtonsoft.Json.Bson;
 using System;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using Messaging.Communication;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace IntegrationTests
 {
     public class CommunicationTest
     {
-        private GameMaster.GameMaster gameMaster;
-        //private const int gameMasterSleepMs = 16;
-        //private IntegrationTestsHelper.GameMasterTaskState gameMasterTaskState;
+        private int currentTestId = 0;
 
+        private GameMaster.GameMaster gameMaster;
         private Agent.Agent agent;
 
-        Task csTask;
+        private Task csTask;
 
         [SetUp]
         public void Setup()
         {
-            var config = GameMasterConfiguration.GetDefault();
-            gameMaster = new GameMaster.GameMaster(config);
-            //gameMasterTaskState = new IntegrationTestsHelper.GameMasterTaskState { GameMaster = gameMaster, GameMasterSleepMs = gameMasterSleepMs };
+            GetConfigurationsForTest(++currentTestId, out AgentConfiguration agentConfig, out GameMasterConfiguration gmConfig, out CommunicationServerConfiguration csConfig);
 
-            agent = new Agent.Agent(new AgentConfiguration
-            {
-                CsIP = "127.0.0.1",
-                CsPort = 54321,
-                TeamID = "red"
-            });
+            gameMaster = new GameMaster.GameMaster(gmConfig);
+            agent = new Agent.Agent(agentConfig);
+
+            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
         }
 
         [Test]
         public void WhenGameMasterIsConnected_MessageShouldBeSent()
         {
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             gameMaster.ApplyConfiguration();
@@ -70,7 +58,6 @@ namespace IntegrationTests
         [Test]
         public void WhenGameMasterIsNotYetConnected_MessageShouldBeIgnored()
         {
-            var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             agent.ConnectToCommunicationServer();
@@ -90,7 +77,6 @@ namespace IntegrationTests
         [Test]
         public void WhenGameMasterIsClosed_ServerShouldThrowException()
         {
-            var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             // Connect and then disconnect Game Master
@@ -118,7 +104,6 @@ namespace IntegrationTests
         [Test]
         public void WhenClientIsConnected_ResponseShouldBeDelivered()
         {
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             gameMaster.ApplyConfiguration();
@@ -144,7 +129,6 @@ namespace IntegrationTests
         [Test]
         public void WhenClientIsClosed_ServerShouldNotTerminate()
         {
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             gameMaster.ApplyConfiguration();
@@ -170,7 +154,6 @@ namespace IntegrationTests
         [Test]
         public void WhenClientIsNotYetConnected_MessageShouldBeIgnored()
         {
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             gameMaster.ApplyConfiguration();
@@ -191,7 +174,6 @@ namespace IntegrationTests
         [Test]
         public void WhenGameMasterDisconnecting_CommunicationServerShouldThrow()
         {
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer);
             csTask.Start();
 
             // Connect to CS
@@ -219,6 +201,25 @@ namespace IntegrationTests
                 Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
                 
             }
+        }
+
+        private void GetConfigurationsForTest(int testId, out AgentConfiguration agentConfig, out GameMasterConfiguration gmConfig, out CommunicationServerConfiguration csConfig)
+        {
+            const int baseAgentPort = 49160;
+            const int baseGmPort = 65530;
+
+            var agentPortForTest = baseAgentPort + testId;
+            var gmPortForTest = baseGmPort - testId;
+
+            csConfig = CommunicationServerConfiguration.GetDefault();
+
+            agentConfig = AgentConfiguration.GetDefault();
+            agentConfig.CsPort = agentPortForTest;
+            csConfig.AgentPort = agentPortForTest;
+
+            gmConfig = GameMasterConfiguration.GetDefault();
+            gmConfig.CsPort = gmPortForTest;
+            csConfig.GameMasterPort = gmPortForTest;
         }
     }
 }

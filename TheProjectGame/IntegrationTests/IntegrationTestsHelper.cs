@@ -1,7 +1,5 @@
 ﻿using Agent;
 using CommunicationServer;
-using GameMaster;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -40,16 +38,17 @@ namespace IntegrationTests
         {
             var csThread = new Thread(() =>
             {
-                RunCommunicationServer();
+                RunCommunicationServer(null);
             });
 
             csThread.IsBackground = true;
             return csThread;
         }
 
-        public static void RunCommunicationServer()
+        public static void RunCommunicationServer(object state)
         {
-            var config = CommunicationServerConfiguration.GetDefault();
+
+            var config = state == null ? CommunicationServerConfiguration.GetDefault() : (CommunicationServerConfiguration)state;
             CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(config);
 
             try
