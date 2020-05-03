@@ -172,6 +172,56 @@ namespace IntegrationTests
         }
 
         [Test]
+        public void MessagesFromSecondGameMaster_ShouldBeIgnored()
+        {
+            csTask.Start();
+
+            gameMaster.ApplyConfiguration();
+            agent.ConnectToCommunicationServer();
+
+            var secondGameMaster = new GameMaster.GameMaster(gameMaster.Configuration);
+            secondGameMaster.ApplyConfiguration();
+
+            var messageToSend = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
+            secondGameMaster.SendMessage(messageToSend);
+
+            Thread.Sleep(100);
+            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+
+            Assert.IsNull(receivedMessage);
+
+            //Make sure CS has not failed
+            Thread.Sleep(100);
+            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+        }
+
+        [Test]
+        public void SecondGameMaster_ShouldNotGetAnyMessages()
+        {
+            csTask.Start();
+
+            gameMaster.ApplyConfiguration();
+            agent.ConnectToCommunicationServer();
+
+            var secondGameMaster = new GameMaster.GameMaster(gameMaster.Configuration);
+            secondGameMaster.ApplyConfiguration();
+
+            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false));
+            agent.SendMessage(messageToSend, false);
+
+            Thread.Sleep(100);
+            var receivedMessage = secondGameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            Assert.IsNull(receivedMessage);
+
+            var actualReceivedMessage = gameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            Assert.IsNotNull(actualReceivedMessage);
+
+            //Make sure CS has not failed
+            Thread.Sleep(100);
+            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+        }
+
+        [Test]
         public void WhenGameMasterDisconnecting_CommunicationServerShouldThrow()
         {
             csTask.Start();
