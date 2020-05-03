@@ -9,8 +9,7 @@ namespace CommunicationServer
 {
     public class CommunicationServer
     {
-        // TODO: Implement loading configuration from file
-        internal ConfigurationComponent ConfigComponent { get; private set; }
+        public CommunicationServerConfiguration Configuration { get; private set; }
         internal NetworkComponent NetworkComponent { get; private set; }
 
         internal IPAddress IPAddress { get; private set; }
@@ -22,9 +21,9 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
-        public CommunicationServer(string configFilePath = null)
+        public CommunicationServer(CommunicationServerConfiguration configuration)
         {
-            ConfigComponent = new ConfigurationComponent(configFilePath);
+            Configuration = configuration;
             NetworkComponent = new NetworkComponent(this);
 
             HostMapping = new HostMapping();
@@ -47,7 +46,7 @@ namespace CommunicationServer
             }
             catch (ArgumentOutOfRangeException)
             {
-                Console.WriteLine($"All ports have to be in range ({IPEndPoint.MinPort}, {IPEndPoint.MaxPort}), was: {ConfigComponent.GetAgentPort()} and {ConfigComponent.GetGameMasterPort()}");
+                Console.WriteLine($"All ports have to be in range ({IPEndPoint.MinPort}, {IPEndPoint.MaxPort}), was: {Configuration.AgentPort} and {Configuration.GameMasterPort}");
                 throw;
             }
             catch (Exception)

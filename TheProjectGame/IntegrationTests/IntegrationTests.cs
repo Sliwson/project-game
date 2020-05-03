@@ -15,7 +15,6 @@ namespace IntegrationTests
 {
     public class IntegrationTests
     {
-        private static string csConfigFilePath = @"communicationServerConfig.json";
         int agentsInTeam = 1;
         const int agentSleepMs = 16;
         const int gameMasterSleepMs = 16;
@@ -24,7 +23,7 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
             agentsInTeam = gameMaster.Configuration.TeamSize;
         }
 
@@ -71,7 +70,8 @@ namespace IntegrationTests
         {
             var csThread = new Thread(() =>
             {
-                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(csConfigFilePath);
+                var csConfig = CommunicationServerConfiguration.GetDefault();
+                var server = new CommunicationServer.CommunicationServer(csConfig);
                 server.Run();
             });
 
@@ -123,7 +123,7 @@ namespace IntegrationTests
 
         private void RunGameMaster()
         {
-            for (int i=0; i<200; i++)
+            for (int i = 0; i < 200; i++)
             {
                 gameMaster.Update(gameMasterSleepMs / 1000.0);
                 Thread.Sleep(gameMasterSleepMs);

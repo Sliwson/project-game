@@ -23,8 +23,8 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
-            config = gameMaster.Configuration;
+            config = GameMasterConfiguration.GetDefault();
+            gameMaster = new GameMaster.GameMaster(config);
         }
 
         // TODO (#IO-57): Mock NetworkComponent
