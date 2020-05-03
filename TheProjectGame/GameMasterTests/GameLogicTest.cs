@@ -23,9 +23,9 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            configuration = GameMasterConfiguration.GetDefault();
+            gameMaster = new GameMaster.GameMaster(configuration);
             gameLogicComponent = gameMaster.GameLogic;
-            configuration = gameMaster.Configuration;
         }
 
         #region Process message (error handling)

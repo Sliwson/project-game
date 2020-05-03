@@ -12,7 +12,6 @@ namespace GameplayMockupTests
 {
     public class Tests
     {
-        private static string csConfigFilePath = @"communicationServerConfig.json";
         const int agentsInTeam = 1;
         const int agentSleepMs = 16;
 
@@ -59,7 +58,8 @@ namespace GameplayMockupTests
         {
             var csThread = new Thread(() =>
             {
-                CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(csConfigFilePath);
+                var csConfig = CommunicationServerConfiguration.GetDefault();
+                var server = new CommunicationServer.CommunicationServer(csConfig);
                 server.Run();
             });
 

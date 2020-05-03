@@ -12,7 +12,7 @@ namespace CommunicationServer
         [JsonProperty(PropertyName = "GmPort")]
         internal int GameMasterPort { get; set; }
 
-        internal static CommunicationServerConfiguration GetDefault()
+        public static CommunicationServerConfiguration GetDefault()
         {
             return new CommunicationServerConfiguration
             {
