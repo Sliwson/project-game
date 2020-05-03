@@ -92,7 +92,7 @@ namespace GameMaster
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
-                SendMesage(m);
+                SendMessage(m);
             return true;
         }
 
@@ -131,7 +131,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    SendMesage(response);
+                    SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -144,7 +144,7 @@ namespace GameMaster
                 Logger.Get().Info("[GM] Ending game");
                 var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
                 foreach (var m in resultMessages)
-                    SendMesage(m);
+                    SendMessage(m);
             }
         }
 
@@ -159,7 +159,7 @@ namespace GameMaster
             NetworkComponent?.Disconnect();
         }
 
-        public void SendMesage(BaseMessage message)
+        public void SendMessage(BaseMessage message)
         {
             try
             {
