@@ -29,9 +29,22 @@ namespace Agent
 
         public static AgentConfiguration LoadFromFile(string filename)
         {
-            var text = File.ReadAllText(@filename);
-            AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(text);
-            return agentConfiguration;
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+
+            try
+            {
+                var text = File.ReadAllText(@filename);
+                AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(text);
+                logger.Info("[AgentConfiguration] Configuration loaded from {name}", filename);
+                return agentConfiguration;
+            }
+            catch (Exception e)
+            {
+                logger.Error("[AgentConfiguration] Cannot load configuration!");
+                logger.Error(e.Message);
+            }
+
+            return null;
         }
     }
 }

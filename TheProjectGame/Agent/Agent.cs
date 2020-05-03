@@ -1,19 +1,14 @@
 ﻿using Agent.Enums;
-using Agent.Interfaces;
 using Agent.strategies;
 using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
-using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Agent
 {
