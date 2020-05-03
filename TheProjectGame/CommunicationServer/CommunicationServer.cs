@@ -14,7 +14,7 @@ namespace CommunicationServer
 {
     public class CommunicationServer
     {
-        internal ConfigurationComponent ConfigComponent { get; private set; }
+        public CommunicationServerConfiguration Configuration { get; private set; }
         internal NetworkComponent NetworkComponent { get; private set; }
 
         internal IPAddress IPAddress { get; private set; }
@@ -28,9 +28,9 @@ namespace CommunicationServer
 
         private bool gameMasterDisconnected = false;
 
-        public CommunicationServer(string configFilePath = null)
+        public CommunicationServer(CommunicationServerConfiguration configuration)
         {
-            ConfigComponent = new ConfigurationComponent(configFilePath);
+            Configuration = configuration;
             NetworkComponent = new NetworkComponent(this);
 
             HostMapping = new HostMapping();

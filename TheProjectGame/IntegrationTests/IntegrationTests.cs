@@ -15,7 +15,6 @@ namespace IntegrationTests
 {
     public class IntegrationTests
     {
-        private static string csConfigFilePath = @"communicationServerConfig.json";
         int agentsInTeam = 1;
         const int agentSleepMs = 16;
         const int gameMasterSleepMs = 16;
@@ -24,7 +23,7 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
             agentsInTeam = gameMaster.Configuration.TeamSize;
         }
 

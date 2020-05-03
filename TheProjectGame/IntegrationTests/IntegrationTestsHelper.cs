@@ -1,4 +1,5 @@
 ﻿using Agent;
+using CommunicationServer;
 using GameMaster;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,8 @@ namespace IntegrationTests
 
         public static void RunCommunicationServer()
         {
-            CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer();
+            var config = CommunicationServerConfiguration.GetDefault();
+            CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(config);
 
             try
             {

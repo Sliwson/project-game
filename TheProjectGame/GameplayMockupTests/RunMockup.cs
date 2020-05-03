@@ -13,7 +13,6 @@ namespace GameplayMockupTests
 {
     public class Tests
     {
-        private static string csConfigFilePath = @"communicationServerConfig.json";
         const int agentsInTeam = 1;
         const int agentSleepMs = 16;
 

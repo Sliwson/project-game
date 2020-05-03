@@ -30,8 +30,11 @@ namespace CommunicationServer
             gameMasterSocket = gameMasterListener;
             agentSocket = agentListener;
 
-            var gameMasterEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetGameMasterPort());
-            var agentEndpoint = new IPEndPoint(server.IPAddress, server.ConfigComponent.GetAgentPort());
+            var gameMasterPort = server.Configuration.GameMasterPort;
+            var agentPort = server.Configuration.AgentPort;
+
+            var gameMasterEndpoint = new IPEndPoint(server.IPAddress, gameMasterPort);
+            var agentEndpoint = new IPEndPoint(server.IPAddress, agentPort);
 
             var extendedGameMasterListener = new ExtendedListener(gameMasterListener, ClientType.GameMaster, ref gmAccepted);
             var extendedAgentListener = new ExtendedListener(agentListener, ClientType.Agent, ref agentAccepted);
@@ -43,11 +46,11 @@ namespace CommunicationServer
 
                 Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
                 gameMasterThread.Start(extendedGameMasterListener);
-                Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{server.ConfigComponent.GetGameMasterPort()}");
+                Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{gameMasterPort}");
 
                 Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
                 agentsThread.Start(extendedAgentListener);
-                Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{server.ConfigComponent.GetAgentPort()}");
+                Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{agentPort}");
             }
             catch (ArgumentNullException e)
             {

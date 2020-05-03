@@ -39,13 +39,13 @@ namespace Agent
 
         public void Initialize(StartGamePayload startGamePayload)
         {
-            IsLeader = agent.id == startGamePayload.LeaderId ? true : false;
+            IsLeader = agent.Id == startGamePayload.LeaderId ? true : false;
             Team = startGamePayload.TeamId;
             TeamMates = startGamePayload.AlliesIds;
             Penalties = startGamePayload.Penalties;
             AverageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
             ShamPieceProbability = startGamePayload.ShamPieceProbability;
-            logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.id.ToString());
+            logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.Id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
             AssignToOwnGoalArea(startGamePayload);
             FindFirstTeamMateToAsk();
@@ -67,9 +67,9 @@ namespace Agent
                 int[] allIds = new int[startGamePayload.AlliesIds.Length + 1];
                 for (int i = 0; i < startGamePayload.AlliesIds.Length; i++)
                     allIds[i] = startGamePayload.AlliesIds[i];
-                allIds[allIds.Length - 1] = agent.id;
+                allIds[allIds.Length - 1] = agent.Id;
                 Array.Sort(allIds);
-                int ownId = Array.IndexOf(allIds, agent.id);
+                int ownId = Array.IndexOf(allIds, agent.Id);
                 bool divideWidth = startGamePayload.BoardSize.X >= startGamePayload.GoalAreaHeight;
                 int lengthToDivide = divideWidth ? startGamePayload.BoardSize.X : startGamePayload.GoalAreaHeight;
                 int groupSize = 2;
@@ -95,7 +95,7 @@ namespace Agent
                 int mate = 0;
                 for (int i = beginMates; i <= endMates; i++)
                 {
-                    if (allIds[i] == agent.id) continue;
+                    if (allIds[i] == agent.Id) continue;
                     TeamMatesToAsk[mate] = allIds[i];
                     mate++;
                 }
@@ -112,9 +112,9 @@ namespace Agent
                 {
                     minId = i;
                 }
-                if (TeamMatesToAsk[i] - agent.id > 0 && TeamMatesToAsk[i] - agent.id < minDist)
+                if (TeamMatesToAsk[i] - agent.Id > 0 && TeamMatesToAsk[i] - agent.Id < minDist)
                 {
-                    minDist = TeamMatesToAsk[i] - agent.id;
+                    minDist = TeamMatesToAsk[i] - agent.Id;
                     closestHigherId = i;
                 }
             }

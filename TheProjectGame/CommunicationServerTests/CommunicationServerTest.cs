@@ -10,7 +10,8 @@ namespace CommunicationServerTests
         [SetUp]
         public void Setup()
         {
-            server = new CommunicationServer.CommunicationServer();
+            var config = CommunicationServerConfiguration.GetDefault();
+            server = new CommunicationServer.CommunicationServer(config);
         }
 
         // TODO (#IO-57): Implement injecting messages in CS without connecting clients

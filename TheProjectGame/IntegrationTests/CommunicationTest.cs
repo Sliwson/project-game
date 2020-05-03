@@ -33,7 +33,8 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            var config = GameMasterConfiguration.GetDefault();
+            gameMaster = new GameMaster.GameMaster(config);
             //gameMasterTaskState = new IntegrationTestsHelper.GameMasterTaskState { GameMaster = gameMaster, GameMasterSleepMs = gameMasterSleepMs };
 
             agent = new Agent.Agent(new AgentConfiguration

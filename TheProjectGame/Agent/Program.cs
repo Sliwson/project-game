@@ -11,24 +11,34 @@ namespace Agent
     {
         private const int updateInterval = 10;
 
-        public static AgentConfiguration Configuration { get; private set; }
-        public static Agent Agent { get; set; }
-
         static void Main(string[] args)
         {
-            CreateAgent();
+            var agent = CreateAgent();
+            Run(agent);
         }
 
-        private static void LoadDefaultConfiguration()
+        private static Agent CreateAgent()
         {
-            Configuration = AgentConfiguration.GetConfiguration();
-        }
-     
-        private static void CreateAgent()
-        {
-            LoadDefaultConfiguration();
-            Agent = new Agent(Configuration);
+            var config = AgentConfiguration.GetDefault();
 
+            Console.WriteLine("Do you want to load configuration from file? [Y]/[*]");
+            ConsoleKey key = Console.ReadKey().Key;
+            Console.WriteLine();
+
+            if (key == ConsoleKey.Y)
+            {
+                Console.WriteLine("Enter path: ");
+                var line = Console.ReadLine();
+                var newConfig = AgentConfiguration.LoadFromFile(line);
+                if (newConfig != null)
+                    config = newConfig;
+            }
+
+            return new Agent(config);
+        }
+
+        private static void Run(Agent agent)
+        {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -40,11 +50,11 @@ namespace Agent
                 stopwatch.Reset();
                 stopwatch.Start();
 
-                actionResult = Agent.Update(timeElapsed);
+                actionResult = agent.Update(timeElapsed);
                 Thread.Sleep(updateInterval);
             }
 
-            Agent.OnDestroy();
+            agent.OnDestroy();
         }
     }
 }

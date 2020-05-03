@@ -8,86 +8,66 @@ using Messaging.Enumerators;
 using Messaging.Implementation;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace AgentTests
 {
     public class AgentTest
     {
-        private Agent.Agent agent;
+        private Agent.Agent agent; //agent initialized by default values in each run
+        private DateTime startTime; //start time of each run
+        private AgentConfiguration defaultConfiguration;
 
-        private DateTime startTime;
-
-        private StartGamePayload startGamePayload;
+        //props set for test run
+        private Point TestBoardSize => new Point(5, 6);
+        private Point TestInitialPosition => new Point(0, 0);
 
         [SetUp]
         public void Setup()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            agentConfiguration.WantsToBeTeamLeader = false;
-            agentConfiguration.TeamID = "Blue";
-            agent = new Agent.Agent(agentConfiguration);
-            var teamMates = new int[3] { 2, 3, 4 };
-            var enemiesIds = new int[3] { 5, 7, 6 };
-
-            startGamePayload = new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5, 6), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
-
-            agent.StartGameComponent.Initialize(startGamePayload);
-            agent.SetDoNothingStrategy();
+            agent = GetDefaultAgent();
             startTime = DateTime.Now;
+            defaultConfiguration = AgentConfiguration.GetDefault();
         }
 
         [Test]
-        public void Set_agent_TeamLeader()
+        public void Initialize_ShouldInitializeTeamLeader()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            agentConfiguration.WantsToBeTeamLeader = false;
-            agentConfiguration.TeamID = "Blue";
-            agent = new Agent.Agent(agentConfiguration);
-            agent.id = 1;
-            var teamMates = new int[3] { 2, 3, 4 };
-            var enemiesIds = new int[3] { 5, 7, 6 };
-            startGamePayload = new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5,5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
-
-            agent.StartGameComponent.Initialize(startGamePayload);
-            Assert.AreEqual(agent.StartGameComponent.IsLeader, true);
+            Assert.IsTrue(defaultConfiguration.WantsToBeTeamLeader);
+            Assert.AreEqual(agent.WantsToBeLeader, true);
         }
 
         [Test]
-        public void Set_other_agent_TeamLeader()
+        public void Initialize_ShouldInitializeNotTeamLeader()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            agentConfiguration.WantsToBeTeamLeader = true;
-            agentConfiguration.TeamID = "Blue";
-            agent = new Agent.Agent(agentConfiguration);
-            agent.id = 1;
-            var teamMates = new int[3] { 2, 3, 4 };
-            var enemiesIds = new int[3] { 5, 7, 6 };
+            var config = AgentConfiguration.GetDefault();
+            config.WantsToBeTeamLeader = false;
+            var agent = GetInitializedAgent(config);
 
-            startGamePayload = new StartGamePayload(2, teamMates, 1, enemiesIds, TeamId.Blue, new Point(5, 5), 1, 3, 3, 4, 4, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.5f, new Point(0, 0));
-
-            Assert.AreEqual(agent.StartGameComponent.IsLeader, false);
+            Assert.AreEqual(agent.WantsToBeLeader, false);
         }
 
         [Test]
-        public void Set_agent_boardSize()
+        public void Initialize_ShouldSetBoardSize()
         {
-            Assert.AreEqual(agent.BoardLogicComponent.BoardSize.X, 5);
-            Assert.AreEqual(agent.BoardLogicComponent.BoardSize.Y, 6);
+            Assert.AreEqual(agent.BoardLogicComponent.BoardSize.X, TestBoardSize.X);
+            Assert.AreEqual(agent.BoardLogicComponent.BoardSize.Y, TestBoardSize.Y);
         }
 
         [Test]
-        public void Set_agent_position()
+        public void Initialize_ShouldSetAgentPosition()
         {
-            Assert.AreEqual(agent.BoardLogicComponent.Position.X, 0);
-            Assert.AreEqual(agent.BoardLogicComponent.Position.Y, 0);
+            Assert.AreEqual(agent.BoardLogicComponent.Position.X, TestInitialPosition.X);
+            Assert.AreEqual(agent.BoardLogicComponent.Position.Y, TestInitialPosition.Y);
         }
 
         [Test]
-        public void Is_initialized()
+        public void Agent_ShouldBeProperlyInitialized()
         {
             Assert.IsNotNull(agent.WaitingPlayers);
             Assert.IsNull(agent.Piece);
+
             foreach (var field in agent.BoardLogicComponent.Board)
             {
                 Assert.AreEqual(field.deniedMove, DateTime.MinValue);
@@ -96,7 +76,7 @@ namespace AgentTests
         }
 
         [Test]
-        public void Has_correct_board_size()
+        public void Agent_ShouldHaveBoardInitialized()
         {
             Assert.AreEqual(agent.BoardLogicComponent.BoardSize.X, agent.BoardLogicComponent.Board.GetLength(1));
             Assert.AreEqual(agent.BoardLogicComponent.BoardSize.Y, agent.BoardLogicComponent.Board.GetLength(0));
@@ -106,23 +86,19 @@ namespace AgentTests
         #region Join
 
         [Test]
-        public void ProcessMessage_JoinRequest_When_Accepted_Should_Set_Agent_Id()
+        public void ProcessMessage_JoinRequestWhenAcceptedShouldSetAgentId()
         {
-            Assert.AreEqual(agent.id, 0);
-
+            Assert.AreEqual(agent.Id, 0);
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
-
-            Assert.AreEqual(agent.id, 1);
+            Assert.AreEqual(agent.Id, 1);
         }
 
         [Test]
-        public void ProcessMessage_JoinRequest_When_Not_Accepted_Should_Not_Set_Agent_Id()
+        public void ProcessMessage_JoinRequestWhenNotAcceptedShouldNotSetAgentId()
         {
-            Assert.AreEqual(agent.id, 0);
-
+            Assert.AreEqual(agent.Id, 0);
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
-
-            Assert.AreEqual(agent.id, 0);
+            Assert.AreEqual(agent.Id, 0);
         }
 
         #endregion
@@ -130,30 +106,24 @@ namespace AgentTests
         #region Check Sham
 
         [Test]
-        public void ProcessMessage_CheckShamResponse_If_Sham_Agent_Should_Destroy_Piece()
+        public void ProcessMessage_CheckShamResponseIfShamAgentShouldDestroyPiece()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.Piece = new Piece();
-
             agent.AcceptMessage(GetBaseMessage(new CheckShamResponse(true), 1));
-
             agent.AcceptMessage(GetBaseMessage(new DestroyPieceResponse(), 1));
 
             Assert.IsNull(agent.Piece);
         }
 
         [Test]
-        public void ProcessMessage_CheckShamResponse_If_Not_Sham_Agent_Piece_Should_Be_Discovered()
+        public void ProcessMessage_CheckShamResponseIfNotShamAgentPieceShouldBeDiscovered()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.Piece = new Piece();
 
             Assert.IsFalse(agent.Piece.isDiscovered);
-
             agent.AcceptMessage(GetBaseMessage(new CheckShamResponse(false), 1));
-
             Assert.IsTrue(agent.Piece.isDiscovered);
         }
 
@@ -162,7 +132,7 @@ namespace AgentTests
         #region Discover
 
         [Test]
-        public void ProcessMessage_DiscoverResponse_Should_Update_Agent_Board_State()
+        public void ProcessMessage_DiscoverResponseShouldUpdateAgentBoardState()
         {
             agent.AgentState = AgentState.InGame;
 
@@ -209,7 +179,7 @@ namespace AgentTests
         #region Exchange information
 
         [Test]
-        public void ProcessMessage_ExchangeInformationPayload_If_Not_TeamLeader_Asking_Should_Be_Added_To_Waiting_List()
+        public void ProcessMessage_ExchangeInformationPayload_IfNotTeamLeaderAsking_ShouldBeAddedToWaitingList()
         {
             agent.AgentState = AgentState.InGame;
             agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
@@ -222,7 +192,7 @@ namespace AgentTests
 
 
         [Test]
-        public void ProcessMessage_ExchangeInformationResponsePayload_Should_Update_Agent_Board_State()
+        public void ProcessMessage_ExchangeInformationResponsePayload_ShouldUpdateAgentBoardState()
         {
             agent.AgentState = AgentState.InGame;
 
@@ -263,10 +233,9 @@ namespace AgentTests
         #region Move
 
         [Test]
-        public void ProcessMessage_MoveResponse_When_Move_Made_Agent_Position_Should_Change_And_DistToPiece_Should_Update()
+        public void ProcessMessage_MoveResponse_WhenMoveMadeAgentPositionShouldChangeAndDistToPieceShouldUpdate()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 2), 1));
 
             Assert.AreEqual(agent.BoardLogicComponent.Position, new Point(1, 0));
@@ -274,12 +243,10 @@ namespace AgentTests
         }
 
         [Test]
-        public void ProcessMessage_MoveResponse_When_DistToPiece_Equal_Zero_Agent_Should_PickUp_Piece()
+        public void ProcessMessage_MoveResponse_WhenDistToPieceEqualZero_AgentShouldPickUpPiece()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.AcceptMessage(GetBaseMessage(new MoveResponse(true, new Point(1, 0), 0), 1));
-
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
 
             Assert.AreEqual(agent.BoardLogicComponent.Position, new Point(1, 0));
@@ -288,7 +255,7 @@ namespace AgentTests
         }
 
         [Test]
-        public void ProcessMessage_MoveResponse_When_Move_Denied_AgentShould_Update_Position_And_Board_State()
+        public void ProcessMessage_MoveResponse_WhenMoveDenied_AgentShouldUpdatePositionAndBoardState()
         {
             agent.AgentState = AgentState.InGame;
             agent.BoardLogicComponent.Position = new Point(0, 0);
@@ -304,44 +271,36 @@ namespace AgentTests
         #region PickUp
 
         [Test]
-        public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Zero_Agent_Should_PickUp_Piece()
+        public void ProcessMessage_PickUpPieceResponse_WhenDistToPieceIsZero_AgentShouldPickUpPiece()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = 0;
 
             Assert.IsNull(agent.Piece);
-
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
-
             Assert.IsNotNull(agent.Piece);
         }
 
         [Test]
-        public void ProcessMessage_PickUpPieceResponse_When_DistToPiece_Is_Not_Zero_Agent_Should_Not_PickUp_Piece()
+        public void ProcessMessage_PickUpPieceResponse_WhenDistToPieceIsNotZero_AgentShouldNotPickUpPiece()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = 1;
 
             Assert.IsNull(agent.Piece);
-
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
-
             Assert.IsNull(agent.Piece);
         }
 
         [Test]
-        public void ProcessMessage_PickUpPieceResponse_When_PickUpPieceError_DistToPiece_Should_Be_Set_To_Default()
+        public void ProcessMessage_PickUpPieceResponse_WhenPickUpPieceError_DistToPieceShouldBeSetToDefault()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = 0;
 
             Assert.IsNull(agent.Piece);
 
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceResponse(), 1));
-
             agent.AcceptMessage(GetBaseMessage(new PickUpPieceError(PickUpPieceErrorSubtype.NothingThere), 1));
 
             Assert.AreEqual(agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece, int.MaxValue);
@@ -352,7 +311,7 @@ namespace AgentTests
         #region PutDown
 
         [Test]
-        public void ProcessMessage_PutDownPieceResponse_Agent_Should_Not_Have_Piece()
+        public void ProcessMessage_PutDownPieceResponse_AgentShouldNotHavePiece()
         {
             agent.AgentState = AgentState.InGame;
 
@@ -360,19 +319,15 @@ namespace AgentTests
             agent.Piece = new Piece();
 
             Assert.IsNotNull(agent.Piece);
-
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
-
             Assert.IsNull(agent.Piece);
         }
 
         [Test]
-        public void ProcessMessage_PutDownPieceResponse_When_PutDownPieceError_AgentNotHolding_Agent_Should_Not_Have_Piece()
+        public void ProcessMessage_PutDownPieceResponse_WhenPutDownPieceErrorAgentNotHolding_AgentShouldNotHavePiece()
         {
             agent.AgentState = AgentState.InGame;
-
             agent.Piece = new Piece();
-
             Assert.IsNotNull(agent.Piece);
 
             agent.AcceptMessage(GetBaseMessage(new PutDownPieceResponse(PutDownPieceResult.TaskField), 1));
@@ -386,25 +341,20 @@ namespace AgentTests
         #region Agent state
 
         [Test]
-        public void Joins_When_Accepted()
+        public void AcceptMessage_ShouldJoinWhenAccepted()
         {
-            AgentConfiguration agentConfiguration = new AgentConfiguration();
-            agentConfiguration.WantsToBeTeamLeader = false;
-            agentConfiguration.TeamID = "Blue";
-            agent = new Agent.Agent(agentConfiguration);
+            var config = AgentConfiguration.GetDefault();
+            agent = new Agent.Agent(config);
             agent.AgentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(true, 1), 1));
             Assert.AreEqual(agent.AgentState, AgentState.WaitingForStart);
-
         }
 
         [Test]
-        public void Does_Not_Join_When_Rejected()
+        public void AcceptMessage_ShouldNotJoinWnehRejected()
         {
-            AgentConfiguration agnetConfiguration = new AgentConfiguration();
-            agnetConfiguration.WantsToBeTeamLeader = false;
-            agnetConfiguration.TeamID = "Blue";
-            agent = new Agent.Agent(agnetConfiguration);
+            var config = AgentConfiguration.GetDefault();
+            agent = new Agent.Agent(config);
             agent.AgentState = AgentState.WaitingForJoin;
             agent.AcceptMessage(GetBaseMessage(new JoinResponse(false, 1), 1));
             Assert.AreEqual(agent.AgentState, AgentState.WaitingForJoin);
@@ -416,6 +366,29 @@ namespace AgentTests
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T : IPayload
         {
             return MessageFactory.GetMessage(payload, agentFromId);
+        }
+
+        private Agent.Agent GetDefaultAgent()
+        {
+            var config = AgentConfiguration.GetDefault();
+            return GetInitializedAgent(config);
+        }
+
+        private Agent.Agent GetInitializedAgent(AgentConfiguration config)
+        {
+            agent = new Agent.Agent(config);
+
+            var startGamePayload = GetDefaultStartGamePayload();
+            agent.StartGameComponent.Initialize(startGamePayload);
+            agent.SetDoNothingStrategy();
+            return agent;
+        }
+
+        private StartGamePayload GetDefaultStartGamePayload()
+        {
+            var teamMates = new int[3] { 2, 3, 4 };
+            var enemiesIds = new int[3] { 5, 7, 6 };
+            return new StartGamePayload(1, teamMates, 1, enemiesIds, TeamId.Blue, TestBoardSize, 1, 3, 3, 4, 4, new Dictionary<ActionType, TimeSpan>(), 0.5f, TestInitialPosition);
         }
     }
 }
