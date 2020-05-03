@@ -10,7 +10,7 @@ namespace GameMasterPresentation
         public static readonly string MessageBoxName = "Configuration";
         public static readonly string GameMasterMessageBoxName = "Game Master";
         public static readonly string ConfigurationDirectoryPath = @"Configuration";
-        public static readonly string ConfigurationFilePath = @"Configuration\default.json";
+        public static readonly string ConfigurationFilePath = @"Configuration\gameMasterConfiguration.json";
 
         public static readonly int HorizontalLineZIndex = 50;
         public static readonly int VerticalLineZIndex = 50;
