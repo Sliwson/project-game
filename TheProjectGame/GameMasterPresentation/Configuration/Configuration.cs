@@ -518,29 +518,5 @@ namespace GameMasterPresentation.Configuration
             //maybe think of sth better
             return base.GetHashCode();
         }
-
-        //TODO: delete
-        public static Configuration MockConfiguration()
-        {
-            var conf = new Configuration()
-            {
-                BoardX = 5,
-                BoardY = 10,
-                GoalAreaHeight = 3,
-                NumberOfGoals = 4,
-                TeamSize = 2,
-                NumberOfPieces = 10,
-                ShamProbability = 0.3f,
-                CSAddress = "192.168.1.1",
-                CSPort = 50000,
-                MovePenalty = 1000,
-                InformationExchangePenalty = 700,
-                DiscoveryPenalty = 600,
-                PutPenalty = 500,
-                CheckForShamPenalty = 400,
-                DestroyPiecePenalty = 300
-            };
-            return conf;
-        }
     }
 }

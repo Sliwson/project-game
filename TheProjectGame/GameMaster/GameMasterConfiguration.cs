@@ -49,5 +49,27 @@ namespace GameMaster
             agentTimeouts.Add(ActionType.PutPiece, PutPenalty);
             return agentTimeouts;
         }
+
+        public static GameMasterConfiguration GetDefault()
+        {
+            return new GameMasterConfiguration
+            {
+                MovePenalty = new TimeSpan(1500),
+                InformationExchangePenalty = new TimeSpan(1000),
+                DiscoveryPenalty = new TimeSpan(700),
+                PutPenalty = new TimeSpan(500),
+                CheckForShamPenalty = new TimeSpan(1000),
+                DestroyPiecePenalty = new TimeSpan(700),
+                BoardX = 40,
+                BoardY = 40,
+                GoalAreaHeight = 5,
+                NumberOfGoals = 10,
+                NumberOfPieces = 10,
+                ShamProbability = 0.3f,
+                TeamSize = 5,                
+                CsIP = "127.0.0.1",
+                CsPort = 54322
+            };
+        }
     }
 }

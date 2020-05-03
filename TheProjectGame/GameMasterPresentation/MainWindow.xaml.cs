@@ -87,12 +87,16 @@ namespace GameMasterPresentation
         {
             InitializeComponent();
 
+            var configuration = GameMaster.GameMasterConfiguration.GetDefault();
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+            if (GMConfig != null)
+                configuration = GMConfig.ConvertToGMConfiguration();
 
-            gameMaster = new GameMaster.GameMaster(GMConfig?.ConvertToGMConfiguration());
+            gameMaster = new GameMaster.GameMaster(configuration);
 
             Board = new BoardComponent(BoardCanvas);
 
+            //TODO: handle null exeption if default not loaded
             GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
             timer = new DispatcherTimer();
@@ -102,7 +106,6 @@ namespace GameMasterPresentation
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
 
-            //in development there wasn't this line
             stopwatch.Start();
 
             frameStopwatch.Start();

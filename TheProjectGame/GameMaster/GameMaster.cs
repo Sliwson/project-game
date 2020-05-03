@@ -24,15 +24,11 @@ namespace GameMaster
         public GameMasterState state { get; private set; } = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster(GameMasterConfiguration configuration = null)
+        public GameMaster(GameMasterConfiguration configuration)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
 
-            if (configuration == null)
-                LoadDefaultConfiguration();
-            else
-                Configuration = configuration;
-
+            Configuration = configuration;
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
@@ -177,14 +173,6 @@ namespace GameMaster
 
             //TODO: refactor
             return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
-        }
-
-        private void LoadDefaultConfiguration()
-        {
-            Logger.Get().Info("[GM] Loading default configuration");
-
-            var configurationProvider = new MockConfigurationProvider();
-            Configuration = configurationProvider.GetConfiguration();
         }
     }
 }
