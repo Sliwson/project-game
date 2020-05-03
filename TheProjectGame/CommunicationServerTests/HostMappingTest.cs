@@ -64,14 +64,13 @@ namespace CommunicationServerTests
         }
 
         [Test]
-        public void GetHostIdForSocket_ShouldRegisterAndReturnIdIfNotRegistered()
+        public void GetHostIdForSocket_ShouldThrowIfHostNotRegistered()
         {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            var registeredId = hostMapping.GetHostIdForSocket(socket);
-            var returnedId = hostMapping.GetHostIdForSocket(socket);
-
-            Assert.AreEqual(registeredId, returnedId);
+            var exception = Assert.Throws<CommunicationErrorException>(() => hostMapping.GetHostIdForSocket(socket));
+            Assert.AreEqual(CommunicationExceptionType.NoClient, exception.Type);
+            Assert.AreNotEqual("", exception.Message);
         }
 
         [Test]

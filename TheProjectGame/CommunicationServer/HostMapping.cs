@@ -25,7 +25,7 @@ namespace CommunicationServer
             if (socket != null && inversedMapping.TryGetValue(socket, out int hostId))
                 return hostId;
 
-            return AddClientToMapping(ClientType.Agent, socket);
+            throw new CommunicationErrorException(CommunicationExceptionType.NoClient);
         }
 
         internal Socket GetSocketForHostId(int hostId)
