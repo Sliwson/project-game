@@ -11,245 +11,266 @@ using Messaging.Contracts.GameMaster;
 using System;
 using System.Threading.Tasks;
 using Messaging.Communication;
+using NUnit.Framework.Internal;
 
 namespace IntegrationTests
 {
     public class CommunicationTest
     {
-        private int currentTestId = 0;
-
-        private GameMaster.GameMaster gameMaster;
-        private Agent.Agent agent;
-
-        private Task csTask;
-
-        [SetUp]
-        public void Setup()
+        private class TestComponents
         {
-            GetConfigurationsForTest(++currentTestId, out AgentConfiguration agentConfig, out GameMasterConfiguration gmConfig, out CommunicationServerConfiguration csConfig);
-
-            gameMaster = new GameMaster.GameMaster(gmConfig);
-            agent = new Agent.Agent(agentConfig);
-
-            csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
+            internal GameMaster.GameMaster GameMaster { get; set; }
+            internal Agent.Agent Agent { get; set; }
+            internal Task CsTask { get; set; }
         }
 
+        private TestComponents InitializeTest(int testId)
+        {
+            var result = new TestComponents();
+
+            GetConfigurationsForTest(testId, out AgentConfiguration agentConfig, out GameMasterConfiguration gmConfig, out CommunicationServerConfiguration csConfig);
+
+            result.GameMaster = new GameMaster.GameMaster(gmConfig);
+            result.Agent = new Agent.Agent(agentConfig);
+            result.CsTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
+
+            return result;
+        }
+
+        [NonParallelizable]
         [Test]
         public void WhenGameMasterIsConnected_MessageShouldBeSent()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(0);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
-            agent.ConnectToCommunicationServer();
+            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.Agent.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
-            agent.SendMessage(messageToSend, false);
+            testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
-            var receivedMessage = gameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.GameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNotNull(receivedMessage);
             Assert.AreEqual(MessageId.JoinRequest, receivedMessage.MessageId);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenGameMasterIsNotYetConnected_MessageShouldBeIgnored()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(1);
+            testComponents.CsTask.Start();
 
-            agent.ConnectToCommunicationServer();
+            testComponents.Agent.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
-            agent.SendMessage(messageToSend, false);
+            testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNull(receivedMessage);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenGameMasterIsClosed_ServerShouldThrowException()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(2);
+            testComponents.CsTask.Start();
 
             // Connect and then disconnect Game Master
-            gameMaster.ApplyConfiguration();
-            var disconnectResult = gameMaster.NetworkComponent.Disconnect();
+            testComponents.GameMaster.ApplyConfiguration();
+            var disconnectResult = testComponents.GameMaster.NetworkComponent.Disconnect();
             Assert.IsTrue(disconnectResult);
 
-            agent.ConnectToCommunicationServer();
+            testComponents.Agent.ConnectToCommunicationServer();
 
             // Need to send two times (one does not trigger exception)
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
-            agent.SendMessage(messageToSend, false);
-            agent.SendMessage(messageToSend, false);
+            testComponents.Agent.SendMessage(messageToSend, false);
+            testComponents.Agent.SendMessage(messageToSend, false);
 
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNull(receivedMessage);
             Thread.Sleep(100);
 
-            Assert.AreEqual(TaskStatus.Faulted, csTask.Status);
-            var exception = csTask.Exception.InnerException as CommunicationErrorException;
+            Assert.AreEqual(TaskStatus.Faulted, testComponents.CsTask.Status);
+            var exception = testComponents.CsTask.Exception.InnerException as CommunicationErrorException;
             Assert.IsNotNull(exception);
             Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenClientIsConnected_ResponseShouldBeDelivered()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(3);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
-            agent.ConnectToCommunicationServer();
+            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.Agent.ConnectToCommunicationServer();
 
             var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
-            agent.SendMessage(messageFromAgent, false);
+            testComponents.Agent.SendMessage(messageFromAgent, false);
             Thread.Sleep(100);
 
             var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
-            gameMaster.SendMessage(messageFromGm);
+            testComponents.GameMaster.SendMessage(messageFromGm);
             Thread.Sleep(100);
 
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNotNull(receivedMessage);
             Assert.AreEqual(MessageId.JoinResponse, receivedMessage.MessageId);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenClientIsClosed_ServerShouldNotTerminate()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(4);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
-            agent.ConnectToCommunicationServer();
+            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.Agent.ConnectToCommunicationServer();
 
             var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
-            agent.SendMessage(messageFromAgent, false);
-            agent.OnDestroy();
+            testComponents.Agent.SendMessage(messageFromAgent, false);
+            testComponents.Agent.OnDestroy();
             Thread.Sleep(100);
 
             var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
-            gameMaster.SendMessage(messageFromGm);
+            testComponents.GameMaster.SendMessage(messageFromGm);
             Thread.Sleep(100);
 
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNull(receivedMessage);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenClientIsNotYetConnected_MessageShouldBeIgnored()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(5);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ApplyConfiguration();
 
             var messageToSend = MessageFactory.GetMessage(new JoinResponse(true, 1));
-            gameMaster.SendMessage(messageToSend);
+            testComponents.GameMaster.SendMessage(messageToSend);
 
             Thread.Sleep(100);
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
 
             Assert.IsNull(receivedMessage);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void MessagesFromSecondGameMaster_ShouldBeIgnored()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(6);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
-            agent.ConnectToCommunicationServer();
+            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.Agent.ConnectToCommunicationServer();
 
-            var secondGameMaster = new GameMaster.GameMaster(gameMaster.Configuration);
+            var secondGameMaster = new GameMaster.GameMaster(testComponents.GameMaster.Configuration);
             secondGameMaster.ApplyConfiguration();
 
             var messageToSend = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
             secondGameMaster.SendMessage(messageToSend);
 
             Thread.Sleep(100);
-            var receivedMessage = agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
 
             Assert.IsNull(receivedMessage);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void SecondGameMaster_ShouldNotGetAnyMessages()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(7);
+            testComponents.CsTask.Start();
 
-            gameMaster.ApplyConfiguration();
-            agent.ConnectToCommunicationServer();
+            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.Agent.ConnectToCommunicationServer();
 
-            var secondGameMaster = new GameMaster.GameMaster(gameMaster.Configuration);
+            var secondGameMaster = new GameMaster.GameMaster(testComponents.GameMaster.Configuration);
             secondGameMaster.ApplyConfiguration();
 
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false));
-            agent.SendMessage(messageToSend, false);
+            testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
             var receivedMessage = secondGameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNull(receivedMessage);
 
-            var actualReceivedMessage = gameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
+            var actualReceivedMessage = testComponents.GameMaster.NetworkComponent.GetIncomingMessages().FirstOrDefault();
             Assert.IsNotNull(actualReceivedMessage);
 
             //Make sure CS has not failed
             Thread.Sleep(100);
-            Assert.AreEqual(TaskStatus.Running, csTask.Status);
+            Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
         }
 
+        [NonParallelizable]
         [Test]
         public void WhenGameMasterDisconnecting_CommunicationServerShouldThrow()
         {
-            csTask.Start();
+            var testComponents = InitializeTest(8);
+            testComponents.CsTask.Start();
 
             // Connect to CS
-            gameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ApplyConfiguration();
 
             // And then disconnect
-            gameMaster.OnDestroy();
+            testComponents.GameMaster.OnDestroy();
 
-            Assert_CommunicationServerSuccessfullyKilled();
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         // Server should be gently killed after GameMaster termination
-        private void Assert_CommunicationServerSuccessfullyKilled()
+        private void Assert_CommunicationServerSuccessfullyKilled(TestComponents testComponents)
         {
             try
             {
-                gameMaster.OnDestroy();
-                csTask.Wait();
+                testComponents.GameMaster.OnDestroy();
+                testComponents.CsTask.Wait();
             }
-            catch(AggregateException ex)
+            catch (AggregateException ex)
             {
-                Assert.AreEqual(TaskStatus.Faulted, csTask.Status);
+                Assert.AreEqual(TaskStatus.Faulted, testComponents.CsTask.Status);
                 var exception = ex.InnerException as CommunicationErrorException;
                 Assert.IsNotNull(exception);
                 Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
-                
+
             }
         }
 
