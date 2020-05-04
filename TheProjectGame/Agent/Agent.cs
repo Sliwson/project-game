@@ -75,7 +75,7 @@ namespace Agent
         public void ConnectToCommunicationServer()
         {
             if (!NetworkComponent.Connect(ClientType.Agent))
-                throw new ApplicationException("Unable to connect to CS");
+                throw new ApplicationException("Unable to connect to CS", NetworkComponent.Exception);
         }
 
         public void OnDestroy()
