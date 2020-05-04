@@ -89,38 +89,6 @@ namespace IntegrationTests
 
         [NonParallelizable]
         [Test]
-        public void WhenGameMasterIsClosed_ServerShouldThrowException()
-        {
-            var testComponents = InitializeTest(2);
-            testComponents.CsTask.Start();
-            Thread.Sleep(100);
-
-            // Connect and then disconnect Game Master
-            testComponents.GameMaster.ApplyConfiguration();
-            var disconnectResult = testComponents.GameMaster.NetworkComponent.Disconnect();
-            Assert.IsTrue(disconnectResult);
-
-            testComponents.Agent.ConnectToCommunicationServer();
-
-            // Need to send two times (one does not trigger exception)
-            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
-            testComponents.Agent.SendMessage(messageToSend, false);
-            testComponents.Agent.SendMessage(messageToSend, false);
-
-            var receivedMessage = testComponents.Agent.NetworkComponent.GetIncomingMessages().FirstOrDefault();
-            Assert.IsNull(receivedMessage);
-            Thread.Sleep(100);
-
-            Assert.AreEqual(TaskStatus.Faulted, testComponents.CsTask.Status);
-            var exception = testComponents.CsTask.Exception.InnerException as CommunicationErrorException;
-            Assert.IsNotNull(exception);
-            Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
-
-            Assert_CommunicationServerSuccessfullyKilled(testComponents);
-        }
-
-        [NonParallelizable]
-        [Test]
         public void WhenClientIsConnected_ResponseShouldBeDelivered()
         {
             var testComponents = InitializeTest(3);
