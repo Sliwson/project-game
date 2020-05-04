@@ -80,7 +80,7 @@ namespace CommunicationServer
             }
             catch (Exception e)
             {
-                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
