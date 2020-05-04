@@ -73,14 +73,14 @@ namespace CommunicationServer
         internal void SendMessage(Socket handler, BaseMessage message)
         {
             var messageData = MessageSerializer.SerializeAndWrapMessage(message);
-            
+
             try
             {
                 handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
             }
         }
 
@@ -139,23 +139,39 @@ namespace CommunicationServer
             var listener = (ExtendedListener)ar.AsyncState;
 
             listener.Barrier.Set();
-            var handler = listener.Listener.EndAccept(ar);
-            handler.NoDelay = true;
+            try
+            {
+                var handler = listener.Listener.EndAccept(ar);
+                handler.NoDelay = true;
 
-            var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
+                var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
-            var state = new StateObject(ref handler, listener.ClientType);
-            state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                var state = new StateObject(ref handler, listener.ClientType);
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-            Console.WriteLine($"{listener.ClientType} connected!");
+                Console.WriteLine($"{listener.ClientType} connected!");
+            }
+            catch (Exception e)
+            {
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+            }
         }
 
         private void ReceiveCallback(IAsyncResult ar)
         {
             var state = (StateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
+            int bytesRead = 0;
 
-            int bytesRead = handler.EndReceive(ar);
+            try
+            {
+                bytesRead = handler.EndReceive(ar);
+            }
+            catch (Exception e)
+            {
+                server.CheckIfClientDisconnected(handler);
+                return;
+            }
 
             if (bytesRead > 2)
             {
@@ -179,7 +195,7 @@ namespace CommunicationServer
                 Console.WriteLine("Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
-            else if(!server.CheckIfClientDisconnected(handler))
+            else if (!server.CheckIfClientDisconnected(handler))
             {
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
