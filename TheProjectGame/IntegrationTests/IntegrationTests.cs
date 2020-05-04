@@ -46,7 +46,10 @@ namespace IntegrationTests
                 .Select(agentTaskState => new Task(IntegrationTestsHelper.RunAgent, agentTaskState)).ToList();
 
             foreach (var agentTask in agentTasks)
+            {
                 agentTask.Start();
+                Thread.Sleep(100);
+            }
 
             gmTask.Wait();
 
