@@ -8,7 +8,6 @@ namespace IntegrationTests
 {
     public static class IntegrationTestsHelper
     { 
-
         public static Thread CreateGmThread(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
         {
             var gmThread = new Thread(() =>
@@ -47,7 +46,6 @@ namespace IntegrationTests
 
         public static void RunCommunicationServer(object state)
         {
-
             var config = state == null ? CommunicationServerConfiguration.GetDefault() : (CommunicationServerConfiguration)state;
             CommunicationServer.CommunicationServer server = new CommunicationServer.CommunicationServer(config);
 
@@ -103,10 +101,34 @@ namespace IntegrationTests
             agent.OnDestroy();
         }
 
+        public static void RunAgent(object state)
+        {
+            var agentState = (AgentTaskState)state;
+            RunAgent(agentState.Agent, agentState.AgentSleepMs);
+        }
+
         public class GameMasterTaskState
         {
             public GameMaster.GameMaster GameMaster { get; set; }
             public int GameMasterSleepMs { get; set; }
+
+            public GameMasterTaskState(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
+            {
+                GameMaster = gameMaster;
+                GameMasterSleepMs = gameMasterSleepMs;
+            }
+        }
+
+        public class AgentTaskState
+        {
+            public Agent.Agent Agent { get; set; }
+            public int AgentSleepMs { get; set; }
+
+            public AgentTaskState(Agent.Agent agent, int agentSleepMs)
+            {
+                Agent = agent;
+                AgentSleepMs = agentSleepMs;
+            }
         }
     }
 }
