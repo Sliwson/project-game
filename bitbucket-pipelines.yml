@@ -48,6 +48,14 @@ pipelines:
             - dotnet restore $TEST_NAME/GameMasterTests.csproj
             - dotnet build $PROJECT_NAME
             - dotnet test $TEST_NAME
+    - step:
+        name: IntegrationTests
+        caches:
+          - dotnetcore
+        script:
+          - export TEST_NAME=TheProjectGame/IntegrationTests
+          - dotnet restore $TEST_NAME/IntegrationTests.csproj
+          - dotnet test $TEST_NAME
     development:
     - step:
         name: Messaging
@@ -94,3 +102,11 @@ pipelines:
             - dotnet restore $TEST_NAME/GameMasterTests.csproj
             - dotnet build $PROJECT_NAME
             - dotnet test $TEST_NAME
+    - step:
+        name: IntegrationTests
+        caches:
+          - dotnetcore
+        script:
+          - export TEST_NAME=TheProjectGame/IntegrationTests
+          - dotnet restore $TEST_NAME/IntegrationTests.csproj
+          - dotnet test $TEST_NAME
