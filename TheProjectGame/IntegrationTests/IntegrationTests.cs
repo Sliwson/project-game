@@ -33,16 +33,17 @@ namespace IntegrationTests
             var csConfig = CommunicationServerConfiguration.GetDefault();
             var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
             csTask.Start();
+            Thread.Sleep(100);
 
             var gmTask = new Task(IntegrationTestsHelper.RunGameMaster, gmTaskState);
             gmTask.Start();
             gmTaskState.GameMaster.ApplyConfiguration();
 
             var agentTaskStates = IntegrationTestsHelper.CreateAgents(agentsInTeam)
-                .Select(agent => new IntegrationTestsHelper.AgentTaskState(agent, agentSleepMs));
+                .Select(agent => new IntegrationTestsHelper.AgentTaskState(agent, agentSleepMs)).ToList();
 
             var agentTasks = agentTaskStates
-                .Select(agentTaskState => new Task(IntegrationTestsHelper.RunAgent, agentTaskState));
+                .Select(agentTaskState => new Task(IntegrationTestsHelper.RunAgent, agentTaskState)).ToList();
 
             foreach (var agentTask in agentTasks)
                 agentTask.Start();
@@ -70,9 +71,10 @@ namespace IntegrationTests
                 Assert.IsNotNull(exception);
                 Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
 
-                foreach(var agentTask in agentTasks)
-                {
-                    agentTask.Wait(100);
+                for(int i = 0; i < agentTasks.Count; i++)
+                { 
+                    agentTasks[i].Wait(100);
+                    agentTaskStates[i].Agent.OnDestroy();
                 }
             }
         }
