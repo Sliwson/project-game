@@ -14,7 +14,8 @@
         InvalidEndpoint,
         NoIpAddress,
         InvalidMessageSize,
-        GameMasterDisconnected
+        GameMasterDisconnected,
+        CommunicationServerDisconnected
     }
 
     public static class CommunicationExceptionTypeExtensions
@@ -49,6 +50,8 @@
                     return "Requested message has invalid size (empty or too long)";
                 case CommunicationExceptionType.GameMasterDisconnected:
                     return "Game Master has been disconnected";
+                case CommunicationExceptionType.CommunicationServerDisconnected:
+                    return "Communication Server has been disconnected";
             }
 
             return "";
