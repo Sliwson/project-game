@@ -43,6 +43,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(0);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
             testComponents.Agent.ConnectToCommunicationServer();
@@ -58,6 +59,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -66,6 +69,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(1);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.Agent.ConnectToCommunicationServer();
 
@@ -79,6 +83,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -87,6 +93,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(2);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             // Connect and then disconnect Game Master
             testComponents.GameMaster.ApplyConfiguration();
@@ -108,6 +115,8 @@ namespace IntegrationTests
             var exception = testComponents.CsTask.Exception.InnerException as CommunicationErrorException;
             Assert.IsNotNull(exception);
             Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -116,6 +125,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(3);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
             testComponents.Agent.ConnectToCommunicationServer();
@@ -135,6 +145,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -143,6 +155,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(4);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
             testComponents.Agent.ConnectToCommunicationServer();
@@ -162,6 +175,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -170,6 +185,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(5);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
 
@@ -184,6 +200,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -192,6 +210,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(6);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
             testComponents.Agent.ConnectToCommunicationServer();
@@ -210,6 +229,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -218,6 +239,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(7);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             testComponents.GameMaster.ApplyConfiguration();
             testComponents.Agent.ConnectToCommunicationServer();
@@ -238,6 +260,8 @@ namespace IntegrationTests
             //Make sure CS has not failed
             Thread.Sleep(100);
             Assert.AreEqual(TaskStatus.Running, testComponents.CsTask.Status);
+
+            Assert_CommunicationServerSuccessfullyKilled(testComponents);
         }
 
         [NonParallelizable]
@@ -246,6 +270,7 @@ namespace IntegrationTests
         {
             var testComponents = InitializeTest(8);
             testComponents.CsTask.Start();
+            Thread.Sleep(100);
 
             // Connect to CS
             testComponents.GameMaster.ApplyConfiguration();
@@ -261,8 +286,9 @@ namespace IntegrationTests
         {
             try
             {
-                testComponents.GameMaster.OnDestroy();
-                testComponents.CsTask.Wait();
+                testComponents?.Agent.OnDestroy();
+                testComponents?.GameMaster.OnDestroy();
+                testComponents.CsTask.Wait(200);
             }
             catch (AggregateException ex)
             {
@@ -270,14 +296,13 @@ namespace IntegrationTests
                 var exception = ex.InnerException as CommunicationErrorException;
                 Assert.IsNotNull(exception);
                 Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
-
             }
         }
 
         private void GetConfigurationsForTest(int testId, out AgentConfiguration agentConfig, out GameMasterConfiguration gmConfig, out CommunicationServerConfiguration csConfig)
         {
-            const int baseAgentPort = 49160;
-            const int baseGmPort = 65530;
+            const int baseAgentPort = 50000;
+            const int baseGmPort = 60000;
 
             var agentPortForTest = baseAgentPort + testId;
             var gmPortForTest = baseGmPort - testId;
