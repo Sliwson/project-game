@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CommunicationServer
 {
@@ -45,11 +46,11 @@ namespace CommunicationServer
                 gameMasterListener.Bind(gameMasterEndpoint);
                 agentListener.Bind(agentEndpoint);
 
-                Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
-                gameMasterThread.Start(extendedGameMasterListener);
+                var gameMasterTask = new Task(StartListener, extendedGameMasterListener);
+                gameMasterTask.Start();
 
-                Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
-                agentsThread.Start(extendedAgentListener);
+                var agentsTask = new Task(StartListener, extendedAgentListener);
+                agentsTask.Start();
             }
             catch (ArgumentNullException e)
             {
@@ -129,7 +130,7 @@ namespace CommunicationServer
             }
             catch (SocketException e)
             {
-                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e));
             }
         }
 
