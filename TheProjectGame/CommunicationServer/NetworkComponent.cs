@@ -2,6 +2,7 @@
 using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -46,11 +47,9 @@ namespace CommunicationServer
 
                 Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
                 gameMasterThread.Start(extendedGameMasterListener);
-                Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{gameMasterPort}");
 
                 Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
                 agentsThread.Start(extendedAgentListener);
-                Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{agentPort}");
             }
             catch (ArgumentNullException e)
             {
@@ -116,6 +115,7 @@ namespace CommunicationServer
             try
             {
                 listener.Listener.Listen(100);
+                Console.WriteLine($"Server for {listener.ClientType} was started with IP: {listener.Listener.LocalEndPoint}");
 
                 while (true)
                 {
@@ -129,7 +129,7 @@ namespace CommunicationServer
             }
             catch (SocketException e)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
             }
         }
 
@@ -195,7 +195,7 @@ namespace CommunicationServer
             }
             catch (Exception e)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
             }
         }
 

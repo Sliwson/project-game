@@ -26,7 +26,8 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
-        private bool gameMasterDisconnected = false;
+        private bool shouldTerminate = false;
+        private Exception internalException;
 
         public CommunicationServer(CommunicationServerConfiguration configuration)
         {
@@ -81,14 +82,21 @@ namespace CommunicationServer
                 var disconectedId = HostMapping.GetHostIdForSocket(socket);
                 if(HostMapping.IsHostGameMaster(disconectedId))
                 {
-                    gameMasterDisconnected = true;
-                    shouldProcessMessage.Set();
+                    RaiseException(new CommunicationErrorException(CommunicationExceptionType.GameMasterDisconnected));
                 }
 
                 return true;
             }
 
             return false;
+        }
+
+        // Call this method from other threads
+        internal void RaiseException(Exception exception)
+        {
+            internalException = exception;
+            shouldTerminate = true;
+            shouldProcessMessage.Set();
         }
 
         private void ProcessMessages()
@@ -98,10 +106,10 @@ namespace CommunicationServer
             while(true)
             {
                 shouldProcessMessage.WaitOne();
-                if (gameMasterDisconnected)
-                    throw new CommunicationErrorException(CommunicationExceptionType.GameMasterDisconnected);
+                if (shouldTerminate && internalException != null)
+                    throw internalException;
 
-                while(messageQueue.TryDequeue(out message))
+                while (messageQueue.TryDequeue(out message))
                 {
                     ProcessMessage(message);
                     shouldProcessMessage.Reset();
