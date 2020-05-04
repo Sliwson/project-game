@@ -11,11 +11,12 @@ namespace Messaging.Communication
 {
     public class ClientNetworkComponent : INetworkComponent
     {
+        public Exception Exception { get; private set; } = null;
+
         private ConcurrentQueue<BaseMessage> messageQueue;
 
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
-
         private ManualResetEvent connectDone;
 
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
@@ -28,7 +29,7 @@ namespace Messaging.Communication
                 var ipAddress = IPAddress.Parse(serverIPAddress);
                 communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
             }
@@ -42,6 +43,8 @@ namespace Messaging.Communication
                 socket.NoDelay = true;
                 socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
+                if (Exception != null)
+                    return false;
 
                 var state = new StateObject(ref socket, clientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
@@ -51,11 +54,11 @@ namespace Messaging.Communication
             catch (SocketException e)
             {
                 if (socket == null)
-                    throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated);
+                    throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
 
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
-            catch(ObjectDisposedException e)
+            catch (ObjectDisposedException e)
             {
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
@@ -65,8 +68,8 @@ namespace Messaging.Communication
         {
             try
             {
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Close();
+                socket?.Shutdown(SocketShutdown.Both);
+                socket?.Close();
 
                 Console.WriteLine("Connection with CommunicationServer has been closed");
                 return true;
@@ -102,11 +105,14 @@ namespace Messaging.Communication
                 Socket client = (Socket)ar.AsyncState;
 
                 client.EndConnect(ar);
-                connectDone.Set();
             }
             catch (Exception e)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+            finally
+            {
+                connectDone.Set();
             }
         }
 
@@ -119,11 +125,11 @@ namespace Messaging.Communication
                 else
                     throw new CommunicationErrorException(CommunicationExceptionType.InvalidMessageSize);
             }
-            catch(CommunicationErrorException)
+            catch (CommunicationErrorException)
             {
                 throw;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
@@ -133,38 +139,45 @@ namespace Messaging.Communication
         {
             var state = (StateObject)ar.AsyncState;
             var client = state.WorkSocket;
-
-            if (client.Connected == false)
-                return;
+            int bytesRead = 0;
 
             try
             {
-                int bytesRead = client.EndReceive(ar);
-
-                if (bytesRead > 2)
-                {
-                    try
-                    {
-                        foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
-                        {
-                            messageQueue.Enqueue(message);
-                        }
-                    }
-                    catch (ArgumentOutOfRangeException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
-                }
-                else if (bytesRead > 0)
-                {
-                    Console.WriteLine("Received message was too short (expected more than 2 bytes)");
-                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
-                }
+                bytesRead = client.EndReceive(ar);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+                Exception = new CommunicationErrorException(CommunicationExceptionType.CommunicationServerDisconnected, e);
+                return;
+            }
+
+            if (bytesRead > 2)
+            {
+                try
+                {
+                    foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                    {
+                        messageQueue.Enqueue(message);
+                    }
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if (bytesRead > 0)
+            {
+                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if (socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
+            {
+                Exception = new CommunicationErrorException(CommunicationExceptionType.CommunicationServerDisconnected);
+            }
+            else
+            {
+                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket);
             }
         }
     }

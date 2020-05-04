@@ -113,6 +113,9 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
+            if (NetworkComponent.Exception != null)
+                throw NetworkComponent.Exception;
+
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
 

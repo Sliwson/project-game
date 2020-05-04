@@ -103,6 +103,9 @@ namespace Agent
 
         public ActionResult Update(double dt)
         {
+            if (NetworkComponent.Exception != null)
+                throw NetworkComponent.Exception;
+
             injectedMessages.AddRange(NetworkComponent.GetIncomingMessages());
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
             AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
