@@ -14,19 +14,22 @@ namespace IntegrationTests
     public class IntegrationTests
     {
         int agentsInTeam = 1;
-        const int agentSleepMs = 16;
+        const int agentSleepMs = 30;
 
         IntegrationTestsHelper.GameMasterTaskState gmTaskState;
 
         [SetUp]
         public void Setup()
         {
-            var gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
+            var config = GameMasterConfiguration.GetDefault();
+            config.TeamSize = 3;
+            var gameMaster = new GameMaster.GameMaster(config);
 
             agentsInTeam = gameMaster.Configuration.TeamSize;
-            gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 16);
+            gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 30);
         }
 
+        [NonParallelizable]
         [Test]
         public void ConnectingAgentsState_ShouldConnectAgent()
         {
@@ -46,7 +49,10 @@ namespace IntegrationTests
                 .Select(agentTaskState => new Task(IntegrationTestsHelper.RunAgent, agentTaskState)).ToList();
 
             foreach (var agentTask in agentTasks)
+            {
+                Thread.Sleep(100);
                 agentTask.Start();
+            }
 
             gmTask.Wait();
 
