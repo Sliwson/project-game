@@ -101,9 +101,19 @@ namespace Agent
                 shouldUpdate[i] = true;
                 stopwatches[i] = new Stopwatch();
                 stopwatches[i].Start();
+
+                try
+                {
+                    agents[i].ConnectToCommunicationServer();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Agent {i}: {ex.Message}");
+                    shouldUpdate[i] = false;
+                }
             }
 
-            while (shouldUpdate.Any())
+            while (shouldUpdate.Any(b => b == true))
             {
                 for (int i = 0; i < agents.Length; i++)
                 {
@@ -115,8 +125,17 @@ namespace Agent
                     var timeElapsed = stopwatch.Elapsed.TotalSeconds;
                     stopwatch.Reset();
                     stopwatch.Start();
+                    ActionResult actionResult = ActionResult.Finish;
 
-                    var actionResult = agents[i].Update(timeElapsed);
+                    try
+                    {
+                        actionResult = agents[i].Update(timeElapsed);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Agent {i}: {ex.Message}");
+                    }
+
                     if (actionResult == ActionResult.Finish)
                     {
                         shouldUpdate[i] = false;
