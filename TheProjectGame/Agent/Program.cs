@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,11 +14,38 @@ namespace Agent
 
         static void Main(string[] args)
         {
-            var agent = CreateAgent();
-            Run(agent);
+            if (args.Length == 1)
+            {
+                var agents = new Agent[] {
+                    CreateAgentWithConfiguration()
+                };
+
+                Run(agents);
+            }
+            else if (args.Length == 3)
+            {
+                int blue = 1, red = 0;
+                try
+                {
+                    blue = int.Parse(args[1]);
+                    red = int.Parse(args[1]);
+                }
+                catch
+                {
+                    Console.WriteLine($"Usage: {args[0]} (blueCount, redCount)");
+                    Console.WriteLine("Creating one blue agent with default configuration");
+                }
+
+                var agents = CreateDefaultAgents(blue, red);
+                Run(agents);
+            }
+            else
+            {
+                Console.WriteLine($"Usage: {args[0]} (blueCount, redCount)");
+            }
         }
 
-        private static Agent CreateAgent()
+        private static Agent CreateAgentWithConfiguration()
         {
             var config = AgentConfiguration.GetDefault();
 
@@ -37,24 +65,44 @@ namespace Agent
             return new Agent(config);
         }
 
-        private static void Run(Agent agent)
+        private static Agent[] CreateDefaultAgents(int blue, int red)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+        }
 
-            ActionResult actionResult = ActionResult.Continue;
-            while (actionResult == ActionResult.Continue)
+        private static void Run(Agent[] agents)
+        {
+            var length = agents.Length;
+            var shouldUpdate = new bool[length];
+            var stopwatches = new Stopwatch[length];
+
+            for (int i = 0; i < length; i++)
             {
-                stopwatch.Stop();
-                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
-                stopwatch.Reset();
-                stopwatch.Start();
-
-                actionResult = agent.Update(timeElapsed);
-                Thread.Sleep(updateInterval);
+                shouldUpdate[i] = true;
+                stopwatches[i] = new Stopwatch();
+                stopwatches[i].Start();
             }
 
-            agent.OnDestroy();
+            while (shouldUpdate.Any())
+            {
+                for (int i = 0; i < agents.Length; i++)
+                {
+                    if (!shouldUpdate[i])
+                        continue;
+
+                    var stopwatch = stopwatches[i];
+                    stopwatch.Stop();
+                    var timeElapsed = stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Reset();
+                    stopwatch.Start();
+
+                    var actionResult = agents[i].Update(timeElapsed);
+                    if (actionResult == ActionResult.Finish)
+                    {
+                        shouldUpdate[i] = false;
+                        agents[i].OnDestroy();
+                    }
+                }
+            }
         }
     }
 }
