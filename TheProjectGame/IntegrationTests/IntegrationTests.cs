@@ -35,7 +35,7 @@ namespace IntegrationTests
             csTask.Start();
             Thread.Sleep(100);
 
-            gmTaskState.GameMaster.ApplyConfiguration();
+            gmTaskState.GameMaster.ConnectToCommunicationServer();
             var gmTask = new Task(IntegrationTestsHelper.RunGameMaster, gmTaskState);
             gmTask.Start();
 

@@ -138,13 +138,23 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (IsConnecting == false)
+            if (IsConnecting == true)
+                return;
+
+            IsConnecting = true;
+            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+
+            try
             {
-                ConnectRadioButton.Content = "Connecting";
-                gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
-                gameMaster.ApplyConfiguration();
+                gameMaster.ConnectToCommunicationServer();
+                ConnectRadioButton.Content = "Connected";
                 StartRadioButton.IsEnabled = true;
-                IsConnecting = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Exception occured!", MessageBoxButton.OK, MessageBoxImage.Error);
+                IsConnecting = false;
+                ConnectRadioButton.IsChecked = false;
             }
         }
 
@@ -241,6 +251,12 @@ namespace GameMasterPresentation
         private void Update(double dt)
         {
             gameMaster.Update(dt);
+            if (gameMaster.state == GameMaster.GameMasterState.CriticalError)
+            {
+                MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+            }
+
             FlushLogs();
         }
 
