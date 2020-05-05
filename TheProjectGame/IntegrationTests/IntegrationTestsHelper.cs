@@ -20,7 +20,7 @@ namespace IntegrationTests
 
         public static void RunGameMaster(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
         {
-            for (int i = 0; i < 400; i++)
+            for (int i = 0; i < 300; i++)
             {
                 gameMaster.Update(gameMasterSleepMs / 1000.0);
                 Thread.Sleep(gameMasterSleepMs);

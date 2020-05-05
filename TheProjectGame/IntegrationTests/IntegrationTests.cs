@@ -21,7 +21,9 @@ namespace IntegrationTests
         [SetUp]
         public void Setup()
         {
-            var gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
+            var config = GameMasterConfiguration.GetDefault();
+            config.TeamSize = 3;
+            var gameMaster = new GameMaster.GameMaster(config);
 
             agentsInTeam = gameMaster.Configuration.TeamSize;
             gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 30);
@@ -36,9 +38,9 @@ namespace IntegrationTests
             csTask.Start();
             Thread.Sleep(100);
 
-            gmTaskState.GameMaster.ConnectToCommunicationServer();
             var gmTask = new Task(IntegrationTestsHelper.RunGameMaster, gmTaskState);
             gmTask.Start();
+            gmTaskState.GameMaster.ConnectToCommunicationServer();
 
             var agentTaskStates = IntegrationTestsHelper.CreateAgents(agentsInTeam)
                 .Select(agent => new IntegrationTestsHelper.AgentTaskState(agent, agentSleepMs)).ToList();
@@ -48,8 +50,8 @@ namespace IntegrationTests
 
             foreach (var agentTask in agentTasks)
             {
-                agentTask.Start();
                 Thread.Sleep(100);
+                agentTask.Start();
             }
 
             gmTask.Wait();
