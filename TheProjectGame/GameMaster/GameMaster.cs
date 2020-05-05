@@ -24,6 +24,8 @@ namespace GameMaster
         public GameMasterState state { get; private set; } = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
+        public Exception LastException { get; private set; }
+
         public GameMaster(GameMasterConfiguration configuration)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
@@ -104,9 +106,9 @@ namespace GameMaster
         public void Update(double dt)
         {
             if (state != GameMasterState.Configuration && NetworkComponent?.Exception != null)
-                throw NetworkComponent.Exception;
+                SetCriticalException(NetworkComponent.Exception);
 
-            if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
+            if (state == GameMasterState.Configuration || state == GameMasterState.Summary || state == GameMasterState.CriticalError)
                 return;
 
             foreach (var agent in Agents)
@@ -166,10 +168,12 @@ namespace GameMaster
             {
                 if (e.Type == CommunicationExceptionType.InvalidSocket)
                 {
-                    // TODO: Should terminate
+                    SetCriticalException(e);
                 }
-
-                Console.WriteLine(e.Message);
+                else
+                {
+                    Logger.Get().Error("[GM] Exception occured: {ex}", e.Message);
+                }
             }
         }
 
@@ -191,6 +195,13 @@ namespace GameMaster
 
             //TODO: refactor
             return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
+        }
+
+        private void SetCriticalException(Exception ex)
+        {
+            state = GameMasterState.CriticalError;
+            LastException = NetworkComponent.Exception;
+            Logger.Get().Error("[GM] Critical exception occured: {ex}", LastException.Message);
         }
     }
 }

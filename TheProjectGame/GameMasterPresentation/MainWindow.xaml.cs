@@ -251,6 +251,12 @@ namespace GameMasterPresentation
         private void Update(double dt)
         {
             gameMaster.Update(dt);
+            if (gameMaster.state == GameMaster.GameMasterState.CriticalError)
+            {
+                MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+            }
+
             FlushLogs();
         }
 
