@@ -45,7 +45,7 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
@@ -95,7 +95,7 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
             var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
@@ -125,7 +125,7 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
             var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
@@ -155,7 +155,7 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinResponse(true, 1));
             testComponents.GameMaster.SendMessage(messageToSend);
@@ -180,11 +180,11 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
             var secondGameMaster = new GameMaster.GameMaster(testComponents.GameMaster.Configuration);
-            secondGameMaster.ApplyConfiguration();
+            secondGameMaster.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
             secondGameMaster.SendMessage(messageToSend);
@@ -209,11 +209,11 @@ namespace IntegrationTests
             testComponents.CsTask.Start();
             Thread.Sleep(100);
 
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
             var secondGameMaster = new GameMaster.GameMaster(testComponents.GameMaster.Configuration);
-            secondGameMaster.ApplyConfiguration();
+            secondGameMaster.ConnectToCommunicationServer();
 
             var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false));
             testComponents.Agent.SendMessage(messageToSend, false);
@@ -241,7 +241,7 @@ namespace IntegrationTests
             Thread.Sleep(100);
 
             // Connect to CS
-            testComponents.GameMaster.ApplyConfiguration();
+            testComponents.GameMaster.ConnectToCommunicationServer();
 
             // And then disconnect
             testComponents.GameMaster.OnDestroy();

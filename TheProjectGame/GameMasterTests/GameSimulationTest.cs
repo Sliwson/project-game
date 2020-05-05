@@ -31,7 +31,7 @@ namespace GameMasterTests
         [Test, Ignore("Need offline NetworkComponent")]
         public void SimpleSimulationTest_GameMasterShouldConnectAgentsAndProcessMoveRequestsAfterGameStart()
         {
-            gameMaster.ApplyConfiguration();
+            gameMaster.ConnectToCommunicationServer();
             CreateAndConnectAgents();
             Play();
         }

@@ -10,6 +10,7 @@ namespace GameMaster
         ConnectingAgents,
         InGame,
         Paused,
-        Summary
+        Summary,
+        CriticalError
     }
 }
