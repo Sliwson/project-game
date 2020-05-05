@@ -50,26 +50,15 @@ namespace GameMaster
             }
         }
 
-        public void ApplyConfiguration()
-        {
-            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
-
-            //we should connect to cs after setting configuration
-            //try to connect to communciation server (if connection is not successful throw exception)
-
-            ConnectToCommunicationServer();
-
-            //if ok start accepting agents
-            state = GameMasterState.ConnectingAgents;
-            currentMessageProcessor = ConnectionLogic;
-        }
-
         public void ConnectToCommunicationServer()
         {
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
 
             Logger.Get().Info("[GM] Connected to Communication Server");
+            state = GameMasterState.ConnectingAgents;
+            currentMessageProcessor = ConnectionLogic;
         }
 
         public bool StartGame()
@@ -89,6 +78,7 @@ namespace GameMaster
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
                 SendMessage(m);
+
             return true;
         }
 
@@ -113,7 +103,7 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
-            if (NetworkComponent.Exception != null)
+            if (state != GameMasterState.Configuration && NetworkComponent?.Exception != null)
                 throw NetworkComponent.Exception;
 
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
