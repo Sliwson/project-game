@@ -9,24 +9,30 @@ using System.Threading;
 
 namespace Messaging.Communication
 {
-    // TODO (#IO-45): Add exception handling and logging (GM and Agent) 
     public class ClientNetworkComponent : INetworkComponent
     {
+        public Exception Exception { get; private set; } = null;
+
         private ConcurrentQueue<BaseMessage> messageQueue;
 
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
-
         private ManualResetEvent connectDone;
 
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
             messageQueue = new ConcurrentQueue<BaseMessage>();
-
-            var ipAddress = IPAddress.Parse(serverIPAddress);
-            communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
-
             connectDone = new ManualResetEvent(false);
+
+            try
+            {
+                var ipAddress = IPAddress.Parse(serverIPAddress);
+                communicationServerEndpoint = new IPEndPoint(ipAddress, serverPort);
+            }
+            catch (Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
         }
 
         public bool Connect(ClientType clientType)
@@ -37,16 +43,24 @@ namespace Messaging.Communication
                 socket.NoDelay = true;
                 socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
                 connectDone.WaitOne();
+                if (Exception != null)
+                    return false;
 
                 var state = new StateObject(ref socket, clientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
                 return true;
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
-                //Console.WriteLine("Exception: {0}", e);
-                return false;
+                if (socket == null)
+                    throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
+
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+            catch (ObjectDisposedException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -54,16 +68,19 @@ namespace Messaging.Communication
         {
             try
             {
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Close();
+                socket?.Shutdown(SocketShutdown.Both);
+                socket?.Close();
 
-                //Console.WriteLine("Closed");
+                Console.WriteLine("Connection with CommunicationServer has been closed");
                 return true;
             }
-            catch (Exception e)
+            catch (ObjectDisposedException)
             {
-                //Console.WriteLine("Unable to disconnect: {0}", e);
-                return false;
+                return true;
+            }
+            catch (SocketException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
 
@@ -88,55 +105,79 @@ namespace Messaging.Communication
                 Socket client = (Socket)ar.AsyncState;
 
                 client.EndConnect(ar);
-
-                //Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
-
-                connectDone.Set();
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e.ToString());
+                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+            finally
+            {
+                connectDone.Set();
             }
         }
 
         private void Send(Socket client, byte[] message)
         {
-            client.Send(message, message.Length, SocketFlags.None);
+            try
+            {
+                if (message != null && message.Length > 0)
+                    client.Send(message, message.Length, SocketFlags.None);
+                else
+                    throw new CommunicationErrorException(CommunicationExceptionType.InvalidMessageSize);
+            }
+            catch (CommunicationErrorException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
         }
 
         private void ReceiveCallback(IAsyncResult ar)
         {
             var state = (StateObject)ar.AsyncState;
             var client = state.WorkSocket;
+            int bytesRead = 0;
 
-            //TODO: check if it's correct
-            if (client.Connected == false)
+            try
+            {
+                bytesRead = client.EndReceive(ar);
+            }
+            catch (Exception e)
+            {
+                Exception = new CommunicationErrorException(CommunicationExceptionType.CommunicationServerDisconnected, e);
                 return;
-
-            int bytesRead = client.EndReceive(ar);
+            }
 
             if (bytesRead > 2)
             {
                 try
                 {
-                    foreach(var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                    foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
                     {
                         messageQueue.Enqueue(message);
                     }
                 }
-                catch (Exception e)
+                catch (ArgumentOutOfRangeException e)
                 {
-                    //if (e is ArgumentOutOfRangeException)
-                        //Console.WriteLine(e.Message);
-                    //else
-                        //throw;
+                    Console.WriteLine(e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                //Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if (socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
+            {
+                Exception = new CommunicationErrorException(CommunicationExceptionType.CommunicationServerDisconnected);
+            }
+            else
+            {
+                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket);
             }
         }
     }

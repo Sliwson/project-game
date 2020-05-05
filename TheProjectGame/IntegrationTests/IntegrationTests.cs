@@ -1,15 +1,13 @@
-using Agent;
-using CommunicationServer;
 using GameMaster;
-using Messaging.Contracts.Agent;
 using Messaging.Enumerators;
-using Messaging.Implementation;
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Threading;
 using System.Linq;
+using System.Threading.Tasks;
+using CommunicationServer;
+using Messaging.Communication;
+using System;
 
 namespace IntegrationTests
 {
@@ -17,116 +15,67 @@ namespace IntegrationTests
     {
         int agentsInTeam = 1;
         const int agentSleepMs = 16;
-        const int gameMasterSleepMs = 16;
-        private GameMaster.GameMaster gameMaster;
+
+        IntegrationTestsHelper.GameMasterTaskState gmTaskState;
 
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
+            var gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
+
             agentsInTeam = gameMaster.Configuration.TeamSize;
+            gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 16);
         }
 
         [Test]
         public void ConnectingAgentsState_ShouldConnectAgent()
         {
-            var csThread = CreateCsThread();
-            var gmThread = CreateGmThread();
+            var csConfig = CommunicationServerConfiguration.GetDefault();
+            var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
+            csTask.Start();
+            Thread.Sleep(100);
 
-            csThread.Start();
-            gmThread.Start();
+            var gmTask = new Task(IntegrationTestsHelper.RunGameMaster, gmTaskState);
+            gmTask.Start();
+            gmTaskState.GameMaster.ApplyConfiguration();
 
-            gameMaster.ApplyConfiguration();
+            var agentTaskStates = IntegrationTestsHelper.CreateAgents(agentsInTeam)
+                .Select(agent => new IntegrationTestsHelper.AgentTaskState(agent, agentSleepMs)).ToList();
 
-            var agents = CreateAgents();
-            foreach (var agent in agents)
-            {
-                var agentThread = new Thread(RunAgent);
-                agentThread.IsBackground = true; //background threads for termination at test exit
-                agentThread.Start(agent);
-            }
+            var agentTasks = agentTaskStates
+                .Select(agentTaskState => new Task(IntegrationTestsHelper.RunAgent, agentTaskState)).ToList();
 
-            gmThread.Join();
+            foreach (var agentTask in agentTasks)
+                agentTask.Start();
 
-            List<GameMaster.Agent> lobby = gameMaster.ConnectionLogic.FlushLobby();
+            gmTask.Wait();
+
+            List<GameMaster.Agent> lobby = gmTaskState.GameMaster.ConnectionLogic.FlushLobby();
 
             Assert.AreEqual(agentsInTeam * 2, lobby.Count);
             Assert.AreEqual(2, lobby.Where(agent => agent.IsTeamLeader).Count());
             Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Blue).Count());
             Assert.AreEqual(agentsInTeam, lobby.Where(agent => agent.Team == TeamId.Red).Count());
-        }
 
-        private Thread CreateGmThread()
-        {
-            var gmThread = new Thread(() =>
+            // Cleanup
+            gmTaskState.GameMaster.OnDestroy();
+            try
             {
-                RunGameMaster();
-            });
-
-            return gmThread;
-        }
-        
-        private Thread CreateCsThread()
-        {
-            var csThread = new Thread(() =>
-            {
-                var csConfig = CommunicationServerConfiguration.GetDefault();
-                var server = new CommunicationServer.CommunicationServer(csConfig);
-                server.Run();
-            });
-
-            csThread.IsBackground = true;
-            return csThread;
-        }
-
-        private List<Agent.Agent> CreateAgents()
-        {
-            var agents = new List<Agent.Agent>();
-            for (int i = 0; i < agentsInTeam * 2; i++)
-            {
-                var agent = new Agent.Agent(new AgentConfiguration
-                {
-                    CsIP = "127.0.0.1",
-                    CsPort = 54321,
-                    TeamID = i < agentsInTeam ? "red" : "blue",
-                    WantsToBeTeamLeader = i % agentsInTeam == 0
-                });
-
-                agents.Add(agent);
+                gmTaskState.GameMaster.OnDestroy();
+                csTask.Wait(200);
             }
-
-            return agents;
-        }
-
-        private void RunAgent(object o)
-        {
-            var agent = o as Agent.Agent;
-            agent.ConnectToCommunicationServer();
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            ActionResult actionResult = ActionResult.Continue;
-            while (actionResult == ActionResult.Continue)
+            catch (AggregateException ex)
             {
-                stopwatch.Stop();
-                var timeElapsed = stopwatch.Elapsed.TotalSeconds;
-                stopwatch.Reset();
-                stopwatch.Start();
+                Assert.AreEqual(TaskStatus.Faulted, csTask.Status);
+                var exception = ex.InnerException as CommunicationErrorException;
+                Assert.IsNotNull(exception);
+                Assert.AreEqual(CommunicationExceptionType.GameMasterDisconnected, exception.Type);
 
-                actionResult = agent.Update(timeElapsed);
-                Thread.Sleep(agentSleepMs);
-            }
-
-            agent.OnDestroy();
-        }
-
-        private void RunGameMaster()
-        {
-            for (int i = 0; i < 200; i++)
-            {
-                gameMaster.Update(gameMasterSleepMs / 1000.0);
-                Thread.Sleep(gameMasterSleepMs);
+                for(int i = 0; i < agentTasks.Count; i++)
+                { 
+                    agentTasks[i].Wait(100);
+                    agentTaskStates[i].Agent.OnDestroy();
+                }
             }
         }
     }

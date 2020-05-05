@@ -2,11 +2,13 @@
 using Messaging.Contracts;
 using Messaging.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CommunicationServer
 {
@@ -17,6 +19,9 @@ namespace CommunicationServer
         private ManualResetEvent gmAccepted = new ManualResetEvent(false);
         private ManualResetEvent agentAccepted = new ManualResetEvent(false);
 
+        private Socket gameMasterSocket;
+        private Socket agentSocket;
+
         internal NetworkComponent(CommunicationServer communicationServer)
         {
             server = communicationServer;
@@ -24,6 +29,9 @@ namespace CommunicationServer
 
         internal void StartListening(Socket gameMasterListener, Socket agentListener)
         {
+            gameMasterSocket = gameMasterListener;
+            agentSocket = agentListener;
+
             var gameMasterPort = server.Configuration.GameMasterPort;
             var agentPort = server.Configuration.AgentPort;
 
@@ -38,26 +46,67 @@ namespace CommunicationServer
                 gameMasterListener.Bind(gameMasterEndpoint);
                 agentListener.Bind(agentEndpoint);
 
-                Thread gameMasterThread = new Thread(new ParameterizedThreadStart(StartListener));
-                gameMasterThread.Start(extendedGameMasterListener);
-                Console.WriteLine($"Server for GameMaster was started with IP: {server.IPAddress}:{gameMasterPort}");
+                var gameMasterTask = new Task(StartListener, extendedGameMasterListener);
+                gameMasterTask.Start();
 
-                Thread agentsThread = new Thread(new ParameterizedThreadStart(StartListener));
-                agentsThread.Start(extendedAgentListener);
-                Console.WriteLine($"Server for Agent was started with IP: {server.IPAddress}:{agentPort}");
+                var agentsTask = new Task(StartListener, extendedAgentListener);
+                agentsTask.Start();
             }
-            catch (Exception e)
+            catch (ArgumentNullException e)
             {
-                Console.WriteLine(e.Message);
-                throw;
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
+            }
+            catch (SocketException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
+            }
+            catch (ObjectDisposedException e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
             }
         }
 
         internal void SendMessage(Socket handler, BaseMessage message)
         {
             var messageData = MessageSerializer.SerializeAndWrapMessage(message);
-            
-            handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+
+            try
+            {
+                handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+            }
+            catch (Exception e)
+            {
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+        }
+
+        internal void Disconnect()
+        {
+            Disconnect(ClientType.GameMaster);
+            Disconnect(ClientType.Agent);
+        }
+
+        internal void Disconnect(ClientType clientType)
+        {
+            var socket = clientType == ClientType.GameMaster ? gameMasterSocket : agentSocket;
+
+            try
+            {
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+            }
+            catch (Exception)
+            {
+
+            }
+            finally
+            {
+                Console.WriteLine($"Socket for {clientType} has been closed");
+            }
         }
 
         private void StartListener(object obj)
@@ -67,6 +116,7 @@ namespace CommunicationServer
             try
             {
                 listener.Listener.Listen(100);
+                Console.WriteLine($"Server for {listener.ClientType} was started with IP: {listener.Listener.LocalEndPoint}");
 
                 while (true)
                 {
@@ -80,8 +130,7 @@ namespace CommunicationServer
             }
             catch (SocketException e)
             {
-                Console.WriteLine("SocketException: {0}", e);
-                throw;
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e));
             }
         }
 
@@ -90,47 +139,64 @@ namespace CommunicationServer
             var listener = (ExtendedListener)ar.AsyncState;
 
             listener.Barrier.Set();
-            var handler = listener.Listener.EndAccept(ar);
-            handler.NoDelay = true;
+            try
+            {
+                var handler = listener.Listener.EndAccept(ar);
+                handler.NoDelay = true;
 
-            var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
+                var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
-            var state = new StateObject(ref handler, listener.ClientType);
-            state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+                var state = new StateObject(ref handler, listener.ClientType);
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-            Console.WriteLine($"{listener.ClientType} connected!");
+                Console.WriteLine($"{listener.ClientType} connected!");
+            }
+            catch (Exception e)
+            {
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+            }
         }
 
         private void ReceiveCallback(IAsyncResult ar)
         {
             var state = (StateObject)ar.AsyncState;
             Socket handler = state.WorkSocket;
+            int bytesRead = 0;
 
-            int bytesRead = handler.EndReceive(ar);
+            try
+            {
+                bytesRead = handler.EndReceive(ar);
+            }
+            catch (Exception e)
+            {
+                server.CheckIfClientDisconnected(handler);
+                return;
+            }
 
-            if(bytesRead > 2)
+            if (bytesRead > 2)
             {
                 try
                 {
-                    foreach(var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
+                    foreach (var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
                     {
                         var receivedMessage = new ReceivedMessage(handler, message);
 
                         server.AddMessage(receivedMessage);
                     }
                 }
-                catch(Exception e)
+                catch (ArgumentOutOfRangeException e)
                 {
-                    if (e is ArgumentOutOfRangeException)
-                        Console.WriteLine(e.Message);
-                    else
-                        throw;
+                    Console.WriteLine(e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
-            else if(bytesRead > 0)
+            else if (bytesRead > 0)
             {
                 Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+            }
+            else if (!server.CheckIfClientDisconnected(handler))
+            {
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
         }
@@ -146,7 +212,7 @@ namespace CommunicationServer
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
             }
         }
 
@@ -175,7 +241,7 @@ namespace CommunicationServer
             //        }
             //    }
             //}
-            //throw new ArgumentNullException("No network adapters with an IPv4 address in the system!");
+            //throw new CommunicationErrorException(CommunicationExceptionType.NoIpAddress);
         }
     }
 }
