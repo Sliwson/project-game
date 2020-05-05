@@ -142,6 +142,8 @@ namespace Agent
                         agents[i].OnDestroy();
                     }
                 }
+
+                Thread.Sleep(updateInterval);
             }
         }
     }
