@@ -14,7 +14,7 @@ namespace IntegrationTests
     public class IntegrationTests
     {
         int agentsInTeam = 1;
-        const int agentSleepMs = 16;
+        const int agentSleepMs = 30;
 
         IntegrationTestsHelper.GameMasterTaskState gmTaskState;
 
@@ -24,9 +24,10 @@ namespace IntegrationTests
             var gameMaster = new GameMaster.GameMaster(GameMasterConfiguration.GetDefault());
 
             agentsInTeam = gameMaster.Configuration.TeamSize;
-            gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 16);
+            gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 30);
         }
 
+        [NonParallelizable]
         [Test]
         public void ConnectingAgentsState_ShouldConnectAgent()
         {
