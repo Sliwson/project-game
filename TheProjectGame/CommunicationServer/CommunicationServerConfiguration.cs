@@ -7,10 +7,10 @@ namespace CommunicationServer
     public class CommunicationServerConfiguration
     {
         [JsonProperty(PropertyName = "AgentsPort")]
-        internal int AgentPort { get; set; }
+        public int AgentPort { get; set; }
 
         [JsonProperty(PropertyName = "GmPort")]
-        internal int GameMasterPort { get; set; }
+        public int GameMasterPort { get; set; }
 
         public static CommunicationServerConfiguration GetDefault()
         {

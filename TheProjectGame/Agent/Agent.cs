@@ -75,12 +75,12 @@ namespace Agent
         public void ConnectToCommunicationServer()
         {
             if (!NetworkComponent.Connect(ClientType.Agent))
-                throw new ApplicationException("Unable to connect to CS");
+                throw new ApplicationException("Unable to connect to CS", NetworkComponent.Exception);
         }
 
         public void OnDestroy()
         {
-            NetworkComponent.Disconnect();
+            NetworkComponent?.Disconnect();
         }
 
         public void SetPenalty(double add, bool shouldRepeat)
@@ -103,6 +103,9 @@ namespace Agent
 
         public ActionResult Update(double dt)
         {
+            if (NetworkComponent.Exception != null)
+                throw NetworkComponent.Exception;
+
             injectedMessages.AddRange(NetworkComponent.GetIncomingMessages());
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
             AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
@@ -347,7 +350,20 @@ namespace Agent
         {
             if (shouldRepeat)
                 AgentInformationsComponent.LastRequest = message;
-            NetworkComponent.SendMessage(message);
+
+            try
+            {
+                NetworkComponent.SendMessage(message);
+            }
+            catch (CommunicationErrorException e)
+            {
+                if (e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    // TODO: Should terminate
+                }
+
+                Console.WriteLine(e.Message);
+            }
         }
 
         public ActionResult AcceptMessage(BaseMessage message)

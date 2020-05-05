@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Messaging.Communication;
+using System;
 using System.IO;
 
 namespace CommunicationServer
@@ -22,8 +23,16 @@ namespace CommunicationServer
                     config = newConfig;
             }
 
-            CommunicationServer server = new CommunicationServer(config);
-            server.Run();
+            try
+            {
+                CommunicationServer server = new CommunicationServer(config);
+                server.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Fatal error occured, application will close immediately");
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
     }
 }

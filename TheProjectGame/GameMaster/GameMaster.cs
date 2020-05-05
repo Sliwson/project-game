@@ -88,7 +88,7 @@ namespace GameMaster
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
-                NetworkComponent.SendMessage(m);
+                SendMessage(m);
             return true;
         }
 
@@ -113,6 +113,9 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
+            if (NetworkComponent.Exception != null)
+                throw NetworkComponent.Exception;
+
             if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
                 return;
 
@@ -127,7 +130,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    NetworkComponent.SendMessage(response);
+                    SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -140,7 +143,7 @@ namespace GameMaster
                 Logger.Get().Info("[GM] Ending game");
                 var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
                 foreach (var m in resultMessages)
-                    NetworkComponent.SendMessage(m);
+                    SendMessage(m);
             }
         }
 
@@ -153,6 +156,23 @@ namespace GameMaster
         {
             Logger.OnDestroy();
             NetworkComponent?.Disconnect();
+        }
+
+        public void SendMessage(BaseMessage message)
+        {
+            try
+            {
+                NetworkComponent.SendMessage(message);
+            }
+            catch (CommunicationErrorException e)
+            {
+                if (e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    // TODO: Should terminate
+                }
+
+                Console.WriteLine(e.Message);
+            }
         }
 
         //TODO (#IO-57): Move to mocked tests
