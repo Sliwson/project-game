@@ -14,7 +14,7 @@ namespace Agent
 
         static void Main(string[] args)
         {
-            if (args.Length == 1)
+            if (args.Length == 0)
             {
                 var agents = new Agent[] {
                     CreateAgentWithConfiguration()
@@ -22,18 +22,23 @@ namespace Agent
 
                 Run(agents);
             }
-            else if (args.Length == 3)
+            else if (args.Length == 2)
             {
-                int blue = 1, red = 0;
+                int blue = 0, red = 0;
                 try
                 {
-                    blue = int.Parse(args[1]);
+                    blue = int.Parse(args[0]);
                     red = int.Parse(args[1]);
+
+                    if (blue < 0 || red < 0 || (blue == 0 && red == 0))
+                        throw new ArgumentException();
                 }
                 catch
                 {
-                    Console.WriteLine($"Usage: {args[0]} (blueCount, redCount)");
+                    Console.WriteLine($"Usage: ./Agent.exe (blueCount, redCount)");
                     Console.WriteLine("Creating one blue agent with default configuration");
+                    blue = 1;
+                    red = 0;
                 }
 
                 var agents = CreateDefaultAgents(blue, red);
@@ -41,7 +46,7 @@ namespace Agent
             }
             else
             {
-                Console.WriteLine($"Usage: {args[0]} (blueCount, redCount)");
+                Console.WriteLine($"Usage: ./Agent.exe (blueCount, redCount)");
             }
         }
 
@@ -67,6 +72,22 @@ namespace Agent
 
         private static Agent[] CreateDefaultAgents(int blue, int red)
         {
+            var agents = new Agent[blue + red];
+            for (int i = 0; i < blue; i++)
+            {
+                var config = AgentConfiguration.GetDefault();
+                config.TeamID = "blue";
+                agents[i] = new Agent(config);
+            }
+
+            for (int i = 0; i < red; i++)
+            {
+                var config = AgentConfiguration.GetDefault();
+                config.TeamID = "red";
+                agents[blue + i] = new Agent(config);
+            }
+
+            return agents;
         }
 
         private static void Run(Agent[] agents)
