@@ -144,8 +144,16 @@ namespace GameMaster
 
         public void OnDestroy()
         {
+            try
+            {
+                NetworkComponent?.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                Logger.Get().Error("[GM] {error}", ex.Message);
+            }
+
             Logger.OnDestroy();
-            NetworkComponent?.Disconnect();
         }
 
         public void SendMessage(BaseMessage message)
