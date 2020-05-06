@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -76,6 +77,8 @@ namespace GameMasterPresentation
 
         private bool IsUserScrollingLog = false;
 
+        public ObservableCollection<LogEntry> LogEntries { get; set; } = new ObservableCollection<LogEntry>();
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
@@ -91,6 +94,8 @@ namespace GameMasterPresentation
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
             if (GMConfig != null)
                 configuration = GMConfig.ConvertToGMConfiguration();
+
+            LogItemsControl.DataContext = LogEntries;
 
             gameMaster = new GameMaster.GameMaster(configuration);
 
@@ -134,6 +139,7 @@ namespace GameMasterPresentation
             Update(elapsed);
 
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
+            UpdateLog("HELLOOOO");
         }
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -208,14 +214,20 @@ namespace GameMasterPresentation
 
         private void UpdateLog(string text)
         {
-            logStringBuilder.AppendLine(text);
-            LogTextBlock.Text = logStringBuilder.ToString();
+            //logStringBuilder.AppendLine(text);
+            //LogTextBlock.Text = logStringBuilder.ToString();
+            //if (IsUserScrollingLog == false)
+            //{
+            //    //TODO: allow user to scroll
+            //    LogScrollViewer.ScrollToEnd();
+            //    //IsUserScrollingLog = false;
+            //}
+
+            LogEntries.Add(new LogEntry(text));
             if (IsUserScrollingLog == false)
             {
-                //TODO: allow user to scroll
                 LogScrollViewer.ScrollToEnd();
-                //IsUserScrollingLog = false;
-            }
+            }            
         }
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
