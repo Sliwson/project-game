@@ -73,8 +73,6 @@ namespace GameMasterPresentation
         }
 
         //log
-        private StringBuilder logStringBuilder = new StringBuilder();
-
         private bool IsUserScrollingLog = false;
 
         public ObservableCollection<LogEntry> LogEntries { get; set; } = new ObservableCollection<LogEntry>();
@@ -139,7 +137,6 @@ namespace GameMasterPresentation
             Update(elapsed);
 
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
-            UpdateLog("HELLOOOO");
         }
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -214,15 +211,6 @@ namespace GameMasterPresentation
 
         private void UpdateLog(string text)
         {
-            //logStringBuilder.AppendLine(text);
-            //LogTextBlock.Text = logStringBuilder.ToString();
-            //if (IsUserScrollingLog == false)
-            //{
-            //    //TODO: allow user to scroll
-            //    LogScrollViewer.ScrollToEnd();
-            //    //IsUserScrollingLog = false;
-            //}
-
             LogEntries.Add(new LogEntry(text));
             if (IsUserScrollingLog == false)
             {
