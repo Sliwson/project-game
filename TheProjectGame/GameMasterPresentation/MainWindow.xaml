@@ -69,6 +69,20 @@
             <Setter Property="GroupName" Value="Radio" />
             <Setter Property="FontSize" Value="20" />
         </Style>
+        <Style TargetType="ItemsControl" x:Key="LogViewerStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <ItemsPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate DataType="{x:Type local:LogEntry}">
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13"/>
+        </DataTemplate>
+
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -187,10 +201,17 @@
 					  Grid.Row="3" Grid.Column="1"
 					  Grid.ColumnSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" GotFocus="LogScrollViewer_GotFocus" LostFocus="LogScrollViewer_LostFocus">
-                    <TextBlock Name="LogTextBlock" TextWrapping="Wrap" FontSize="14" FontFamily="Consolas">
-                    </TextBlock>
-                </ScrollViewer>
+                <DockPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" GotFocus="LogScrollViewer_GotFocus" LostFocus="LogScrollViewer_LostFocus">
+                        <ItemsControl Name="LogItemsControl" ItemsSource="{Binding}" Style="{StaticResource LogViewerStyle}">
+                            <ItemsControl.Template>
+                                <ControlTemplate>
+                                    <ItemsPresenter/>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </GroupBox>
         </Grid>
         <!--/MainGrid-->

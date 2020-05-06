@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -72,9 +73,9 @@ namespace GameMasterPresentation
         }
 
         //log
-        private StringBuilder logStringBuilder = new StringBuilder();
-
         private bool IsUserScrollingLog = false;
+
+        public ObservableCollection<LogEntry> LogEntries { get; set; } = new ObservableCollection<LogEntry>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -91,6 +92,8 @@ namespace GameMasterPresentation
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
             if (GMConfig != null)
                 configuration = GMConfig.ConvertToGMConfiguration();
+
+            LogItemsControl.DataContext = LogEntries;
 
             gameMaster = new GameMaster.GameMaster(configuration);
 
@@ -208,14 +211,11 @@ namespace GameMasterPresentation
 
         private void UpdateLog(string text)
         {
-            logStringBuilder.AppendLine(text);
-            LogTextBlock.Text = logStringBuilder.ToString();
+            LogEntries.Add(new LogEntry(text));
             if (IsUserScrollingLog == false)
             {
-                //TODO: allow user to scroll
                 LogScrollViewer.ScrollToEnd();
-                //IsUserScrollingLog = false;
-            }
+            }            
         }
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
