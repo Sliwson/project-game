@@ -1,34 +1,30 @@
-﻿using Agent.Interfaces;
+﻿using Agent.Enums;
 using Agent.strategies;
 using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
-using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Agent
 {
     public class Agent : IMessageProcessor
     {
-        public bool endIfUnexpectedMessage = false;
+        public bool EndIfUnexpectedMessage { get; } = false;
 
-        public bool endIfUnexpectedAction = false;
+        public bool EndIfUnexpectedAction { get; } = false;
 
-        private readonly TimeSpan maxSkipTime = TimeSpan.FromSeconds(2.0);
+        public bool DivideAgents { get; } = true;
 
-        private const double penaltyMultiply = 1.1;
+        private const double penaltyMultiply = 1.5;
 
-        public int id;
+        private const int maxSkip = 10;
 
-        private ISender sender;
+        public int Id { get; set; }
 
         private IStrategy strategy;
 
@@ -79,34 +75,37 @@ namespace Agent
         public void ConnectToCommunicationServer()
         {
             if (!NetworkComponent.Connect(ClientType.Agent))
-                throw new ApplicationException("Unable to connect to CS");
+                throw new ApplicationException("Unable to connect to CS", NetworkComponent.Exception);
         }
 
         public void OnDestroy()
         {
-            NetworkComponent.Disconnect();
+            NetworkComponent?.Disconnect();
         }
 
-        public void SetPenalty(double add)
+        public void SetPenalty(double add, bool shouldRepeat)
         {
             if (add <= 0.0) return;
-            AgentInformationsComponent.LastPenalty = add;
             AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
+            if (shouldRepeat) AgentInformationsComponent.LastRequestPenalty = add;
         }
 
-        private void SetPenalty(ActionType action)
+        private void SetPenalty(ActionType action, bool shouldRepeat)
         {
-            var ret = StartGameComponent.penalties.TryGetValue(action, out TimeSpan span);
-            if (ret) SetPenalty(span.TotalSeconds);
+            var ret = StartGameComponent.Penalties.TryGetValue(action, out TimeSpan span);
+            if (ret) SetPenalty(span.TotalSeconds, shouldRepeat);
         }
 
         public void SetDoNothingStrategy()
         {
-            this.strategy = new DoNothingStrategy();
+            strategy = new DoNothingStrategy();
         }
 
         public ActionResult Update(double dt)
         {
+            if (NetworkComponent.Exception != null)
+                throw NetworkComponent.Exception;
+
             injectedMessages.AddRange(NetworkComponent.GetIncomingMessages());
             if (AgentState == AgentState.Finished) return ActionResult.Finish;
             AgentInformationsComponent.RemainingPenalty = Math.Max(0.0, AgentInformationsComponent.RemainingPenalty - dt);
@@ -114,7 +113,7 @@ namespace Agent
             switch (AgentState)
             {
                 case AgentState.Created:
-                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.team, WantsToBeLeader)));
+                    SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)), false);
                     AgentState = AgentState.WaitingForJoin;
                     return ActionResult.Continue;
                 case AgentState.WaitingForJoin:
@@ -136,9 +135,9 @@ namespace Agent
                     }
                     return ActionResult.Continue;
                 case AgentState.InGame:
-                    if (AgentInformationsComponent.DeniedLastRequest) return RepeatAction();
+                    if (AgentInformationsComponent.DeniedLastRequest) return RepeatRequest();
                     BaseMessage message = GetMessage();
-                    if (message == null && AgentInformationsComponent.SkipTime < maxSkipTime)
+                    if (message == null && AgentInformationsComponent.SkipTime < TimeSpan.FromTicks(StartGameComponent.AverageTime.Ticks * maxSkip))
                     {
                         AgentInformationsComponent.SkipTime += TimeSpan.FromSeconds(dt);
                         return ActionResult.Continue;
@@ -152,7 +151,7 @@ namespace Agent
                     }
                     return ActionResult.Continue;
                 default:
-                    logger.Error("Agent in unknown state: " + AgentState.ToString() + " AgentID: " + id.ToString());
+                    logger.Error("Agent in unknown state: " + AgentState.ToString() + " AgentID: " + Id.ToString());
                     return ActionResult.Finish;
             }
         }
@@ -161,13 +160,13 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Move: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Move: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             AgentInformationsComponent.LastDirection = direction;
-            SetPenalty(ActionType.Move);
-            SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)));
-            logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.Move, true);
+            SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)), true);
+            logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -175,11 +174,11 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Pick up: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Pick up: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
-            SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()));
-            logger.Info("Pick up: Agent sent pick up piece request." + " AgentID: " + id.ToString());
+            SendMessage(MessageFactory.GetMessage(new PickUpPieceRequest()), true);
+            logger.Info("Pick up: Agent sent pick up piece request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -187,12 +186,12 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Put: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Put: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
-            SetPenalty(ActionType.PutPiece);
-            SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()));
-            logger.Info("Put: Agent sent put down piece request." + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.PutPiece, true);
+            SendMessage(MessageFactory.GetMessage(new PutDownPieceRequest()), true);
+            logger.Info("Put: Agent sent put down piece request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -200,21 +199,21 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Beg for info: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Beg for info: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
-            if (StartGameComponent.teamMates.Length == 0)
+            if (StartGameComponent.TeamMatesToAsk.Length == 0)
             {
-                logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Beg for info: Agent does not know his teammates" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
             AgentInformationsComponent.LastAskedTeammate++;
-            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.teamMates.Length;
-            SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.teamMates[AgentInformationsComponent.LastAskedTeammate])));
-            logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + id.ToString());
+            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMatesToAsk.Length;
+            SetPenalty(ActionType.InformationExchange, true);
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
+            logger.Info("Beg for info: Agent sent exchange information request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -222,24 +221,28 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Give info: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Give info: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             if (respondToId == -1 && WaitingPlayers.Count > 0)
             {
                 respondToId = WaitingPlayers[0];
                 WaitingPlayers.RemoveAt(0);
-                logger.Info("Give info: ResponfdId is -1. Respond to first waiting player." + " AgentID: " + id.ToString());
+                logger.Info("Give info: ResponfdId is -1. Respond to first waiting player." + " AgentID: " + Id.ToString());
             }
             if (respondToId == -1)
             {
-                logger.Warn("Give info: Respond to id -1 while give info" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Give info: Respond to id -1 while give info" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             else if (respondToId == -1) return MakeDecisionFromStrategy();
-            SetPenalty(ActionType.InformationExchange);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId, BoardLogicComponent.GetDistances(), BoardLogicComponent.GetRedTeamGoalAreaInformation(), BoardLogicComponent.GetBlueTeamGoalAreaInformation())));
-            logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString() + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.InformationExchange, false);
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId,
+                BoardLogicComponent.GetDistances(),
+                BoardLogicComponent.GetRedTeamGoalAreaInformation(),
+                BoardLogicComponent.GetBlueTeamGoalAreaInformation())),
+                false);
+            logger.Info("Give info: Agent sent exchange information response to adentId: " + respondToId.ToString() + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -247,12 +250,12 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Check piece: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Check piece: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
-            SetPenalty(ActionType.CheckForSham);
-            SendMessage(MessageFactory.GetMessage(new CheckShamRequest()));
-            logger.Info("Check piece: Agent sent check scham request." + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.CheckForSham, true);
+            SendMessage(MessageFactory.GetMessage(new CheckShamRequest()), true);
+            logger.Info("Check piece: Agent sent check scham request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -260,12 +263,12 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Discover: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Discover: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
-            SetPenalty(ActionType.Discovery);
-            SendMessage(MessageFactory.GetMessage(new DiscoverRequest()));
-            logger.Info("Discover: Agent sent discover request." + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.Discovery, true);
+            SendMessage(MessageFactory.GetMessage(new DiscoverRequest()), true);
+            logger.Info("Discover: Agent sent discover request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -273,12 +276,12 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
-            SetPenalty(ActionType.DestroyPiece);
-            SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()));
-            logger.Info("Destroy Piece: Agent sent destroy piece request." + " AgentID: " + id.ToString());
+            SetPenalty(ActionType.DestroyPiece, true);
+            SendMessage(MessageFactory.GetMessage(new DestroyPieceRequest()), true);
+            logger.Info("Destroy Piece: Agent sent destroy piece request." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -287,17 +290,22 @@ namespace Agent
             return strategy.MakeDecision(this);
         }
 
-        public ActionResult RepeatAction()
+        public ActionResult MakeForcedDecision(SpecificActionType action, int argument = -1)
+        {
+            return strategy.MakeForcedDecision(this, action, argument);
+        }
+
+        public ActionResult RepeatRequest()
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Repeat Action: Agent not in game" + " AgentID: " + id.ToString());
-                if (endIfUnexpectedAction) return ActionResult.Finish;
+                logger.Warn("Repeat Action: Agent not in game" + " AgentID: " + Id.ToString());
+                if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             AgentInformationsComponent.DeniedLastRequest = false;
-            SetPenalty(AgentInformationsComponent.LastPenalty);
-            SendMessage(AgentInformationsComponent.LastMessage);
-            logger.Info("Repeat Action: Agent resent previous action." + " AgentID: " + id.ToString());
+            SetPenalty(AgentInformationsComponent.LastRequestPenalty, true);
+            SendMessage(AgentInformationsComponent.LastRequest, true);
+            logger.Info("Repeat Action: Agent resent previous action." + " AgentID: " + Id.ToString());
             return ActionResult.Continue;
         }
 
@@ -316,7 +324,19 @@ namespace Agent
         private BaseMessage GetMessage(MessageId messageId)
         {
             var message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
-            if (message == null) message = injectedMessages.FirstOrDefault(m => m.MessageId == messageId);
+            if (message != null) injectedMessages.Remove(message);
+            return message;
+        }
+
+        public BaseMessage GetMessageFromLeader()
+        {
+            var message = injectedMessages.FirstOrDefault(m =>
+            {
+                if (m.MessageId != MessageId.ExchangeInformationRequestForward) return false;
+                var exchangeMessage = m as Message<ExchangeInformationRequestForward>;
+                if (exchangeMessage == null) return false;
+                return exchangeMessage.Payload.Leader;
+            });
             if (message != null) injectedMessages.Remove(message);
             return message;
         }
@@ -326,14 +346,29 @@ namespace Agent
             injectedMessages.Add(message);
         }
 
-        public void SendMessage(BaseMessage message)
+        public void SendMessage(BaseMessage message, bool shouldRepeat)
         {
-            AgentInformationsComponent.LastMessage = message;
-            NetworkComponent.SendMessage(message);
+            if (shouldRepeat)
+                AgentInformationsComponent.LastRequest = message;
+
+            try
+            {
+                NetworkComponent.SendMessage(message);
+            }
+            catch (CommunicationErrorException e)
+            {
+                if (e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    // TODO: Should terminate
+                }
+
+                Console.WriteLine(e.Message);
+            }
         }
 
         public ActionResult AcceptMessage(BaseMessage message)
         {
+            AgentInformationsComponent.Discovered = false;
             dynamic dynamicMessage = message;
             return ProcessMessages.Process(dynamicMessage);
         }

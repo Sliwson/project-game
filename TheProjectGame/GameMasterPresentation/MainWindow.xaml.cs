@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -72,9 +73,9 @@ namespace GameMasterPresentation
         }
 
         //log
-        private StringBuilder logStringBuilder = new StringBuilder();
-
         private bool IsUserScrollingLog = false;
+
+        public ObservableCollection<LogEntry> LogEntries { get; set; } = new ObservableCollection<LogEntry>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -87,12 +88,18 @@ namespace GameMasterPresentation
         {
             InitializeComponent();
 
+            var configuration = GameMaster.GameMasterConfiguration.GetDefault();
             GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+            if (GMConfig != null)
+                configuration = GMConfig.ConvertToGMConfiguration();
 
-            gameMaster = new GameMaster.GameMaster(GMConfig?.ConvertToGMConfiguration());
+            LogItemsControl.DataContext = LogEntries;
+
+            gameMaster = new GameMaster.GameMaster(configuration);
 
             Board = new BoardComponent(BoardCanvas);
 
+            //TODO: handle null exeption if default not loaded
             GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
             timer = new DispatcherTimer();
@@ -102,7 +109,6 @@ namespace GameMasterPresentation
             timer.Interval = TimeSpan.FromMilliseconds(33);
             timer.Tick += TimerEvent;
 
-            //in development there wasn't this line
             stopwatch.Start();
 
             frameStopwatch.Start();
@@ -135,13 +141,23 @@ namespace GameMasterPresentation
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (IsConnecting == false)
+            if (IsConnecting == true)
+                return;
+
+            IsConnecting = true;
+            gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
+
+            try
             {
-                ConnectRadioButton.Content = "Connecting";
-                gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
-                gameMaster.ApplyConfiguration();
+                gameMaster.ConnectToCommunicationServer();
+                ConnectRadioButton.Content = "Connected";
                 StartRadioButton.IsEnabled = true;
-                IsConnecting = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Exception occured!", MessageBoxButton.OK, MessageBoxImage.Error);
+                IsConnecting = false;
+                ConnectRadioButton.IsChecked = false;
             }
         }
 
@@ -195,14 +211,11 @@ namespace GameMasterPresentation
 
         private void UpdateLog(string text)
         {
-            logStringBuilder.AppendLine(text);
-            LogTextBlock.Text = logStringBuilder.ToString();
+            LogEntries.Add(new LogEntry(text));
             if (IsUserScrollingLog == false)
             {
-                //TODO: allow user to scroll
                 LogScrollViewer.ScrollToEnd();
-                //IsUserScrollingLog = false;
-            }
+            }            
         }
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
@@ -238,6 +251,12 @@ namespace GameMasterPresentation
         private void Update(double dt)
         {
             gameMaster.Update(dt);
+            if (gameMaster.state == GameMaster.GameMasterState.CriticalError)
+            {
+                MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+            }
+
             FlushLogs();
         }
 

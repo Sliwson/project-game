@@ -1,34 +1,38 @@
-﻿using System;
+﻿using Messaging.Communication;
+using System;
 using System.IO;
 
 namespace CommunicationServer
 {
     class Program
     {
-        private static string configFilePath = @"communicationServerConfig.json";
-
         static void Main(string[] args)
         {
-            ConsoleKey loadConfigChoice;
-            while(true)
-            {
-                Console.Write($"Do you want to load configuration from file: {Path.GetFullPath(configFilePath)}? [y]/[n]: ");
-                loadConfigChoice = Console.ReadKey().Key;
-                Console.WriteLine("\n");
+            var config = CommunicationServerConfiguration.GetDefault();
 
-                if (loadConfigChoice == ConsoleKey.N)
-                {
-                    configFilePath = null;
-                    break;
-                }
-                else if (loadConfigChoice == ConsoleKey.Y)
-                {
-                    break;
-                }
+            Console.WriteLine("Do you want to load configuration from file? [Y]/[*]");
+            ConsoleKey key = Console.ReadKey().Key;
+            Console.WriteLine();
+
+            if (key == ConsoleKey.Y)
+            {
+                Console.WriteLine("Enter path: ");
+                var line = Console.ReadLine();
+                var newConfig = CommunicationServerConfiguration.LoadFromFile(line);
+                if (newConfig != null)
+                    config = newConfig;
             }
 
-            CommunicationServer server = new CommunicationServer(configFilePath);
-            server.Run();
+            try
+            {
+                CommunicationServer server = new CommunicationServer(config);
+                server.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Fatal error occured, application will close immediately");
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
     }
 }

@@ -21,9 +21,9 @@ namespace GameMasterTests
         [SetUp]
         public void Setup()
         {
-            gameMaster = new GameMaster.GameMaster();
+            configuration = GameMasterConfiguration.GetDefault();
+            gameMaster = new GameMaster.GameMaster(configuration);
             connectionLogic = gameMaster.ConnectionLogic;
-            configuration = gameMaster.Configuration;
         }
 
         [Test]

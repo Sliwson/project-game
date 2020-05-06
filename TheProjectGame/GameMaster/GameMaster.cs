@@ -24,15 +24,13 @@ namespace GameMaster
         public GameMasterState state { get; private set; } = GameMasterState.Configuration;
         private IMessageProcessor currentMessageProcessor = null;
 
-        public GameMaster(GameMasterConfiguration configuration = null)
+        public Exception LastException { get; private set; }
+
+        public GameMaster(GameMasterConfiguration configuration)
         {
             Logger.Get().Info("[GM] Creating GameMaster");
 
-            if (configuration == null)
-                LoadDefaultConfiguration();
-            else
-                Configuration = configuration;
-
+            Configuration = configuration;
             ConnectionLogic = new ConnectionLogicComponent(this);
             GameLogic = new GameLogicComponent(this);
             ScoreComponent = new ScoreComponent(this);
@@ -54,26 +52,15 @@ namespace GameMaster
             }
         }
 
-        public void ApplyConfiguration()
-        {
-            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
-
-            //we should connect to cs after setting configuration
-            //try to connect to communciation server (if connection is not successful throw exception)
-
-            ConnectToCommunicationServer();
-
-            //if ok start accepting agents
-            state = GameMasterState.ConnectingAgents;
-            currentMessageProcessor = ConnectionLogic;
-        }
-
         public void ConnectToCommunicationServer()
         {
+            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
 
             Logger.Get().Info("[GM] Connected to Communication Server");
+            state = GameMasterState.ConnectingAgents;
+            currentMessageProcessor = ConnectionLogic;
         }
 
         public bool StartGame()
@@ -92,7 +79,8 @@ namespace GameMaster
             Logger.Get().Info("[GM] Starting game with {count} agents", Agents.Count);
             var messages = GameLogic.GetStartGameMessages();
             foreach (var m in messages)
-                NetworkComponent.SendMessage(m);
+                SendMessage(m);
+
             return true;
         }
 
@@ -117,7 +105,10 @@ namespace GameMaster
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
-            if (state == GameMasterState.Configuration || state == GameMasterState.Summary)
+            if (state != GameMasterState.Configuration && NetworkComponent?.Exception != null)
+                SetCriticalException(NetworkComponent.Exception);
+
+            if (state == GameMasterState.Configuration || state == GameMasterState.Summary || state == GameMasterState.CriticalError)
                 return;
 
             foreach (var agent in Agents)
@@ -131,7 +122,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
-                    NetworkComponent.SendMessage(response);
+                    SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
             }
@@ -144,7 +135,7 @@ namespace GameMaster
                 Logger.Get().Info("[GM] Ending game");
                 var resultMessages = GameLogic.GetEndGameMessages(result == Enums.GameResult.BlueWin ? TeamId.Blue : TeamId.Red);
                 foreach (var m in resultMessages)
-                    NetworkComponent.SendMessage(m);
+                    SendMessage(m);
             }
         }
 
@@ -155,8 +146,35 @@ namespace GameMaster
 
         public void OnDestroy()
         {
+            try
+            {
+                NetworkComponent?.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                Logger.Get().Error("[GM] {error}", ex.Message);
+            }
+
             Logger.OnDestroy();
-            NetworkComponent?.Disconnect();
+        }
+
+        public void SendMessage(BaseMessage message)
+        {
+            try
+            {
+                NetworkComponent.SendMessage(message);
+            }
+            catch (CommunicationErrorException e)
+            {
+                if (e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    SetCriticalException(e);
+                }
+                else
+                {
+                    Logger.Get().Error("[GM] Exception occured: {ex}", e.Message);
+                }
+            }
         }
 
         //TODO (#IO-57): Move to mocked tests
@@ -179,12 +197,11 @@ namespace GameMaster
             return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
         }
 
-        private void LoadDefaultConfiguration()
+        private void SetCriticalException(Exception ex)
         {
-            Logger.Get().Info("[GM] Loading default configuration");
-
-            var configurationProvider = new MockConfigurationProvider();
-            Configuration = configurationProvider.GetConfiguration();
+            state = GameMasterState.CriticalError;
+            LastException = NetworkComponent.Exception;
+            Logger.Get().Error("[GM] Critical exception occured: {ex}", LastException.Message);
         }
     }
 }

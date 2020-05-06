@@ -6,7 +6,6 @@ using System.Net.Sockets;
 
 namespace CommunicationServer
 {
-    // TODO (#IO-45): Add exception handling and logging (CS) 
     internal class HostMapping
     {
         private ConcurrentDictionary<int, Socket> mapping;
@@ -23,43 +22,39 @@ namespace CommunicationServer
 
         internal int GetHostIdForSocket(Socket socket)
         {
-            if (inversedMapping.TryGetValue(socket, out int result))
-                return result;
+            if (socket != null && inversedMapping.TryGetValue(socket, out int hostId))
+                return hostId;
 
-            throw new KeyNotFoundException($"No host binded with requested socket");
+            throw new CommunicationErrorException(CommunicationExceptionType.NoClient);
         }
 
         internal Socket GetSocketForHostId(int hostId)
         {
-            if(mapping.TryGetValue(hostId, out Socket result))
+            if(mapping.TryGetValue(hostId, out Socket result) && result != null)
                 return result;
 
-            throw new KeyNotFoundException($"No socket found for host with ID: {hostId}");
+            throw new CommunicationErrorException(CommunicationExceptionType.NoClient);
         }
 
         internal int AddClientToMapping(ClientType clientType, Socket socket)
         {
+            if(socket == null)
+                throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket);
+
             var hostId = clientType == ClientType.Agent ? ++lastHostId : gmHostId;
 
             if (inversedMapping.ContainsKey(socket))
-                throw new ArgumentException($"There is already a host binded with requested socket");
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketInUse);
             else if (hostId == gmHostId && mapping.ContainsKey(gmHostId))
-                throw new ArgumentException($"Game Master is already registered");
-
-            string errorMessage = "Unable to register socket";
+                throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedGameMaster);
 
             if (!mapping.TryAdd(hostId, socket))
             {
-                throw new Exception(errorMessage);
+                throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedHostId);
             }
-            if (!inversedMapping.TryAdd(socket, hostId))
-            {
-                while (!mapping.TryRemove(hostId, out _))
-                    Console.WriteLine(errorMessage);
+            inversedMapping.TryAdd(socket, hostId);
 
-                throw new Exception(errorMessage);
-            }
-
+            Console.WriteLine($"Client of type {clientType} has been registered");
             return hostId;
         }
 
@@ -70,8 +65,8 @@ namespace CommunicationServer
 
         internal int GetGameMasterHostId()
         {
-            if (!mapping.TryGetValue(gmHostId, out _))
-                throw new ArgumentException("Game Master has not been registered");
+            if (!mapping.TryGetValue(gmHostId, out Socket gmSocket) || gmSocket == null)
+                throw new CommunicationErrorException(CommunicationExceptionType.NoGameMaster);
             return gmHostId;
         }
     }

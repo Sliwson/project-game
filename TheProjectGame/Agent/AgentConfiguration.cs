@@ -7,7 +7,6 @@ using System.Text;
 
 namespace Agent
 {
-    // TODO: Improve configuration for tests
     public class AgentConfiguration
     {
         public string CsIP { get; set; }
@@ -16,20 +15,36 @@ namespace Agent
         public int Strategy { get; set; }
         public bool WantsToBeTeamLeader { get; set; }
         
-        public AgentConfiguration()
+        public static AgentConfiguration GetDefault()
         {
-            CsIP = "127.0.0.1";
-            CsPort = 54321;
+            return new AgentConfiguration
+            {
+                CsIP = "127.0.0.1",
+                CsPort = 54321,
+                TeamID = "blue",
+                Strategy = 0,
+                WantsToBeTeamLeader = true
+            };
         }
 
-        public static AgentConfiguration GetConfiguration(string fileName = null)
+        public static AgentConfiguration LoadFromFile(string filename)
         {
-            if (fileName == null)
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+
+            try
             {
-                fileName = "..\\..\\..\\Configuration\\agentConfiguration.json";
+                var text = File.ReadAllText(@filename);
+                AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(text);
+                logger.Info("[AgentConfiguration] Configuration loaded from {name}", filename);
+                return agentConfiguration;
             }
-            AgentConfiguration agentConfiguration = JsonConvert.DeserializeObject<AgentConfiguration>(File.ReadAllText(@fileName));
-            return agentConfiguration;
+            catch (Exception e)
+            {
+                logger.Error("[AgentConfiguration] Cannot load configuration!");
+                logger.Error(e.Message);
+            }
+
+            return null;
         }
     }
 }

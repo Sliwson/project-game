@@ -4,13 +4,17 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Concurrent;
 using Messaging.Serialization;
+using Messaging.Communication;
+using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("CommunicationServerTests")]
 
 namespace CommunicationServer
 {
     public class CommunicationServer
     {
-        // TODO: Implement loading configuration from file
-        internal ConfigurationComponent ConfigComponent { get; private set; }
+        public CommunicationServerConfiguration Configuration { get; private set; }
         internal NetworkComponent NetworkComponent { get; private set; }
 
         internal IPAddress IPAddress { get; private set; }
@@ -22,9 +26,12 @@ namespace CommunicationServer
         private Socket gameMasterListener;
         private Socket agentListener;
 
-        public CommunicationServer(string configFilePath = null)
+        private bool shouldTerminate = false;
+        private Exception internalException;
+
+        public CommunicationServer(CommunicationServerConfiguration configuration)
         {
-            ConfigComponent = new ConfigurationComponent(configFilePath);
+            Configuration = configuration;
             NetworkComponent = new NetworkComponent(this);
 
             HostMapping = new HostMapping();
@@ -45,15 +52,9 @@ namespace CommunicationServer
                 agentListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 agentListener.NoDelay = true;
             }
-            catch (ArgumentOutOfRangeException)
+            catch (SocketException ex)
             {
-                Console.WriteLine($"All ports have to be in range ({IPEndPoint.MinPort}, {IPEndPoint.MaxPort}), was: {ConfigComponent.GetAgentPort()} and {ConfigComponent.GetGameMasterPort()}");
-                throw;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Unable to create socket");
-                throw;
+                throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, ex);
             }
 
             NetworkComponent.StartListening(gameMasterListener, agentListener);
@@ -61,10 +62,40 @@ namespace CommunicationServer
             ProcessMessages();
         }
 
+        public void OnDestroy()
+        {
+            NetworkComponent?.Disconnect();
+        }
+
         // Call this method from other threads
         internal void AddMessage(ReceivedMessage receivedMessage)
         {
             messageQueue.Enqueue(receivedMessage);
+            shouldProcessMessage.Set();
+        }
+
+        // Call this method from other threads
+        internal bool CheckIfClientDisconnected(Socket socket)
+        {
+            if(socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
+            {
+                var disconectedId = HostMapping.GetHostIdForSocket(socket);
+                if(HostMapping.IsHostGameMaster(disconectedId))
+                {
+                    RaiseException(new CommunicationErrorException(CommunicationExceptionType.GameMasterDisconnected));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // Call this method from other threads
+        internal void RaiseException(Exception exception)
+        {
+            internalException = exception;
+            shouldTerminate = true;
             shouldProcessMessage.Set();
         }
 
@@ -75,8 +106,10 @@ namespace CommunicationServer
             while(true)
             {
                 shouldProcessMessage.WaitOne();
+                if (shouldTerminate && internalException != null)
+                    throw internalException;
 
-                while(messageQueue.TryDequeue(out message))
+                while (messageQueue.TryDequeue(out message))
                 {
                     ProcessMessage(message);
                     shouldProcessMessage.Reset();
@@ -84,35 +117,55 @@ namespace CommunicationServer
             }
         }
 
-        // TODO (#IO-45): Add EndGame handlers
         private void ProcessMessage(ReceivedMessage receivedMessage)
         {
-            var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
-            int receipentHostId;
-
-            Console.WriteLine("-----------------");
-            Console.WriteLine($"Received message from host with id = {senderHostId}");
-            Console.WriteLine("Content: ");
-            Console.WriteLine(receivedMessage.SerializedMessage);
-            Console.WriteLine();
-
-            var deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
-            if (!HostMapping.IsHostGameMaster(senderHostId))
+            try
             {
-                receipentHostId = HostMapping.GetGameMasterHostId();
-                deserializedMessage.SetAgentId(senderHostId);
+                var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
+                int receipentHostId;
+
+                Console.WriteLine($"Received message from host with id = {senderHostId}");
+                var deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
+                Console.WriteLine($"Message type = {deserializedMessage.MessageId} (id = {(int)deserializedMessage.MessageId})");
+
+                if (!HostMapping.IsHostGameMaster(senderHostId))
+                {
+                    // TODO: Decide what should be done if GameMaster has not connected yet (NoGameMaster)
+                    receipentHostId = HostMapping.GetGameMasterHostId();
+                    deserializedMessage.SetAgentId(senderHostId);
+                }
+                else
+                {
+                    receipentHostId = deserializedMessage.AgentId;
+                }
+
+                Console.WriteLine($"\nForwarding to host with id = {receipentHostId}");
+
+                var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);
+
+                NetworkComponent.SendMessage(receipentSocket, deserializedMessage);
             }
-            else
+            catch(JsonSerializationException e)
             {
-                receipentHostId = deserializedMessage.AgentId;
+                Console.WriteLine(e.Message);
             }
+            catch(CommunicationErrorException e)
+            {
+                Console.WriteLine(e.Message);
 
-            Console.WriteLine($"\nForwarding to host with id = {receipentHostId}");
+                // Socket has been closed or is invalid
+                if(e.Type == CommunicationExceptionType.InvalidSocket)
+                {
+                    if (receivedMessage.SenderSocket == null)
+                        return;
 
-            var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);
-            NetworkComponent.SendMessage(receipentSocket, deserializedMessage);
+                    var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
 
-            Console.WriteLine("-----------------");
+                    // Message should be sent to GameMaster but error occured - abort
+                    if (!HostMapping.IsHostGameMaster(senderHostId))
+                        throw;
+                }
+            }
         }
     }
 }
