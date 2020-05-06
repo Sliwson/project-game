@@ -80,12 +80,7 @@
         </Style>
 
         <DataTemplate DataType="{x:Type local:LogEntry}">
-            <Grid IsSharedSizeScope="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
-            </Grid>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13"/>
         </DataTemplate>
 
     </Window.Resources>
