@@ -32,7 +32,6 @@ namespace IntegrationTests
 
             var csConfig = CommunicationServerConfiguration.GetDefault();
             var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
-            //
             
             csTask.Start();
             Thread.Sleep(100);
@@ -82,7 +81,6 @@ namespace IntegrationTests
                     agentTaskStates[i].Agent.OnDestroy();
                 }
             }
-            //
         }
     }
 }
