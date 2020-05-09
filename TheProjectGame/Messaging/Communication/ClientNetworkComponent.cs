@@ -1,5 +1,6 @@
 ﻿using Messaging.Contracts;
 using Messaging.Serialization;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,6 +19,8 @@ namespace Messaging.Communication
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
         private ManualResetEvent connectDone;
+
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
