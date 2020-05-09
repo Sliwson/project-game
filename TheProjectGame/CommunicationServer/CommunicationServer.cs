@@ -148,7 +148,7 @@ namespace CommunicationServer
                     receipentHostId = deserializedMessage.AgentId;
                 }
 
-                logger.Debug("[CS] Forwarding to host with id = {recipent}\n", receipentHostId);
+                logger.Debug("[CS] Forwarding to host with id = {recipent}", receipentHostId);
 
                 var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);
 

@@ -211,7 +211,7 @@ namespace CommunicationServer
                 Socket handler = (Socket)ar.AsyncState;
 
                 int bytesSent = handler.EndSend(ar);
-                logger.Debug("Sent {bytesSent} bytes to client", bytesSent);
+                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
             }
             catch (Exception e)
             {
