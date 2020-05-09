@@ -4,6 +4,7 @@ using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,7 +15,7 @@ namespace Agent
     public class ProcessMessages
     {
         private Agent agent;
-        private static NLog.Logger logger; 
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
 
         List<MessageId> ingameMessageTypes = new List<MessageId> { 
             MessageId.CheckShamResponse, MessageId.DestroyPieceResponse, MessageId.DiscoverResponse,
@@ -27,7 +28,6 @@ namespace Agent
         public ProcessMessages(Agent agent)
         {
             this.agent = agent;
-            logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
         public List<MessageId> GetIngameMessageTypes()
@@ -37,7 +37,7 @@ namespace Agent
 
         public ActionResult Process(Message<CheckShamResponse> message)
         {
-            logger.Debug("[Agent {id}] Check sham response: {response}", agent.Id, message.Payload.Sham);
+            logger.Debug("[Agent {id}] Received check sham response: {response}", agent.Id, message.Payload.Sham);
 
             if (message.Payload.Sham)
             {
@@ -53,12 +53,16 @@ namespace Agent
 
         public ActionResult Process(Message<DestroyPieceResponse> message)
         {
+            logger.Debug("[Agent {id}] Received destroy piece response", agent.Id);
+
             agent.Piece = null;
             return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<DiscoverResponse> message)
         {
+            logger.Debug("[Agent {id}] Received discovery response", agent.Id);
+
             agent.AgentInformationsComponent.Discovered = true;
             DateTime now = DateTime.Now;
             for (int y = agent.BoardLogicComponent.Position.Y - 1; y <= agent.BoardLogicComponent.Position.Y + 1; y++)
@@ -79,6 +83,8 @@ namespace Agent
 
         public ActionResult Process(Message<ExchangeInformationResponseForward> message)
         {
+            logger.Debug("[Agent {id}] Received information exchange response", agent.Id);
+
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
@@ -111,6 +117,7 @@ namespace Agent
 
         public ActionResult Process(Message<PickUpPieceResponse> message)
         {
+            logger.Debug("[Agent {id}] Received pick up piece response", agent.Id);
             if (agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece == 0)
             {
                 logger.Debug("[Agent {id}] Picked up piece", agent.Id);
@@ -122,6 +129,7 @@ namespace Agent
 
         public ActionResult Process(Message<PutDownPieceResponse> message)
         {
+            logger.Debug("[Agent {id}] Received put down piece reponse: {response}", agent.Id, message.Payload.Result);
             agent.Piece = null;
             switch (message.Payload.Result)
             {
@@ -144,9 +152,11 @@ namespace Agent
 
         public ActionResult Process(Message<ExchangeInformationRequestForward> message)
         {
+            logger.Debug("[Agent {id}] Received information request from {id2}", agent.Id, message.Payload.AskingAgentId);
+
             if (message.Payload.Leader)
             {
-                logger.Debug("[Agent {id}] Forcing info to team leader", agent.Id);
+                logger.Debug("[Agent {id}] Forcing immediate response - asking agent is team leader", agent.Id);
                 return agent.MakeForcedDecision(SpecificActionType.GiveInfo, message.Payload.AskingAgentId);
             }
             if (message.Payload.TeamId != agent.StartGameComponent.Team)
@@ -171,6 +181,7 @@ namespace Agent
 
             if (message.Payload.Accepted)
             {
+                logger.Warn("[Agent {id}] Received join response, accepted", agent.Id);
                 bool wasWaiting = agent.AgentState == AgentState.WaitingForJoin;
                 agent.AgentState = AgentState.WaitingForStart;
                 agent.Id = message.Payload.AgentId;

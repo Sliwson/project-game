@@ -6,6 +6,7 @@ using Messaging.Contracts.Agent;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace Agent
         public INetworkComponent NetworkComponent { get; private set; }
 
 
-        private static NLog.Logger logger;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Agent(AgentConfiguration agentConfiguration)
         {
@@ -71,7 +72,6 @@ namespace Agent
             strategy = new SimpleStrategy();
             injectedMessages = new List<BaseMessage>();
             AgentState = AgentState.Created;
-            logger = NLog.LogManager.GetCurrentClassLogger();
             ProcessMessages = new ProcessMessages(this);
         }
 
@@ -282,7 +282,7 @@ namespace Agent
                 BoardLogicComponent.GetBlueTeamGoalAreaInformation())),
                 false);
 
-            logger.Debug("[Agent {id}] Sent exchange information resonse to: ", Id, respondToId);
+            logger.Debug("[Agent {id}] Sent exchange information response to {id2} ", Id, respondToId);
             return ActionResult.Continue;
         }
 
@@ -410,9 +410,9 @@ namespace Agent
             AgentInformationsComponent.Discovered = false;
 
             var ingameTypes = ProcessMessages.GetIngameMessageTypes();
-            if (ingameTypes.Contains(message.MessageId))
+            if (ingameTypes.Contains(message.MessageId)  &&AgentState != AgentState.InGame)
             {
-                logger.Warn("[Agent {id}] Requested request repeat, but not in game", Id);
+                logger.Warn("[Agent {id}] Received message of type {type}, but not in game", Id, message.MessageId);
                 return EndIfUnexpectedAction ? ActionResult.Finish : ActionResult.Continue;
             }
 
