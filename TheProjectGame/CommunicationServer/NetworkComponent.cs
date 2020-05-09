@@ -1,6 +1,7 @@
 ﻿using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Serialization;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -118,7 +119,7 @@ namespace CommunicationServer
             try
             {
                 listener.Listener.Listen(100);
-                logger.Info("Server for {type} was started with IP: {ip}", listener.ClientType, listener.Listener.LocalEndPoint);
+                logger.Info("[NetworkComponent] Server for {type} was started with IP: {ip}", listener.ClientType, listener.Listener.LocalEndPoint);
 
                 while (true)
                 {
@@ -151,7 +152,7 @@ namespace CommunicationServer
                 var state = new StateObject(ref handler, listener.ClientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-                logger.Info("{type} connected!", listener.ClientType);
+                logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
             }
             catch (Exception e)
             {

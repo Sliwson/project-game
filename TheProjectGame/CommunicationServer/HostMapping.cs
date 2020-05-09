@@ -56,7 +56,7 @@ namespace CommunicationServer
 
             inversedMapping.TryAdd(socket, hostId);
 
-            logger.Info("Client of type {clientType} has been registered", clientType);
+            logger.Info("[HostMapping] Client of type {clientType} has been registered", clientType);
             return hostId;
         }
 
