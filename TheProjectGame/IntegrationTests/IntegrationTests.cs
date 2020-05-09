@@ -40,7 +40,6 @@ namespace IntegrationTests
 
             var gmTask = new Task(IntegrationTestsHelper.RunGameMaster, gmTaskState);
             gmTask.Start();
-            Thread.Sleep(100);
             gmTaskState.GameMaster.ConnectToCommunicationServer();
 
             var agentTaskStates = IntegrationTestsHelper.CreateAgents(agentsInTeam)
