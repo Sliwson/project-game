@@ -16,19 +16,26 @@ namespace Agent
         private Agent agent;
         private static NLog.Logger logger; 
 
+        List<MessageId> ingameMessageTypes = new List<MessageId> { 
+            MessageId.CheckShamResponse, MessageId.DestroyPieceResponse, MessageId.DiscoverResponse,
+            MessageId.ExchangeInformationRequestForward, MessageId.ExchangeInformationResponseForward,
+            MessageId.MoveResponse, MessageId.PickUpPieceResponse, MessageId.PutDownPieceResponse,
+            MessageId.IgnoredDelayError, MessageId.MoveError, MessageId.PickUpPieceError, MessageId.PutDownPieceError
+        };
+
         public ProcessMessages(Agent agent)
         {
             this.agent = agent;
             logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
+        public List<MessageId> GetIngameMessageTypes()
+        {
+            return ingameMessageTypes;
+        }
+
         public ActionResult Process(Message<CheckShamResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process check scham response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             if (message.Payload.Sham)
             {
                 logger.Info("Process check scham response: Agent checked sham and destroy piece." + " AgentID: " + agent.Id.ToString());
@@ -44,22 +51,12 @@ namespace Agent
 
         public ActionResult Process(Message<DestroyPieceResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process destroy piece response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             agent.Piece = null;
             return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<DiscoverResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process discover response: Agent not in game." + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             agent.AgentInformationsComponent.Discovered = true;
             DateTime now = DateTime.Now;
             for (int y = agent.BoardLogicComponent.Position.Y - 1; y <= agent.BoardLogicComponent.Position.Y + 1; y++)
@@ -80,11 +77,6 @@ namespace Agent
 
         public ActionResult Process(Message<ExchangeInformationResponseForward> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process exchange information response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
@@ -93,11 +85,6 @@ namespace Agent
 
         public ActionResult Process(Message<MoveResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process move response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
@@ -122,11 +109,6 @@ namespace Agent
 
         public ActionResult Process(Message<PickUpPieceResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process pick up piece response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             if (agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece == 0)
             {
                 logger.Info("Process pick up piece response: Agent picked up piece" + " AgentID: " + agent.Id.ToString());
@@ -137,11 +119,6 @@ namespace Agent
 
         public ActionResult Process(Message<PutDownPieceResponse> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process put down piece response: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             agent.Piece = null;
             switch (message.Payload.Result)
             {
@@ -164,11 +141,6 @@ namespace Agent
 
         public ActionResult Process(Message<ExchangeInformationRequestForward> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process exchange information payload: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             if (message.Payload.Leader)
             {
                 logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.Id.ToString());
@@ -236,11 +208,6 @@ namespace Agent
 
         public ActionResult Process(Message<IgnoredDelayError> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process ignoreed delay error: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             logger.Warn("IgnoredDelay error" + " AgentID: " + agent.Id.ToString());
             agent.AgentInformationsComponent.DeniedLastRequest = true;
             var time = message.Payload.RemainingDelay;
@@ -250,11 +217,6 @@ namespace Agent
 
         public ActionResult Process(Message<MoveError> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process move error: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             logger.Warn("Move error" + " AgentID: " + agent.Id.ToString());
             agent.AgentInformationsComponent.DeniedLastMove = true;
             agent.BoardLogicComponent.Position = message.Payload.Position;
@@ -263,11 +225,6 @@ namespace Agent
 
         public ActionResult Process(Message<PickUpPieceError> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process pick up piece error: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             logger.Warn("Pick up piece error" + " AgentID: " + agent.Id.ToString());
             if (message.Payload.ErrorSubtype == PickUpPieceErrorSubtype.NothingThere)
             {
@@ -279,11 +236,6 @@ namespace Agent
 
         public ActionResult Process(Message<PutDownPieceError> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process put down piece error: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
             logger.Warn("Put down piece error" + " AgentID: " + agent.Id.ToString());
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) agent.Piece = null;
             return agent.MakeDecisionFromStrategy();

@@ -318,7 +318,7 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + Id.ToString());
+                logger.Warn("[Agent {id}] Requested destroy piece, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             SetPenalty(ActionType.DestroyPiece, true);
@@ -330,7 +330,7 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Destroy Piece: Agent not in game" + " AgentID: " + Id.ToString());
+                logger.Warn("[Agent {id}] Requested request repeat, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
 
@@ -408,6 +408,14 @@ namespace Agent
         public ActionResult AcceptMessage(BaseMessage message)
         {
             AgentInformationsComponent.Discovered = false;
+
+            var ingameTypes = ProcessMessages.GetIngameMessageTypes();
+            if (ingameTypes.Contains(message.MessageId))
+            {
+                logger.Warn("[Agent {id}] Requested request repeat, but not in game", Id);
+                return EndIfUnexpectedAction ? ActionResult.Finish : ActionResult.Continue;
+            }
+
             dynamic dynamicMessage = message;
             return ProcessMessages.Process(dynamicMessage);
         }
