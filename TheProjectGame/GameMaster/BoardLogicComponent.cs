@@ -124,7 +124,7 @@ namespace GameMaster
         {
             var f = GetField(a.Position);
             if (f.Agent != null)
-                logger.Error("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
+                logger.Warn("[Board] Agent {id} requested placement on field {position}, but it's already occupied", a.Id, a.Position);
 
             f.Agent = a;
         }
@@ -175,7 +175,7 @@ namespace GameMaster
             var agentPoint = GetPointWhere(f => f.Agent == agent);
             if (!agentPoint.HasValue)
             {
-                logger.Error("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
+                logger.Warn("[Board] Agent {id} requested move, but is not placed on board", agent.Id);
                 return false;
             }
 
@@ -219,7 +219,7 @@ namespace GameMaster
             fields[point.Y, point.X].Pieces.Push(piece);
             piecesOnBoard++;
 
-            logger.Info("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesOnBoard, point, isSham);
+            logger.Debug("[Board] Piece {number} dropped (field={field}, sham={shamValue})", piecesOnBoard, point, isSham);
         }
 
         public void MoveAgent(Agent agent, Direction direction)
@@ -229,7 +229,7 @@ namespace GameMaster
             var newPoint = GetPointInDirection(agent.Position, direction);
             var newField = GetField(newPoint);
 
-            logger.Info("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint);
+            logger.Debug("[Board] Agent {number} moved from {from} to {to}", agent.Id, agent.Position, newPoint);
 
             newField.Agent = agent;
             agent.Position = newPoint;
