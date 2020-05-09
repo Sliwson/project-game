@@ -1,5 +1,6 @@
 ﻿using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,7 +13,7 @@ namespace Agent
     {
         private Agent agent;
 
-        private static NLog.Logger logger;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public int[] TeamMates { get; private set; }
 
@@ -34,7 +35,6 @@ namespace Agent
         {
             this.agent = agent;
             Team = teamId;
-            logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
         public void Initialize(StartGamePayload startGamePayload)
@@ -45,10 +45,12 @@ namespace Agent
             Penalties = startGamePayload.Penalties;
             AverageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
             ShamPieceProbability = startGamePayload.ShamPieceProbability;
-            logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.Id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
+
             AssignToOwnGoalArea(startGamePayload);
             FindFirstTeamMateToAsk();
+
+            logger.Info("[Agent {id}] Initialized", agent.Id);
         }
 
         private void AssignToOwnGoalArea(StartGamePayload startGamePayload)
@@ -118,6 +120,7 @@ namespace Agent
                     closestHigherId = i;
                 }
             }
+
             agent.AgentInformationsComponent.LastAskedTeammate = minDist == int.MaxValue ? minId : closestHigherId;
         }
     }
