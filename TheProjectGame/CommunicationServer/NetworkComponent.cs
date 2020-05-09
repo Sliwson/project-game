@@ -189,13 +189,13 @@ namespace CommunicationServer
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    logger.Error("[NetworkComponent] {message}", e.Message);
+                    logger.Warn("[NetworkComponent] {message}", e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                logger.Error("[NetworkComponent] Received message was too short (expected more than 2 bytes)");
+                logger.Warn("[NetworkComponent] Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (!server.CheckIfClientDisconnected(handler))
