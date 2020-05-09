@@ -20,7 +20,8 @@ namespace Agent
             MessageId.CheckShamResponse, MessageId.DestroyPieceResponse, MessageId.DiscoverResponse,
             MessageId.ExchangeInformationRequestForward, MessageId.ExchangeInformationResponseForward,
             MessageId.MoveResponse, MessageId.PickUpPieceResponse, MessageId.PutDownPieceResponse,
-            MessageId.IgnoredDelayError, MessageId.MoveError, MessageId.PickUpPieceError, MessageId.PutDownPieceError
+            MessageId.IgnoredDelayError, MessageId.MoveError, MessageId.PickUpPieceError,
+            MessageId.PutDownPieceError, MessageId.EndGameMessage
         };
 
         public ProcessMessages(Agent agent)
@@ -36,14 +37,15 @@ namespace Agent
 
         public ActionResult Process(Message<CheckShamResponse> message)
         {
+            logger.Debug("[Agent {id}] Check sham response: {response}", agent.Id, message.Payload.Sham);
+
             if (message.Payload.Sham)
             {
-                logger.Info("Process check scham response: Agent checked sham and destroy piece." + " AgentID: " + agent.Id.ToString());
+                logger.Debug("[Agent {id}] Forced piece destroy after sham check", agent.Id);
                 return agent.MakeForcedDecision(SpecificActionType.DestroyPiece);
             }
             else
             {
-                logger.Info("Process check scham response: Agent checked not sham." + " AgentID: " + agent.Id.ToString());
                 agent.Piece.isDiscovered = true;
                 return agent.MakeDecisionFromStrategy();
             }
@@ -85,6 +87,8 @@ namespace Agent
 
         public ActionResult Process(Message<MoveResponse> message)
         {
+            logger.Debug("[Agent {id}] Move response: moved: {moved}, piece: {piece}", agent.Id, message.Payload.MadeMove, message.Payload.ClosestPiece);
+
             agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
@@ -92,18 +96,16 @@ namespace Agent
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = message.Payload.ClosestPiece;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                 if (message.Payload.ClosestPiece == 0 && agent.Piece == null)
-                {
-                    logger.Info("Process move response: agent pick up piece." + " AgentID: " + agent.Id.ToString());
                     return agent.MakeForcedDecision(SpecificActionType.PickUp);
-                }
             }
             else
             {
                 agent.AgentInformationsComponent.DeniedLastMove = true;
-                logger.Info("Process move response: agent did not move." + " AgentID: " + agent.Id.ToString());
                 var deniedField = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.LastDirection);
-                if (Common.OnBoard(deniedField, agent.BoardLogicComponent.BoardSize)) agent.BoardLogicComponent.Board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
+                if (Common.OnBoard(deniedField, agent.BoardLogicComponent.BoardSize)) 
+                    agent.BoardLogicComponent.Board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
             }
+
             return agent.MakeDecisionFromStrategy();
         }
 
@@ -111,9 +113,10 @@ namespace Agent
         {
             if (agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece == 0)
             {
-                logger.Info("Process pick up piece response: Agent picked up piece" + " AgentID: " + agent.Id.ToString());
+                logger.Debug("[Agent {id}] Picked up piece", agent.Id);
                 agent.Piece = new Piece();
             }
+
             return agent.MakeDecisionFromStrategy();
         }
 
@@ -143,12 +146,12 @@ namespace Agent
         {
             if (message.Payload.Leader)
             {
-                logger.Info("Process exchange information payload: Agent give info to leader" + " AgentID: " + agent.Id.ToString());
+                logger.Debug("[Agent {id}] Forcing info to team leader", agent.Id);
                 return agent.MakeForcedDecision(SpecificActionType.GiveInfo, message.Payload.AskingAgentId);
             }
             if (message.Payload.TeamId != agent.StartGameComponent.Team)
             {
-                logger.Info("Process exchange information payload: Agent got request from opposite team, rejecting " + " AgentID: " + agent.Id.ToString());
+                logger.Debug("[Agent {id}] Request from opposite team", agent.Id);
                 return agent.MakeDecisionFromStrategy();
             }
             else
@@ -162,9 +165,10 @@ namespace Agent
         {
             if (agent.AgentState != AgentState.WaitingForJoin)
             {
-                logger.Warn("Process join response: Agent not waiting for join" + " AgentID: " + agent.Id.ToString());
+                logger.Warn("[Agent {id}] Received join response, but not in waiting for join state", agent.Id);
                 if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
+
             if (message.Payload.Accepted)
             {
                 bool wasWaiting = agent.AgentState == AgentState.WaitingForJoin;
@@ -174,7 +178,7 @@ namespace Agent
             }
             else
             {
-                logger.Info("Process join response: Join request not accepted" + " AgentID: " + agent.Id.ToString());
+                logger.Info("[Agent {id}] Received join response, rejected", agent.Id);
                 return ActionResult.Finish;
             }
         }
@@ -183,32 +187,28 @@ namespace Agent
         {
             if (agent.AgentState != AgentState.WaitingForStart)
             {
-                logger.Warn("Process start game payload: Agent not waiting for startjoin" + " AgentID: " + agent.Id.ToString());
+                logger.Warn("[Agent {id}] Received start game payload, but not waiting for start", agent.Id);
                 if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
             }
+
             agent.StartGameComponent.Initialize(message.Payload);
+
             if (agent.Id != message.Payload.AgentId)
-            {
-                logger.Warn("Process start game payload: payload.agnetId not equal agentId" + " AgentID: " + agent.Id.ToString());
-            }
+                logger.Warn("[Agent {id}] Received start game payload, mismatch in ids: received {id2}", agent.Id, message.Payload.AgentId);
+
             agent.AgentState = AgentState.InGame;
             return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<EndGamePayload> message)
         {
-            if (agent.AgentState != AgentState.InGame)
-            {
-                logger.Warn("Process end game payload: Agent not in game" + " AgentID: " + agent.Id.ToString());
-                if (agent.EndIfUnexpectedMessage) return ActionResult.Finish;
-            }
-            logger.Info("Process End Game: end game" + " AgentID: " + agent.Id.ToString());
+            logger.Info("[Agent {id}] Received end game payload", agent.Id);
             return ActionResult.Finish;
         }
 
         public ActionResult Process(Message<IgnoredDelayError> message)
         {
-            logger.Warn("IgnoredDelay error" + " AgentID: " + agent.Id.ToString());
+            logger.Debug("[Agent {id}] Received ignored delay {time}ms", agent.Id, message.Payload.RemainingDelay.TotalMilliseconds);
             agent.AgentInformationsComponent.DeniedLastRequest = true;
             var time = message.Payload.RemainingDelay;
             agent.SetPenalty(time.TotalSeconds, false);
@@ -217,7 +217,7 @@ namespace Agent
 
         public ActionResult Process(Message<MoveError> message)
         {
-            logger.Warn("Move error" + " AgentID: " + agent.Id.ToString());
+            logger.Debug("[Agent {id}] Received move error message", agent.Id);
             agent.AgentInformationsComponent.DeniedLastMove = true;
             agent.BoardLogicComponent.Position = message.Payload.Position;
             return agent.MakeDecisionFromStrategy();
@@ -225,7 +225,7 @@ namespace Agent
 
         public ActionResult Process(Message<PickUpPieceError> message)
         {
-            logger.Warn("Pick up piece error" + " AgentID: " + agent.Id.ToString());
+            logger.Debug("[Agent {id}] Received pick up piece error", agent.Id);
             if (message.Payload.ErrorSubtype == PickUpPieceErrorSubtype.NothingThere)
             {
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
@@ -236,14 +236,15 @@ namespace Agent
 
         public ActionResult Process(Message<PutDownPieceError> message)
         {
-            logger.Warn("Put down piece error" + " AgentID: " + agent.Id.ToString());
+            logger.Debug("[Agent {id}] Received put down piece error", agent.Id);
             if (message.Payload.ErrorSubtype == PutDownPieceErrorSubtype.AgentNotHolding) agent.Piece = null;
             return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<UndefinedError> message)
         {
-            logger.Warn("Undefined error" + " AgentID: " + agent.Id.ToString());
+            logger.Warn("[Agent {id}] Received undefined error", agent.Id);
+
             agent.BoardLogicComponent.Position = message.Payload.Position;
             BaseMessage messageFromLeader = agent.GetMessageFromLeader();
             if (messageFromLeader == null)
