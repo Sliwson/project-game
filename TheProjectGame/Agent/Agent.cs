@@ -38,8 +38,6 @@ namespace Agent
 
         public AgentState AgentState { get; set; }
 
-        private static NLog.Logger logger;
-
         public Action<Agent, BaseMessage> MockMessageSendFunction { get; set; }
 
         public ProcessMessages ProcessMessages { get; set; }
@@ -54,8 +52,13 @@ namespace Agent
 
         public INetworkComponent NetworkComponent { get; private set; }
 
+
+        private static NLog.Logger logger;
+
         public Agent(AgentConfiguration agentConfiguration)
         {
+            logger.Info("[Agent] Agent created");
+
             var teamId = agentConfiguration.TeamID.ToLower() == "red" ? TeamId.Red : TeamId.Blue;
             
             StartGameComponent = new StartGameComponent(this, teamId);
@@ -151,7 +154,7 @@ namespace Agent
                     }
                     return ActionResult.Continue;
                 default:
-                    logger.Error("Agent in unknown state: " + AgentState.ToString() + " AgentID: " + Id.ToString());
+                    logger.Error("[Agent {id}] in unknown state: {state}", Id, AgentState);
                     return ActionResult.Finish;
             }
         }
@@ -160,13 +163,13 @@ namespace Agent
         {
             if (AgentState != AgentState.InGame)
             {
-                logger.Warn("Move: Agent not in game" + " AgentID: " + Id.ToString());
+                logger.Warn("[Agent {id}] Requested move, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
             AgentInformationsComponent.LastDirection = direction;
             SetPenalty(ActionType.Move, true);
             SendMessage(MessageFactory.GetMessage(new MoveRequest(direction)), true);
-            logger.Info("Move: Agent sent move request in direction " + direction.ToString() + " AgentID: " + Id.ToString());
+            logger.Warn("[Agent {id}] Sent move request in direction {direction}", Id, direction);
             return ActionResult.Continue;
         }
 
@@ -312,9 +315,8 @@ namespace Agent
         public BaseMessage GetMessage()
         {
             if (injectedMessages.Count == 0)
-            {
                 return null;
-            }
+
             var message = injectedMessages.FirstOrDefault(m => m.MessageId == MessageId.EndGameMessage);
             if (message == null) message = injectedMessages[0];
             injectedMessages.Remove(message);
@@ -337,8 +339,9 @@ namespace Agent
                 if (exchangeMessage == null) return false;
                 return exchangeMessage.Payload.Leader;
             });
+
             if (message != null) injectedMessages.Remove(message);
-            return message;
+                return message;
         }
 
         public void InjectMessage(BaseMessage message)
@@ -357,12 +360,9 @@ namespace Agent
             }
             catch (CommunicationErrorException e)
             {
+                logger.Error("[Agent {id}] {message}", Id, e.Message);
                 if (e.Type == CommunicationExceptionType.InvalidSocket)
-                {
-                    // TODO: Should terminate
-                }
-
-                Console.WriteLine(e.Message);
+                    throw;
             }
         }
 
@@ -372,6 +372,5 @@ namespace Agent
             dynamic dynamicMessage = message;
             return ProcessMessages.Process(dynamicMessage);
         }
-
     }
 }
