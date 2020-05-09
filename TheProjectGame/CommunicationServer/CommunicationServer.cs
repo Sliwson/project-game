@@ -7,6 +7,7 @@ using Messaging.Serialization;
 using Messaging.Communication;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
+using NLog;
 
 [assembly: InternalsVisibleTo("CommunicationServerTests")]
 
@@ -29,8 +30,12 @@ namespace CommunicationServer
         private bool shouldTerminate = false;
         private Exception internalException;
 
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
+
         public CommunicationServer(CommunicationServerConfiguration configuration)
         {
+            logger.Info("[CS] CommunicationServer created");
+
             Configuration = configuration;
             NetworkComponent = new NetworkComponent(this);
 
@@ -80,6 +85,8 @@ namespace CommunicationServer
             if(socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
             {
                 var disconectedId = HostMapping.GetHostIdForSocket(socket);
+                logger.Warn("[CS] Host with id {id} disconnected", disconectedId);
+                
                 if(HostMapping.IsHostGameMaster(disconectedId))
                 {
                     RaiseException(new CommunicationErrorException(CommunicationExceptionType.GameMasterDisconnected));
@@ -94,6 +101,8 @@ namespace CommunicationServer
         // Call this method from other threads
         internal void RaiseException(Exception exception)
         {
+            logger.Error("[CS] Exception raised from other thread ({message})", exception.Message);
+
             internalException = exception;
             shouldTerminate = true;
             shouldProcessMessage.Set();
@@ -124,9 +133,9 @@ namespace CommunicationServer
                 var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
                 int receipentHostId;
 
-                Console.WriteLine($"Received message from host with id = {senderHostId}");
+                logger.Debug("[CS] Received message from host with id = {senderHostId}", senderHostId);
                 var deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
-                Console.WriteLine($"Message type = {deserializedMessage.MessageId} (id = {(int)deserializedMessage.MessageId})");
+                logger.Debug("[CS] Message type = {id} (id = {indId})", deserializedMessage.MessageId, (int)deserializedMessage.MessageId);
 
                 if (!HostMapping.IsHostGameMaster(senderHostId))
                 {
@@ -139,7 +148,7 @@ namespace CommunicationServer
                     receipentHostId = deserializedMessage.AgentId;
                 }
 
-                Console.WriteLine($"\nForwarding to host with id = {receipentHostId}");
+                logger.Debug("[CS] Forwarding to host with id = {recipent}\n", receipentHostId);
 
                 var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);
 
@@ -147,11 +156,11 @@ namespace CommunicationServer
             }
             catch(JsonSerializationException e)
             {
-                Console.WriteLine(e.Message);
+                logger.Error("[CS] {message}", e.Message);
             }
             catch(CommunicationErrorException e)
             {
-                Console.WriteLine(e.Message);
+                logger.Error("[CS] {message}", e.Message);
 
                 // Socket has been closed or is invalid
                 if(e.Type == CommunicationExceptionType.InvalidSocket)

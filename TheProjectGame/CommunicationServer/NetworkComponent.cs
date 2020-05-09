@@ -22,6 +22,8 @@ namespace CommunicationServer
         private Socket gameMasterSocket;
         private Socket agentSocket;
 
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
+
         internal NetworkComponent(CommunicationServer communicationServer)
         {
             server = communicationServer;
@@ -99,13 +101,13 @@ namespace CommunicationServer
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                logger.Error("[NetworkComponent] {message}", ex.Message);
             }
             finally
             {
-                Console.WriteLine($"Socket for {clientType} has been closed");
+                logger.Info("[NetworkComponent] Socket for {clientType} has been closed", clientType);
             }
         }
 
@@ -116,7 +118,7 @@ namespace CommunicationServer
             try
             {
                 listener.Listener.Listen(100);
-                Console.WriteLine($"Server for {listener.ClientType} was started with IP: {listener.Listener.LocalEndPoint}");
+                logger.Info("Server for {type} was started with IP: {ip}", listener.ClientType, listener.Listener.LocalEndPoint);
 
                 while (true)
                 {
@@ -149,7 +151,7 @@ namespace CommunicationServer
                 var state = new StateObject(ref handler, listener.ClientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-                Console.WriteLine($"{listener.ClientType} connected!");
+                logger.Info("{type} connected!", listener.ClientType);
             }
             catch (Exception e)
             {
@@ -186,13 +188,13 @@ namespace CommunicationServer
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    Console.WriteLine(e.Message);
+                    logger.Error("[NetworkComponent] {message}", e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                logger.Error("[NetworkComponent] Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (!server.CheckIfClientDisconnected(handler))
@@ -208,7 +210,7 @@ namespace CommunicationServer
                 Socket handler = (Socket)ar.AsyncState;
 
                 int bytesSent = handler.EndSend(ar);
-                Console.WriteLine($"Sent {bytesSent} bytes to client");
+                logger.Debug("Sent {bytesSent} bytes to client", bytesSent);
             }
             catch (Exception e)
             {
