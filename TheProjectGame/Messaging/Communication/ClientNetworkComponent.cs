@@ -82,7 +82,6 @@ namespace Messaging.Communication
             }
             catch (ObjectDisposedException e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
                 return true;
             }
             catch (SocketException e)
@@ -136,12 +135,10 @@ namespace Messaging.Communication
             }
             catch (CommunicationErrorException e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
                 throw;
             }
             catch (Exception e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }

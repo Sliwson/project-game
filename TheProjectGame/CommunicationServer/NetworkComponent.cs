@@ -102,6 +102,10 @@ namespace CommunicationServer
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
             }
+            catch (ObjectDisposedException)
+            {
+                // disposed earlier, that's fine
+            }
             catch (Exception ex)
             {
                 logger.Error("[NetworkComponent] {message}", ex.Message);
