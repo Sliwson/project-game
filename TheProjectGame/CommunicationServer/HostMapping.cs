@@ -1,4 +1,5 @@
 ﻿using Messaging.Communication;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,6 +14,8 @@ namespace CommunicationServer
 
         private int lastHostId = 0;
         private int gmHostId = 0;
+
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
 
         internal HostMapping()
         {
@@ -49,12 +52,11 @@ namespace CommunicationServer
                 throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedGameMaster);
 
             if (!mapping.TryAdd(hostId, socket))
-            {
                 throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedHostId);
-            }
+
             inversedMapping.TryAdd(socket, hostId);
 
-            Console.WriteLine($"Client of type {clientType} has been registered");
+            logger.Info("[HostMapping] Client of type {clientType} has been registered", clientType);
             return hostId;
         }
 
@@ -67,6 +69,7 @@ namespace CommunicationServer
         {
             if (!mapping.TryGetValue(gmHostId, out Socket gmSocket) || gmSocket == null)
                 throw new CommunicationErrorException(CommunicationExceptionType.NoGameMaster);
+
             return gmHostId;
         }
     }

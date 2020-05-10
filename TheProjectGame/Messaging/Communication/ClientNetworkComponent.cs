@@ -1,5 +1,6 @@
 ﻿using Messaging.Contracts;
 using Messaging.Serialization;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,6 +20,8 @@ namespace Messaging.Communication
         private Socket socket;
         private ManualResetEvent connectDone;
 
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
             messageQueue = new ConcurrentQueue<BaseMessage>();
@@ -31,6 +34,7 @@ namespace Messaging.Communication
             }
             catch (Exception e)
             {
+                logger.Error("[NetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
             }
         }
@@ -53,6 +57,7 @@ namespace Messaging.Communication
             }
             catch (SocketException e)
             {
+                logger.Error("[NetworkComponent] {message}", e.Message);
                 if (socket == null)
                     throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
 
@@ -60,6 +65,7 @@ namespace Messaging.Communication
             }
             catch (ObjectDisposedException e)
             {
+                logger.Error("[NetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
@@ -71,15 +77,16 @@ namespace Messaging.Communication
                 socket?.Shutdown(SocketShutdown.Both);
                 socket?.Close();
 
-                Console.WriteLine("Connection with CommunicationServer has been closed");
+                logger.Info("Connection with CommunicationServer has been closed");
                 return true;
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException e)
             {
                 return true;
             }
             catch (SocketException e)
             {
+                logger.Error("[NetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
@@ -108,6 +115,7 @@ namespace Messaging.Communication
             }
             catch (Exception e)
             {
+                logger.Error("[NetworkComponent] {message}", e.Message);
                 Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
             finally
@@ -125,7 +133,7 @@ namespace Messaging.Communication
                 else
                     throw new CommunicationErrorException(CommunicationExceptionType.InvalidMessageSize);
             }
-            catch (CommunicationErrorException)
+            catch (CommunicationErrorException e)
             {
                 throw;
             }
@@ -162,13 +170,13 @@ namespace Messaging.Communication
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    Console.WriteLine(e.Message);
+                    logger.Warn("[NetworkComponent] {message}", e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                logger.Warn("Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
