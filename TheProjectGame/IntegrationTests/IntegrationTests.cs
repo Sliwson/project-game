@@ -18,24 +18,22 @@ namespace IntegrationTests
 
         IntegrationTestsHelper.GameMasterTaskState gmTaskState;
 
-        [SetUp]
-        public void Setup()
+        [NonParallelizable]
+        [Test]
+        [Ignore("This test causes problem on bitbucket pipeline")]
+        public void ConnectingAgentsState_ShouldConnectAgent()
         {
+            // Setup
             var config = GameMasterConfiguration.GetDefault();
             config.TeamSize = 3;
             var gameMaster = new GameMaster.GameMaster(config);
 
             agentsInTeam = gameMaster.Configuration.TeamSize;
             gmTaskState = new IntegrationTestsHelper.GameMasterTaskState(gameMaster, 30);
-        }
 
-        [NonParallelizable]
-        [Test]
-        [Ignore("This test causes problem on bitbucket pipeline")]
-        public void ConnectingAgentsState_ShouldConnectAgent()
-        {
             var csConfig = CommunicationServerConfiguration.GetDefault();
             var csTask = new Task(IntegrationTestsHelper.RunCommunicationServer, csConfig);
+            
             csTask.Start();
             Thread.Sleep(100);
 

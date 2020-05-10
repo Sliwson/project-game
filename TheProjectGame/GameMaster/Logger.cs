@@ -28,8 +28,7 @@ namespace GameMaster
             config.AddRuleForOneLevel(LogLevel.Warn, memoryTarget);
             config.AddRuleForOneLevel(LogLevel.Info, memoryTarget);
 
-            //config.AddRuleForAllLevels(memoryTarget);
-            //config.AddRuleForAllLevels(fileTarget);
+            config.AddRuleForAllLevels(fileTarget);
 
             LogManager.Configuration = config;
         }
