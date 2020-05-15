@@ -193,7 +193,7 @@ namespace GameMaster
             var clone = new List<BaseMessage>(injectedMessages);
             injectedMessages.Clear();
 
-            //TODO: refactor
+            //TODO (#IO-57): refactor
             return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
         }
 

@@ -12,7 +12,6 @@ namespace Messaging.Contracts.GameMaster
         [JsonProperty(PropertyName = "respondingID")]
         public int RespondingId { get; private set; }
 
-        // TODO: Make sure how to format those arrays into one-dimensional
         [JsonRequired]
         [JsonProperty(PropertyName = "distances")]
         public int[,] Distances { get; private set; }

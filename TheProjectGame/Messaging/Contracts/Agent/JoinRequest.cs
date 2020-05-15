@@ -11,7 +11,7 @@ namespace Messaging.Contracts.Agent
         [JsonProperty(PropertyName = "teamID")]
         public TeamId TeamId { get; private set; }
 
-        // TODO: Create issue to decide whether to keep this field
+        // TODO: Remove this field
         [JsonRequired]
         [JsonProperty(PropertyName = "isTeamLeader")]
         public bool IsTeamLeader { get; private set; }
