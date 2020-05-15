@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NLog.Fluent;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Threading;
 
 namespace GameMasterPresentation
@@ -57,25 +60,44 @@ namespace GameMasterPresentation
 
         private int frameCount = 0;
         private long previousTime = 0;
-        private int fps = 0;
+        private int _fps = 0;
 
         public int FPS
         {
             get
             {
-                return fps;
+                return _fps;
             }
             set
             {
-                fps = value;
+                _fps = value;
                 NotifyPropertyChanged();
             }
         }
 
         //log
+        private string _searchString;
+
+        public string SearchString
+        {
+            get
+            {
+                return _searchString;
+            }
+            set
+            {
+                _searchString = value;
+                FilteredLogEntries = new ObservableCollection<LogEntry>(LogEntries.Where(l => l.Message.ToLower().Contains(_searchString.ToLower())));
+                NotifyPropertyChanged();
+                NotifyPropertyChanged("FilteredLogEntries");
+            }
+        }
+
+
         private bool IsUserScrollingLog = false;
 
-        public ObservableCollection<LogEntry> LogEntries { get; set; } = new ObservableCollection<LogEntry>();
+        private List<LogEntry> LogEntries { get; set; } = new List<LogEntry>();
+        public ObservableCollection<LogEntry> FilteredLogEntries { get; set; } = new ObservableCollection<LogEntry>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -93,13 +115,10 @@ namespace GameMasterPresentation
             if (GMConfig != null)
                 configuration = GMConfig.ConvertToGMConfiguration();
 
-            LogItemsControl.DataContext = LogEntries;
-
             gameMaster = new GameMaster.GameMaster(configuration);
 
             Board = new BoardComponent(BoardCanvas);
 
-            //TODO: handle null exeption if default not loaded
             GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
             timer = new DispatcherTimer();
@@ -180,9 +199,6 @@ namespace GameMasterPresentation
                     ConnectRadioButton.Content = "Connected";
                     ConnectRadioButton.IsEnabled = false;
                     StartRadioButton.Content = "In Game";
-                    //TODO:
-                    //create agents List
-                    AgentsCountLabel.Content = gameMaster.Agents.Count.ToString();
 
                     PauseRadioButton.IsEnabled = true;
                 }
@@ -204,14 +220,12 @@ namespace GameMasterPresentation
             PauseGame();
         }
 
-        private void BreakpointButton_Click(object sender, RoutedEventArgs e)
-        {
-            ;
-        }
-
         private void UpdateLog(string text)
         {
-            LogEntries.Add(new LogEntry(text));
+            var log = new LogEntry(text);
+            LogEntries.Add(log);
+            if (string.IsNullOrEmpty(SearchString) || text.ToLower().Contains(SearchString.ToLower()))
+                FilteredLogEntries.Add(log);
             if (IsUserScrollingLog == false)
             {
                 LogScrollViewer.ScrollToEnd();
