@@ -303,7 +303,7 @@ namespace GameMasterTests
 
             gameMaster.Agents.Add(agent);
 
-            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.JoinResponse, response.MessageId);
@@ -317,7 +317,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_JoinRequest_OldAgentShouldNotBeAcceptedDuringGame()
         {
-            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.JoinResponse, response.MessageId);

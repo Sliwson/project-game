@@ -27,7 +27,7 @@ namespace MessagingTests
                                                     new int[,]{ { 1, 2 }, { 3, 4 } },
                                                     new GoalInformation[,]{ { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } },
                                                     new GoalInformation[,]{ { GoalInformation.Goal, GoalInformation.NoGoal }, { GoalInformation.NoInformation, GoalInformation.NoInformation } })),
-                MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false)),
+                MessageFactory.GetMessage(new JoinRequest(TeamId.Blue)),
                 MessageFactory.GetMessage(new MoveRequest(Direction.North)),
                 MessageFactory.GetMessage(new PickUpPieceRequest()),
                 MessageFactory.GetMessage(new PutDownPieceRequest()),

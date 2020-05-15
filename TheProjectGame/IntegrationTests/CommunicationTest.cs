@@ -48,7 +48,7 @@ namespace IntegrationTests
             testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
-            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
+            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red));
             testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
@@ -73,7 +73,7 @@ namespace IntegrationTests
 
             testComponents.Agent.ConnectToCommunicationServer();
 
-            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, true));
+            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Red));
             testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
@@ -98,7 +98,7 @@ namespace IntegrationTests
             testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
-            var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
+            var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red));
             testComponents.Agent.SendMessage(messageFromAgent, false);
             Thread.Sleep(100);
 
@@ -128,7 +128,7 @@ namespace IntegrationTests
             testComponents.GameMaster.ConnectToCommunicationServer();
             testComponents.Agent.ConnectToCommunicationServer();
 
-            var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false));
+            var messageFromAgent = MessageFactory.GetMessage(new JoinRequest(TeamId.Red));
             testComponents.Agent.SendMessage(messageFromAgent, false);
             testComponents.Agent.OnDestroy();
             Thread.Sleep(100);
@@ -215,7 +215,7 @@ namespace IntegrationTests
             var secondGameMaster = new GameMaster.GameMaster(testComponents.GameMaster.Configuration);
             secondGameMaster.ConnectToCommunicationServer();
 
-            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, false));
+            var messageToSend = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue));
             testComponents.Agent.SendMessage(messageToSend, false);
 
             Thread.Sleep(100);
