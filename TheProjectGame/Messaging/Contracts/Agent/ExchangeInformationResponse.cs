@@ -29,8 +29,7 @@ namespace Messaging.Contracts.Agent
         public ExchangeInformationResponse(int respondToId, int[] distances, GoalInformation[] redTeamGoalAreaInformation, GoalInformation[] blueTeamGoalAreaInformation)
         {
             RespondToId = respondToId;
-            //Distances = distances;
-            Distances = new int[1];
+            Distances = distances;
             RedTeamGoalAreaInformation = redTeamGoalAreaInformation;
             BlueTeamGoalAreaInformation = blueTeamGoalAreaInformation;
         }
