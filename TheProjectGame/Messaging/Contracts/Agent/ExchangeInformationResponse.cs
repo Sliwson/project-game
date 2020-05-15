@@ -11,7 +11,6 @@ namespace Messaging.Contracts.Agent
         [JsonProperty(PropertyName = "respondToID")]
         public int RespondToId { get; private set; }
 
-        // TODO: Make sure how to format those arrays into one-dimensional
         [JsonRequired]
         [JsonProperty(PropertyName = "distances")]
         public int[,] Distances { get; private set; }
