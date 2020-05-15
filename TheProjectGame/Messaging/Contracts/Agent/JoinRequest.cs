@@ -16,7 +16,7 @@ namespace Messaging.Contracts.Agent
         [JsonProperty(PropertyName = "isTeamLeader")]
         public bool IsTeamLeader { get; private set; }
 
-        public JoinRequest(TeamId teamId, bool isTeamLeader)
+        public JoinRequest(TeamId teamId, bool isTeamLeader = false) //TODO: delete defaulted parameter
         {
             TeamId = teamId;
             IsTeamLeader = isTeamLeader;

@@ -43,8 +43,7 @@ namespace GameMasterTests
 
             for (int i = 0; i < limit * 2; i++)
                 gameMaster.InjectMessage(MessageFactory.GetMessage(new JoinRequest(
-                    i < limit ? TeamId.Blue : TeamId.Red,
-                    i % limit == 0
+                    i < limit ? TeamId.Blue : TeamId.Red
                     ), i));
 
 
