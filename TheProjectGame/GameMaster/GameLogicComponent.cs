@@ -174,6 +174,14 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
             }
 
+            var senderTeam = agent.Team;
+            var receiverTeam = targetAgent.Team;
+            if (senderTeam != receiverTeam)
+            {
+                logger.Debug("[Logic] ExchangeRequest between different teams");
+                return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
+            }
+
             targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
             return MessageFactory.GetMessage(new ExchangeInformationRequestForward(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
         }
