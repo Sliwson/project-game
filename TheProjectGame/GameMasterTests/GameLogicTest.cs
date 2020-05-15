@@ -257,7 +257,7 @@ namespace GameMasterTests
 
             gameMaster.Agents.Add(agent);
 
-            var message = GetBaseMessage(new ExchangeInformationResponse(333, null, null, null), 666);
+            var message = GetBaseMessage(new ExchangeInformationResponse(333, new int[0], new GoalInformation[0], new GoalInformation[0]), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
