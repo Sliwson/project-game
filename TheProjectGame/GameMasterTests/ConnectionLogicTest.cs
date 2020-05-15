@@ -64,19 +64,27 @@ namespace GameMasterTests
         public void ConnectionLogic_ShouldAcceptOnlyOneTeamLeader()
         {
             connectionLogic.FlushLobby();
-            var message = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, true), 0);
-            connectionLogic.ProcessMessage(message);
+            var message0 = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue), 0);
+            dynamic response0 = connectionLogic.ProcessMessage(message0);
 
-            message = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue, true), 1);
-            dynamic response = connectionLogic.ProcessMessage(message);
+            var message1 = MessageFactory.GetMessage(new JoinRequest(TeamId.Blue), 1);
+            dynamic response1 = connectionLogic.ProcessMessage(message1);
 
-            Assert.AreEqual(message.AgentId, response.AgentId);
-            Assert.IsTrue(response.Payload is JoinResponse);
+            Assert.AreEqual(message1.AgentId, response1.AgentId);
+            Assert.IsTrue(response1.Payload is JoinResponse);
 
-            var castedResponse = response as Message<JoinResponse>;
-            Assert.IsFalse(castedResponse.Payload.Accepted);
-            Assert.AreEqual(message.AgentId, castedResponse.Payload.AgentId);
-            Assert.IsTrue(connectionLogic.FlushLobby().Count == 1);
+            var castedResponse = response0 as Message<JoinResponse>;
+            Assert.IsTrue(castedResponse.Payload.Accepted);
+            Assert.AreEqual(castedResponse.AgentId, castedResponse.Payload.AgentId);
+
+            castedResponse = response1 as Message<JoinResponse>;
+            Assert.IsTrue(castedResponse.Payload.Accepted);
+            Assert.AreEqual(castedResponse.AgentId, castedResponse.Payload.AgentId);
+
+            var agents = connectionLogic.FlushLobby();
+            Assert.AreEqual(2, agents.Count);
+            Assert.IsTrue(agents[0].IsTeamLeader);
+            Assert.IsFalse(agents[1].IsTeamLeader);
         }
 
         [Test]
