@@ -80,7 +80,7 @@
         </Style>
 
         <DataTemplate DataType="{x:Type local:LogEntry}">
-            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13"/>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13" Foreground="{Binding Color}"/>
         </DataTemplate>
 
     </Window.Resources>
