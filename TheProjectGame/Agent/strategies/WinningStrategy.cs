@@ -39,7 +39,10 @@ namespace Agent.strategies
             {
                 agent.AgentInformationsComponent.IsComingBack = false;
             }
-            agent.AgentInformationsComponent.DidNotAskCount = agent.AgentInformationsComponent.DidNotAskCount + 1;
+            if (!agent.AgentInformationsComponent.IsWaiting)
+            {
+                agent.AgentInformationsComponent.DidNotAskCount = agent.AgentInformationsComponent.DidNotAskCount + 1;
+            }
             if (agent.WaitingPlayers.Count > 0)
             {
                 return agent.GiveInfo();

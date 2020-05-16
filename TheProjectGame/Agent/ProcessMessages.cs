@@ -86,6 +86,8 @@ namespace Agent
         {
             logger.Debug("[Agent {id}] Received information exchange response", agent.Id);
 
+            agent.AgentInformationsComponent.IsWaiting = false;
+
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));

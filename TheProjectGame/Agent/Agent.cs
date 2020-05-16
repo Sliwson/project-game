@@ -180,7 +180,7 @@ namespace Agent
             {
                 return RepeatRequest();
             }
-                    
+
             message = GetMessage();
 
             if (message == null && AgentInformationsComponent.SkipTime < TimeSpan.FromTicks(StartGameComponent.AverageTime.Ticks * maxSkip))
@@ -241,7 +241,6 @@ namespace Agent
             {
                 logger.Warn("[Agent {id}] Begged for info, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
-                return MakeDecisionFromStrategy();
             }
 
             if (AgentInformationsComponent.TeamMatesToAsk.Length == 0)
@@ -251,6 +250,7 @@ namespace Agent
                 return MakeDecisionFromStrategy();
             }
 
+            AgentInformationsComponent.IsWaiting = true;
             AgentInformationsComponent.LastAskedTeammate++;
             AgentInformationsComponent.LastAskedTeammate %= AgentInformationsComponent.TeamMatesToAsk.Length;
             SetPenalty(ActionType.InformationExchange, true);

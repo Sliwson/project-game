@@ -20,6 +20,7 @@ namespace Agent
         public bool Discovered { get; set; }
         public bool IsComingBack { get; set; }
         public int DidNotAskCount { get; set; }
+        public bool IsWaiting { get; set; }
         public Direction DirectionEastWest { get; set; }
         public int StayInLineCount { get; set; }
         public TimeSpan SkipTime { get; set; }
@@ -39,6 +40,7 @@ namespace Agent
             Discovered = false;
             IsComingBack = false;
             DidNotAskCount = 0;
+            IsWaiting = false;
             DirectionEastWest = Direction.East;
             StayInLineCount = 0;
             SkipTime = TimeSpan.Zero;
