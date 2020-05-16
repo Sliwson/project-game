@@ -21,7 +21,9 @@ namespace Agent
 
         public bool DivideAgents { get; } = true;
 
-        private const double penaltyMultiply = 1.5;
+        private const double penaltyMultiply = 1.0;
+
+        private const double penaltyAdd = 0.06;
 
         private const int maxSkip = 10;
 
@@ -86,7 +88,7 @@ namespace Agent
         public void SetPenalty(double add, bool shouldRepeat)
         {
             if (add <= 0.0) return;
-            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
+            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply + penaltyAdd;
             if (shouldRepeat) AgentInformationsComponent.LastRequestPenalty = add;
         }
 
