@@ -55,7 +55,8 @@ namespace GameMasterPresentation
 
         private bool IsConnecting = false;
 
-        private DispatcherTimer timer;
+        private DispatcherTimer updateTimer;
+        private DispatcherTimer guiTimer;
         private Stopwatch stopwatch;
         private Stopwatch frameStopwatch;
 
@@ -122,17 +123,22 @@ namespace GameMasterPresentation
 
             GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
-            timer = new DispatcherTimer();
+            updateTimer = new DispatcherTimer();
+            guiTimer = new DispatcherTimer();
             stopwatch = new Stopwatch();
             frameStopwatch = new Stopwatch();
             //33-> 30FPS
-            timer.Interval = TimeSpan.FromMilliseconds(33);
-            timer.Tick += TimerEvent;
+            updateTimer.Interval = TimeSpan.FromMilliseconds(3);            
+            updateTimer.Tick += UpdateTimerEvent;
+
+            guiTimer.Interval = TimeSpan.FromMilliseconds(33);
+            guiTimer.Tick += GuiTimerEvent;
 
             stopwatch.Start();
 
             frameStopwatch.Start();
-            timer.Start();
+            updateTimer.Start();
+            guiTimer.Start();
         }
 
         private void GMConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -140,7 +146,7 @@ namespace GameMasterPresentation
             NotifyPropertyChanged(nameof(GMConfig));
         }
 
-        private void TimerEvent(object sender, EventArgs e)
+        private void UpdateTimerEvent(object sender, EventArgs e)
         {
             long currentFrame = frameStopwatch.ElapsedMilliseconds;
             frameCount++;
@@ -154,8 +160,11 @@ namespace GameMasterPresentation
             var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
             stopwatch.Reset();
             stopwatch.Start();
-            Update(elapsed);
+            Update(elapsed);            
+        }
 
+        private void GuiTimerEvent(object sender, EventArgs e)
+        {
             Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
 
@@ -240,7 +249,8 @@ namespace GameMasterPresentation
         {
             stopwatch.Stop();
             frameStopwatch.Stop();
-            timer.Stop();
+            updateTimer.Stop();
+            guiTimer.Stop();
             frameCount = 0;
             previousTime = 0;
             FPS = 0;
@@ -275,7 +285,8 @@ namespace GameMasterPresentation
 
             stopwatch.Start();
             frameStopwatch.Start();
-            timer.Start();
+            updateTimer.Start();
+            guiTimer.Start();
         }
 
         private void Update(double dt)
