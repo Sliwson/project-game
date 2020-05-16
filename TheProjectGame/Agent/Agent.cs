@@ -245,7 +245,7 @@ namespace Agent
                 return MakeDecisionFromStrategy();
             }
 
-            if (StartGameComponent.TeamMatesToAsk.Length == 0)
+            if (AgentInformationsComponent.TeamMatesToAsk.Length == 0)
             {
                 logger.Warn("[Agent {id}] Wanted information exchange but do not know teammates", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
@@ -253,9 +253,9 @@ namespace Agent
             }
 
             AgentInformationsComponent.LastAskedTeammate++;
-            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMatesToAsk.Length;
+            AgentInformationsComponent.LastAskedTeammate %= AgentInformationsComponent.TeamMatesToAsk.Length;
             SetPenalty(ActionType.InformationExchange, true);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(AgentInformationsComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
             logger.Debug("[Agent {id}] Sent exchange information request", Id);
             return ActionResult.Continue;
         }

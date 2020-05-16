@@ -2,6 +2,7 @@
 using Messaging.Enumerators;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace Agent
@@ -23,6 +24,8 @@ namespace Agent
         public int StayInLineCount { get; set; }
         public TimeSpan SkipTime { get; set; }
         public double RemainingPenalty { get; set; }
+        public int[] TeamMatesToAsk { get; set; }
+        public (Point, Point) OwnGoalArea { get; set; }
 
         public AgentInformationsComponent(Agent agent)
         {
@@ -38,6 +41,17 @@ namespace Agent
             StayInLineCount = 0;
             SkipTime = TimeSpan.Zero;
             RemainingPenalty = 0.0;
+        }
+
+        public void AssignToWholeTaskArea()
+        {
+            TeamMatesToAsk = new int[agent.StartGameComponent.TeamMates.Length];
+            for (int i = 0; i < agent.StartGameComponent.TeamMates.Length; i++)
+                TeamMatesToAsk[i] = agent.StartGameComponent.TeamMates[i];
+            OwnGoalArea = agent.StartGameComponent.Team == TeamId.Red ?
+                    (new Point(0, agent.BoardLogicComponent.BoardSize.Y - agent.BoardLogicComponent.GoalAreaSize), new Point(agent.BoardLogicComponent.BoardSize.X - 1, agent.BoardLogicComponent.BoardSize.Y - 1)) :
+                    (new Point(0, agent.BoardLogicComponent.GoalAreaSize - 1), new Point(agent.BoardLogicComponent.BoardSize.X - 1, 0));
+            LastAskedTeammate = 0;
         }
     }
 }

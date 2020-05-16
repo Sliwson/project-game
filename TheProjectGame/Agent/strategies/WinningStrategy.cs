@@ -43,7 +43,7 @@ namespace Agent.strategies
                 return agent.GiveInfo();
             }
             if (agent.AgentInformationsComponent.DidNotAskCount > askInterval &&
-                agent.StartGameComponent.TeamMatesToAsk.Length > 0)
+                agent.AgentInformationsComponent.TeamMatesToAsk.Length > 0)
             {
                 agent.AgentInformationsComponent.DidNotAskCount = 0;
                 return agent.BegForInfo();
@@ -56,13 +56,13 @@ namespace Agent.strategies
             }
             if (agent.Piece != null &&
                 !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea))
             {
                 return agent.Put();
             }
             Direction movingDirection = Common.GetRandomDirection();
             if (agent.Piece != null &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) &&
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) &&
                 !agent.AgentInformationsComponent.IsComingBack)
             {
                 movingDirection = Common.StayInRectangle(agent, shortTime, agent.AgentInformationsComponent.StayInLineCount, agent.AgentInformationsComponent.DirectionEastWest, out bool shouldComeBack);
@@ -73,7 +73,7 @@ namespace Agent.strategies
                 else if (movingDirection != agent.AgentInformationsComponent.DirectionEastWest)
                 {
                     movingDirection = agent.StartGameComponent.Team == TeamId.Red ? Direction.North : Direction.South;
-                    if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, movingDirection), agent.StartGameComponent.OwnGoalArea) ||
+                    if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, movingDirection), agent.AgentInformationsComponent.OwnGoalArea) ||
                         !Common.CouldMove(agent, movingDirection, shortTime))
                     {
                         agent.AgentInformationsComponent.IsComingBack = true;
@@ -82,7 +82,7 @@ namespace Agent.strategies
             }
             if (agent.Piece != null)
             {
-                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) ||
+                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
                     agent.AgentInformationsComponent.IsComingBack)
                 {
                     movingDirection = Common.GetOwnGoalDirection(agent, shortTime);
@@ -92,7 +92,7 @@ namespace Agent.strategies
                 {
                     movingDirection = Common.GetRandomDirection();
                 }
-                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) ||
+                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
                     agent.AgentInformationsComponent.IsComingBack)
                 {
                     agent.AgentInformationsComponent.StayInLineCount = 0;

@@ -89,6 +89,11 @@ namespace Agent
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
 
+            if (Common.KnowsAll(agent))
+            {
+                agent.AgentInformationsComponent.AssignToWholeTaskArea();
+            }
+
             var newMessage = agent.GetMessage();
             return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
@@ -148,6 +153,10 @@ namespace Agent
                     agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = 0;
                     agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                     break;
+            }
+            if (Common.KnowsAll(agent))
+            {
+                agent.AgentInformationsComponent.AssignToWholeTaskArea();
             }
             return agent.MakeDecisionFromStrategy();
         }
