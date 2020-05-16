@@ -70,7 +70,6 @@ namespace IntegrationTests
                     CsIP = "127.0.0.1",
                     CsPort = 54321,
                     TeamID = i < agentsInTeam ? "red" : "blue",
-                    WantsToBeTeamLeader = i % agentsInTeam == 0
                 });
 
                 agents.Add(agent);

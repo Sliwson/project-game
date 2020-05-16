@@ -13,8 +13,7 @@ namespace Agent
         public int CsPort { get; set; }
         public string TeamID { get; set; }
         public int Strategy { get; set; }
-        public bool WantsToBeTeamLeader { get; set; }
-        
+       
         public static AgentConfiguration GetDefault()
         {
             return new AgentConfiguration
@@ -23,7 +22,6 @@ namespace Agent
                 CsPort = 54321,
                 TeamID = "blue",
                 Strategy = 0,
-                WantsToBeTeamLeader = true
             };
         }
 
