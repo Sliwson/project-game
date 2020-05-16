@@ -21,7 +21,9 @@ namespace Agent
 
         public bool DivideAgents { get; } = true;
 
-        private const double penaltyMultiply = 1.5;
+        private const double penaltyMultiply = 1.0;
+
+        private const double penaltyAdd = 0.06;
 
         private const int maxSkip = 10;
 
@@ -30,8 +32,6 @@ namespace Agent
         private IStrategy strategy;
 
         private List<BaseMessage> injectedMessages;
-
-        public bool WantsToBeLeader { get; private set; }
 
         public List<int> WaitingPlayers { get; private set; }
 
@@ -65,7 +65,6 @@ namespace Agent
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
             AgentConfiguration = agentConfiguration;
-            WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
             NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
@@ -89,7 +88,7 @@ namespace Agent
         public void SetPenalty(double add, bool shouldRepeat)
         {
             if (add <= 0.0) return;
-            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
+            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply + penaltyAdd;
             if (shouldRepeat) AgentInformationsComponent.LastRequestPenalty = add;
         }
 
@@ -145,7 +144,7 @@ namespace Agent
 
         private ActionResult UpdateStateCreated()
         {
-            SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)), false);
+            SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team)), false);
             AgentState = AgentState.WaitingForJoin;
             return ActionResult.Continue;
         }

@@ -32,23 +32,6 @@ namespace AgentTests
         }
 
         [Test]
-        public void Initialize_ShouldInitializeTeamLeader()
-        {
-            Assert.IsTrue(defaultConfiguration.WantsToBeTeamLeader);
-            Assert.AreEqual(agent.WantsToBeLeader, true);
-        }
-
-        [Test]
-        public void Initialize_ShouldInitializeNotTeamLeader()
-        {
-            var config = AgentConfiguration.GetDefault();
-            config.WantsToBeTeamLeader = false;
-            var agent = GetInitializedAgent(config);
-
-            Assert.AreEqual(agent.WantsToBeLeader, false);
-        }
-
-        [Test]
         public void Initialize_ShouldSetBoardSize()
         {
             Assert.AreEqual(agent.BoardLogicComponent.BoardSize.X, TestBoardSize.X);

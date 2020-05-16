@@ -4,6 +4,7 @@ using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
+using Messaging.Serialization.Extensions;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -86,8 +87,8 @@ namespace Agent
             logger.Debug("[Agent {id}] Received information exchange response", agent.Id);
 
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
-            agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
-            agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
+            agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
+            agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
             return agent.MakeDecisionFromStrategy();
         }
 
@@ -181,7 +182,7 @@ namespace Agent
 
             if (message.Payload.Accepted)
             {
-                logger.Info("[Agent {id}] Received join response, accepted", message.Payload.AgentId);
+                logger.Warn("[Agent {id}] Received join response, accepted", agent.Id);
                 bool wasWaiting = agent.AgentState == AgentState.WaitingForJoin;
                 agent.AgentState = AgentState.WaitingForStart;
                 agent.Id = message.Payload.AgentId;
@@ -189,7 +190,7 @@ namespace Agent
             }
             else
             {
-                logger.Warn("[Agent {id}] Received join response, rejected", agent.Id);
+                logger.Info("[Agent {id}] Received join response, rejected", agent.Id);
                 return ActionResult.Finish;
             }
         }

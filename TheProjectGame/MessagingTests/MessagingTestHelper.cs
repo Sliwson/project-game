@@ -71,7 +71,7 @@ namespace MessagingTests
                 MessageFactory.GetMessage(new UndefinedError(new Point(3,3), false))
             };
         }
-
+  
         public static bool IsMessagePayloadDerived<T>(Message<T> message) where T : IPayload
         {
             return message != null;
