@@ -73,7 +73,7 @@ namespace Agent
                 int groupSize = 2;
                 int numberOfGroups = allIds.Length / groupSize;
                 int lengthOnBoard = lengthToDivide / numberOfGroups;
-                int groupId = ownId / groupSize;
+                int groupId = Math.Min(ownId / groupSize, numberOfGroups - 1);
                 int biggerBoard = (groupId == numberOfGroups - 1 &&
                     numberOfGroups * lengthOnBoard < lengthToDivide) ?
                     1 : 0;

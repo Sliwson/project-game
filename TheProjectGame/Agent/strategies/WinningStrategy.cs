@@ -14,7 +14,7 @@ namespace Agent.strategies
 
         private const float smallShamProbability = 0.3f;
 
-        private const int askInterval = int.MaxValue;
+        private const int askInterval = 50;
 
         private const double manyDenies = 0.35;
 
