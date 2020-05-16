@@ -105,7 +105,7 @@ namespace Agent
             agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
-                agent.AgentInformationsComponent.DeniedLastMove = false;
+                agent.AgentInformationsComponent.DeniedMove(false);
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = message.Payload.ClosestPiece;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                 if (message.Payload.ClosestPiece == 0 && agent.Piece == null)
@@ -113,7 +113,7 @@ namespace Agent
             }
             else
             {
-                agent.AgentInformationsComponent.DeniedLastMove = true;
+                agent.AgentInformationsComponent.DeniedMove(true);
                 var deniedField = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.LastDirection);
                 if (Common.OnBoard(deniedField, agent.BoardLogicComponent.BoardSize)) 
                     agent.BoardLogicComponent.Board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;

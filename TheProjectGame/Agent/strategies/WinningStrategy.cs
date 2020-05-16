@@ -16,6 +16,8 @@ namespace Agent.strategies
 
         private const int askInterval = int.MaxValue;
 
+        private const double manyDenies = 0.35;
+
         public ActionResult MakeForcedDecision(Agent agent, SpecificActionType action, int argument = -1)
         {
             switch (action)
@@ -87,11 +89,7 @@ namespace Agent.strategies
                 {
                     movingDirection = Common.GetOwnGoalDirection(agent, shortTime);
                 }
-                if (agent.AgentInformationsComponent.DeniedLastMove &&
-                    agent.AgentInformationsComponent.LastDirection == movingDirection)
-                {
-                    movingDirection = Common.GetRandomDirection();
-                }
+                movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
                 if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
                     agent.AgentInformationsComponent.IsComingBack)
                 {
@@ -116,11 +114,7 @@ namespace Agent.strategies
                 return agent.Discover();
             }
             Common.FindClosest(agent, 0, out movingDirection);
-            if (agent.AgentInformationsComponent.DeniedLastMove &&
-                movingDirection == agent.AgentInformationsComponent.LastDirection)
-            {
-                movingDirection = Common.GetRandomDirection();
-            }
+            movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
             return agent.Move(movingDirection);
         }
     }

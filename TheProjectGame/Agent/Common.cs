@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace Agent
@@ -48,6 +49,11 @@ namespace Agent
             return OnBoard(target, agent.BoardLogicComponent.BoardSize) &&
                 !InGoalArea(agent.StartGameComponent.Team == TeamId.Red ? TeamId.Blue : TeamId.Red, target, agent.BoardLogicComponent.BoardSize, agent.BoardLogicComponent.GoalAreaSize) &&
                 OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
+        }
+
+        public static bool GotManyDenies(Agent agent, double  manyDenies)
+        {
+            return (double)(agent.AgentInformationsComponent.DeniedMoves.Where(x => x).Count()) / (double)(agent.AgentInformationsComponent.DeniedMoves.Length) > manyDenies;
         }
 
         public static Direction GetGoalDirection(Agent agent, int shortTime, out bool shouldComeBack)
@@ -154,6 +160,15 @@ namespace Agent
         public static bool IsDirectionGoalDirection(Direction direction)
         {
             return direction == Direction.North || direction == Direction.South;
+        }
+
+        public static Direction FixDirection(Agent agent, Direction direction, double manyDenies)
+        {
+            if ((agent.AgentInformationsComponent.DeniedLastMove &&
+                direction == agent.AgentInformationsComponent.LastDirection) ||
+                GotManyDenies(agent, manyDenies))
+                return GetRandomDirection();
+            return direction;
         }
 
         public static bool DoesAgentKnowGoalInfo(Agent agent)

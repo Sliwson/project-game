@@ -21,6 +21,8 @@ namespace Agent
 
         public bool DivideAgents { get; } = true;
 
+        public int MoveResponsesCount { get; } = 10;
+
         private const double penaltyMultiply = 1.5;
 
         private const int maxSkip = 10;
