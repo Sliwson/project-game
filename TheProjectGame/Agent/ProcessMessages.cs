@@ -181,7 +181,7 @@ namespace Agent
 
             if (message.Payload.Accepted)
             {
-                logger.Warn("[Agent {id}] Received join response, accepted", agent.Id);
+                logger.Info("[Agent {id}] Received join response, accepted", message.Payload.AgentId);
                 bool wasWaiting = agent.AgentState == AgentState.WaitingForJoin;
                 agent.AgentState = AgentState.WaitingForStart;
                 agent.Id = message.Payload.AgentId;
@@ -189,7 +189,7 @@ namespace Agent
             }
             else
             {
-                logger.Info("[Agent {id}] Received join response, rejected", agent.Id);
+                logger.Warn("[Agent {id}] Received join response, rejected", agent.Id);
                 return ActionResult.Finish;
             }
         }

@@ -87,15 +87,19 @@ namespace GameMasterPresentation
                 case "[Net"://NetworkComponent
                     Color = new SolidColorBrush(Colors.LightSkyBlue);
                     break;
+                case "[Cli"://ClientNetworkComponent
+                    Color = new SolidColorBrush(Colors.LightSkyBlue);
+                    break;
                 case "[Boa"://Board
                     Color = new SolidColorBrush(Colors.Navy);
                     break;
                 case "[Sco"://Score
                     Color = new SolidColorBrush(Colors.ForestGreen);
                     break;
+                case "[Log"://Logic
+                    Color = new SolidColorBrush(Colors.Teal);
+                    break;
             }
-
-
         }
     }
 }

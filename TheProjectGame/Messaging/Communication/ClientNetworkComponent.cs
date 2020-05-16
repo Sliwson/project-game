@@ -34,7 +34,7 @@ namespace Messaging.Communication
             }
             catch (Exception e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidEndpoint, e);
             }
         }
@@ -57,7 +57,7 @@ namespace Messaging.Communication
             }
             catch (SocketException e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 if (socket == null)
                     throw new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e);
 
@@ -65,7 +65,7 @@ namespace Messaging.Communication
             }
             catch (ObjectDisposedException e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
@@ -77,7 +77,7 @@ namespace Messaging.Communication
                 socket?.Shutdown(SocketShutdown.Both);
                 socket?.Close();
 
-                logger.Info("Connection with CommunicationServer has been closed");
+                logger.Info("[ClientNetworkComponent] Connection with CommunicationServer has been closed");
                 return true;
             }
             catch (ObjectDisposedException e)
@@ -86,7 +86,7 @@ namespace Messaging.Communication
             }
             catch (SocketException e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 throw new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
         }
@@ -115,7 +115,7 @@ namespace Messaging.Communication
             }
             catch (Exception e)
             {
-                logger.Error("[NetworkComponent] {message}", e.Message);
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
             }
             finally
@@ -170,13 +170,13 @@ namespace Messaging.Communication
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    logger.Warn("[NetworkComponent] {message}", e.Message);
+                    logger.Warn("[ClientNetworkComponent] {message}", e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                logger.Warn("Received message was too short (expected more than 2 bytes)");
+                logger.Warn("[ClientNetworkComponent] Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (socket.Poll(100, SelectMode.SelectWrite) && socket.Available == 0)
