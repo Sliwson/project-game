@@ -183,7 +183,7 @@ namespace Agent
             int minY = Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
             int maxY = Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
             for (int i = minX; i <= maxX; i++)
-                for (int j = maxY; j <= maxY; j++)
+                for (int j = minY; j <= maxY; j++)
                     if (agent.BoardLogicComponent.Board[j, i].goalInfo == GoalInformation.NoInformation)
                         return false;
             return true;
