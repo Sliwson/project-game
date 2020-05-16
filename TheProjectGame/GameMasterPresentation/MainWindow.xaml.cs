@@ -52,7 +52,6 @@ namespace GameMasterPresentation
         }
 
         private bool IsConnecting = false;
-        private bool IsStartedGamePaused = false;
 
         private DispatcherTimer timer;
         private Stopwatch stopwatch;
@@ -182,35 +181,20 @@ namespace GameMasterPresentation
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (IsStartedGamePaused == true)
+            if (StartGame())
             {
                 ConnectRadioButton.Content = "Connected";
                 ConnectRadioButton.IsEnabled = false;
                 StartRadioButton.Content = "In Game";
-                //resume game
-                ResumeGame();
-                IsStartedGamePaused = false;
-                PauseRadioButton.Content = "Pause";
             }
             else
             {
-                if (StartGame())
-                {
-                    ConnectRadioButton.Content = "Connected";
-                    ConnectRadioButton.IsEnabled = false;
-                    StartRadioButton.Content = "In Game";
-
-                    PauseRadioButton.IsEnabled = true;
-                }
-                else
-                {
-                    ConnectRadioButton.IsChecked = true;
-                    MessageBox.Show("Error starting Game!", "Game Master", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                }
+                ConnectRadioButton.IsChecked = true;
+                MessageBox.Show("Error starting Game!", "Game Master", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
 
-        private void PauseRadioButton_Checked(object sender, RoutedEventArgs e)
+        private void ResetRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             StartRadioButton.Content = "Resume";
             PauseRadioButton.Content = "Paused";
@@ -252,14 +236,9 @@ namespace GameMasterPresentation
             return false;
         }
 
-        private void PauseGame()
+        private void ResetGame()
         {
-            gameMaster.PauseGame();
-        }
-
-        private void ResumeGame()
-        {
-            gameMaster.ResumeGame();
+            gameMaster.OnDestroy();
         }
 
         private void Update(double dt)
@@ -270,7 +249,6 @@ namespace GameMasterPresentation
                 MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
                 Application.Current.Shutdown();
             }
-
             FlushLogs();
         }
 

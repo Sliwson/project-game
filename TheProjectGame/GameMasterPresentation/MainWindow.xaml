@@ -169,11 +169,11 @@
                              Name="StartRadioButton"
                              Checked="StartRadioButton_Checked"
                              IsEnabled="False" />
-                    <RadioButton Content="Pause"
+                    <RadioButton Content="Reset"
 							 Grid.Row="2"
 							 Style="{StaticResource ButtonGame}"
-                             Name="PauseRadioButton"
-                             Checked="PauseRadioButton_Checked"
+                             Name="ResetRadioButton"
+                             Checked="ResetRadioButton_Checked"
                              IsEnabled="False" />
                 </Grid>
             </GroupBox>
