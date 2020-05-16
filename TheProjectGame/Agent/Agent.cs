@@ -53,7 +53,6 @@ namespace Agent
 
         public INetworkComponent NetworkComponent { get; private set; }
 
-
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Agent(AgentConfiguration agentConfiguration)
@@ -69,7 +68,7 @@ namespace Agent
             NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
-            strategy = new SimpleStrategy();
+            strategy = new WinningStrategy();
             injectedMessages = new List<BaseMessage>();
             AgentState = AgentState.Created;
             ProcessMessages = new ProcessMessages(this);
@@ -170,10 +169,20 @@ namespace Agent
 
         private ActionResult UpdateStateInGame(double dt)
         {
-            if (AgentInformationsComponent.DeniedLastRequest) 
+            var message = GetImportantMessage();
+            if (message != null)
+            {
+                // TODO: repeat previous action after accepting important message
+                AgentInformationsComponent.DeniedLastRequest = false;
+                return AcceptMessage(message);
+            }
+
+            if (AgentInformationsComponent.DeniedLastRequest)
+            {
                 return RepeatRequest();
+            }
                     
-            var message = GetMessage();
+            message = GetMessage();
 
             if (message == null && AgentInformationsComponent.SkipTime < TimeSpan.FromTicks(StartGameComponent.AverageTime.Ticks * maxSkip))
             {
@@ -259,6 +268,8 @@ namespace Agent
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
 
+            bool shouldRepeat = respondToId != -1;
+
             if (respondToId == -1 && WaitingPlayers.Count > 0)
             {
                 respondToId = WaitingPlayers[0];
@@ -275,12 +286,12 @@ namespace Agent
                     return MakeDecisionFromStrategy();
             }
 
-            SetPenalty(ActionType.InformationExchange, false);
+            SetPenalty(ActionType.InformationExchange, shouldRepeat);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId,
                 BoardLogicComponent.GetDistances(),
                 BoardLogicComponent.GetRedTeamGoalAreaInformation(),
                 BoardLogicComponent.GetBlueTeamGoalAreaInformation())),
-                false);
+                shouldRepeat);
 
             logger.Debug("[Agent {id}] Sent exchange information response to {id2} ", Id, respondToId);
             return ActionResult.Continue;
@@ -335,8 +346,8 @@ namespace Agent
             }
 
             AgentInformationsComponent.DeniedLastRequest = false;
-            SetPenalty(AgentInformationsComponent.LastRequestPenalty, true);
-            SendMessage(AgentInformationsComponent.LastRequest, true);
+            SetPenalty(AgentInformationsComponent.LastRequestPenalty, false);
+            SendMessage(AgentInformationsComponent.LastRequest, false);
             logger.Debug("[Agent {id}] Resent previous action", Id);
             return ActionResult.Continue;
         }
@@ -355,10 +366,24 @@ namespace Agent
         {
             if (injectedMessages.Count == 0)
                 return null;
+            var message = GetImportantMessage();
+            if (message != null)
+                return message;
+            message = injectedMessages[0];
+            injectedMessages.Remove(message);
+            return message;
+        }
+
+        public BaseMessage GetImportantMessage()
+        {
+            if (injectedMessages.Count == 0)
+                return null;
 
             var message = injectedMessages.FirstOrDefault(m => m.MessageId == MessageId.EndGameMessage);
-            if (message == null) message = injectedMessages[0];
-            injectedMessages.Remove(message);
+            if (message == null)
+                message = GetMessageFromLeader();
+            if (message != null)
+                injectedMessages.Remove(message);
             return message;
         }
 
@@ -410,10 +435,10 @@ namespace Agent
             AgentInformationsComponent.Discovered = false;
 
             var ingameTypes = ProcessMessages.GetIngameMessageTypes();
-            if (ingameTypes.Contains(message.MessageId)  &&AgentState != AgentState.InGame)
+            if (ingameTypes.Contains(message.MessageId)  && AgentState != AgentState.InGame)
             {
                 logger.Warn("[Agent {id}] Received message of type {type}, but not in game", Id, message.MessageId);
-                return EndIfUnexpectedAction ? ActionResult.Finish : ActionResult.Continue;
+                return EndIfUnexpectedMessage ? ActionResult.Finish : ActionResult.Continue;
             }
 
             dynamic dynamicMessage = message;

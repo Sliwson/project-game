@@ -88,7 +88,9 @@ namespace Agent
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation);
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation);
-            return agent.MakeDecisionFromStrategy();
+
+            var newMessage = agent.GetMessage();
+            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
 
         public ActionResult Process(Message<MoveResponse> message)
@@ -162,13 +164,12 @@ namespace Agent
             if (message.Payload.TeamId != agent.StartGameComponent.Team)
             {
                 logger.Debug("[Agent {id}] Request from opposite team", agent.Id);
-                return agent.MakeDecisionFromStrategy();
             }
             else
             {
                 agent.WaitingPlayers.Add(message.Payload.AskingAgentId);
-                return agent.MakeDecisionFromStrategy();
             }
+            return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<JoinResponse> message)
