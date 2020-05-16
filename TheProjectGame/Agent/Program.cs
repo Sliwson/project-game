@@ -77,7 +77,6 @@ namespace Agent
             {
                 var config = AgentConfiguration.GetDefault();
                 config.TeamID = "blue";
-                config.WantsToBeTeamLeader = i == 0;
                 agents[i] = new Agent(config);
             }
 
@@ -85,7 +84,6 @@ namespace Agent
             {
                 var config = AgentConfiguration.GetDefault();
                 config.TeamID = "red";
-                config.WantsToBeTeamLeader = i == 0;
                 agents[blue + i] = new Agent(config);
             }
 

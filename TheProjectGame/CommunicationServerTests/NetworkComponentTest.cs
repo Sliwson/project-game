@@ -51,7 +51,7 @@ namespace CommunicationServerTests
             var agentSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             var agentId = server.HostMapping.AddClientToMapping(ClientType.Agent, agentSocket);
 
-            var testMessage = MessageFactory.GetMessage(new JoinRequest(TeamId.Red, false), agentId);
+            var testMessage = MessageFactory.GetMessage(new JoinRequest(TeamId.Red), agentId);
 
             var exception = Assert.Throws<CommunicationErrorException>(() => server.NetworkComponent.SendMessage(gmSocket, testMessage));
             Assert.IsNotNull(exception);

@@ -33,8 +33,6 @@ namespace Agent
 
         private List<BaseMessage> injectedMessages;
 
-        public bool WantsToBeLeader { get; private set; }
-
         public List<int> WaitingPlayers { get; private set; }
 
         public Piece Piece { get; set; }
@@ -66,7 +64,6 @@ namespace Agent
             StartGameComponent = new StartGameComponent(this, teamId);
             AgentInformationsComponent = new AgentInformationsComponent(this);
             AgentConfiguration = agentConfiguration;
-            WantsToBeLeader = agentConfiguration.WantsToBeTeamLeader;
             NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
@@ -146,7 +143,7 @@ namespace Agent
 
         private ActionResult UpdateStateCreated()
         {
-            SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team, WantsToBeLeader)), false);
+            SendMessage(MessageFactory.GetMessage(new JoinRequest(StartGameComponent.Team)), false);
             AgentState = AgentState.WaitingForJoin;
             return ActionResult.Continue;
         }
