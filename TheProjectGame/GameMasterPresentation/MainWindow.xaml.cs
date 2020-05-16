@@ -8,6 +8,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Threading;
 
@@ -170,6 +172,7 @@ namespace GameMasterPresentation
                 gameMaster.ConnectToCommunicationServer();
                 ConnectRadioButton.Content = "Connected";
                 StartRadioButton.IsEnabled = true;
+                ResetRadioButton.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -196,12 +199,9 @@ namespace GameMasterPresentation
 
         private void ResetRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            StartRadioButton.Content = "Resume";
-            PauseRadioButton.Content = "Paused";
-            IsStartedGamePaused = true;
-
-            //pause game in game master
-            PauseGame();
+            var result = MessageBox.Show("Are you sure?", Constants.GameMasterMessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+                ResetGame();
         }
 
         private void UpdateLog(string text)
@@ -238,7 +238,44 @@ namespace GameMasterPresentation
 
         private void ResetGame()
         {
+            stopwatch.Stop();
+            frameStopwatch.Stop();
+            timer.Stop();
+            frameCount = 0;
+            previousTime = 0;
+            FPS = 0;
+            IsConnecting = false;
+
             gameMaster.OnDestroy();
+
+            StartRadioButton.Content = "Start";
+            StartRadioButton.IsEnabled = false;
+            StartRadioButton.IsChecked = false;
+
+            ConnectRadioButton.Content = "Connect";
+            ConnectRadioButton.IsChecked = false;
+
+            Binding myBinding = new Binding(nameof(GMConfig));
+            myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            myBinding.Mode = BindingMode.OneWay;
+            myBinding.Converter = new GMConfigToBoolConverter();
+            BindingOperations.SetBinding(ConnectRadioButton, RadioButton.IsEnabledProperty, myBinding);
+
+            ResetRadioButton.IsChecked = false;
+            ResetRadioButton.IsEnabled = false;
+
+            LogEntries.Clear();
+            FilteredLogEntries.Clear();
+
+            Board.ClearBoard();
+
+            gameMaster = new GameMaster.GameMaster(GMConfig.ConvertToGMConfiguration());
+
+            Board = new BoardComponent(BoardCanvas);
+
+            stopwatch.Start();
+            frameStopwatch.Start();
+            timer.Start();
         }
 
         private void Update(double dt)
