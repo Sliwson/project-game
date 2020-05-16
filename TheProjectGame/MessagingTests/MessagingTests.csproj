@@ -7,6 +7,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Schema\Agent\checkForScham.json" />
+    <EmbeddedResource Include="Schema\Agent\destroyPiece.json" />
+    <EmbeddedResource Include="Schema\Agent\discovery.json" />
+    <EmbeddedResource Include="Schema\Agent\informationExchangeAsk.json" />
+    <EmbeddedResource Include="Schema\Agent\informationExchangeRespond.json" />
+    <EmbeddedResource Include="Schema\Agent\joinGame.json" />
+    <EmbeddedResource Include="Schema\Agent\makeMove.json" />
+    <EmbeddedResource Include="Schema\Agent\pickPiece.json" />
+    <EmbeddedResource Include="Schema\Agent\putPiece.json" />
+    <EmbeddedResource Include="Schema\Errors\invalidMove.json" />
+    <EmbeddedResource Include="Schema\Errors\pickPiece.json" />
+    <EmbeddedResource Include="Schema\Errors\putPieceError.json" />
+    <EmbeddedResource Include="Schema\Errors\timePenaltyError.json" />
+    <EmbeddedResource Include="Schema\Errors\undefinedErrorMessage.json" />
+    <EmbeddedResource Include="Schema\GameMaster\checkForSchamResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\destroyPieceResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\discoveryResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\gameEnd.json" />
+    <EmbeddedResource Include="Schema\GameMaster\gameStart.json" />
+    <EmbeddedResource Include="Schema\GameMaster\informationExchangeAskForward.json" />
+    <EmbeddedResource Include="Schema\GameMaster\informationExchangeRespondForward.json" />
+    <EmbeddedResource Include="Schema\GameMaster\joinGameResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\makeMoveResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\pickPieceResponse.json" />
+    <EmbeddedResource Include="Schema\GameMaster\putPieceResponse.json" />
+    <EmbeddedResource Include="Schema\messageWrapper.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.13" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
