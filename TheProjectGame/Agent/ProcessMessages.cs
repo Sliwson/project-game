@@ -1,4 +1,4 @@
-﻿﻿using Agent.Enums;
+﻿using Agent.Enums;
 using Messaging.Contracts;
 using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
@@ -240,7 +240,7 @@ namespace Agent
         public ActionResult Process(Message<MoveError> message)
         {
             logger.Debug("[Agent {id}] Received move error message", agent.Id);
-            agent.AgentInformationsComponent.DeniedLastMove = true;
+            agent.AgentInformationsComponent.DeniedMove(true);
             agent.BoardLogicComponent.Position = message.Payload.Position;
             return agent.MakeDecisionFromStrategy();
         }
