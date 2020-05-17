@@ -8,6 +8,13 @@ namespace Messaging.Serialization.JsonConverters
 {
     public class PayloadTypeConverter : JsonConverter
     {
+        private bool throwIfNoAgentId = false;
+
+        public PayloadTypeConverter(bool throwIfNoAgentId = false)
+        {
+            this.throwIfNoAgentId = throwIfNoAgentId;
+        }
+
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(Message<IPayload>)
@@ -16,6 +23,9 @@ namespace Messaging.Serialization.JsonConverters
 
         Type GetConcreteType(JObject jObject)
         {
+            if (throwIfNoAgentId && jObject.Property("agentID") == null)
+                throw new JsonSerializationException("No valid property \"agentID\" found in serialized object. It is required in message from GameMaster");
+
             var messageIdProperty = jObject.Property("messageID");
             if (messageIdProperty == null || !int.TryParse(messageIdProperty.Value.ToString(), out int messageId))
                 throw new JsonSerializationException("No valid property \"messageID\" found in serialized object");

@@ -2,6 +2,7 @@
 using Messaging.Contracts;
 using System.Collections.Generic;
 using Messaging.Serialization;
+using Newtonsoft.Json;
 
 namespace MessagingTests
 {
@@ -93,6 +94,31 @@ namespace MessagingTests
                 dynamic dynamicMessage = deserializedMessage;
                 Assert.IsTrue(MessagingTestHelper.IsMessagePayloadDerived(dynamicMessage));
             }
+        }
+
+        [Test]
+        public void DeserializeMessage_ShouldThrowIfSetToThrowWithoutAgentId()
+        {
+            foreach (var message in messages)
+            {
+                var serialized = MessagingTestHelper.SerializeWithoutAgentId(message);
+
+                Assert.Throws<JsonSerializationException>(() => MessageSerializer.DeserializeMessage(serialized, true));
+            }
+
+            Assert.Pass();
+        }
+
+        [Test]
+        public void DeserializeMessage_ShouldNotThrowIfSetToThrowButAgentIdSet()
+        {
+            foreach (var message in messages)
+            {
+                var serialized = MessageSerializer.SerializeMessage(message);
+                var deserialized = MessageSerializer.DeserializeMessage(serialized, true);
+            }
+
+            Assert.Pass();
         }
     }
 }
