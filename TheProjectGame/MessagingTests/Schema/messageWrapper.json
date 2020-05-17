@@ -1,16 +1,19 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object",
-    "required":["messageID", "agentID", "payload"],
+    "required":["messageID", "payload"],
     "properties": {
-        "messageID": {
-            "type":"integer"
-        },
-        "agentID": {
-            "type":"integer"
-        },
-        "payload": {
-            "type":"object"
-        }
+      "messageID": {
+        "type":"integer"
+      },
+      "agentID": {
+        "type":"integer"
+      },
+      "correlationID": {
+        "type": "integer"
+      },
+      "payload": {
+        "type":"object"
+      }
     }
 }

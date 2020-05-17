@@ -4,6 +4,7 @@ using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using Messaging.Implementation;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -85,6 +86,14 @@ namespace MessagingTests
         public static bool IsMessagePayloadError<T>(Message<T> message) where T : IPayload
         {
             return message != null && message.Payload is IErrorPayload;
+        }
+
+        public static string SerializeWithoutAgentId(BaseMessage message)
+        {
+            var jObject = JObject.FromObject(message);
+            jObject.Remove("agentID");
+
+            return jObject.ToString();
         }
     }
 }

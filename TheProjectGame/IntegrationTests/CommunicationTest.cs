@@ -102,7 +102,7 @@ namespace IntegrationTests
             testComponents.Agent.SendMessage(messageFromAgent, false);
             Thread.Sleep(100);
 
-            var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
+            var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 2);
             testComponents.GameMaster.SendMessage(messageFromGm);
             Thread.Sleep(100);
 
@@ -133,7 +133,7 @@ namespace IntegrationTests
             testComponents.Agent.OnDestroy();
             Thread.Sleep(100);
 
-            var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 1);
+            var messageFromGm = MessageFactory.GetMessage(new JoinResponse(true, 1), 2);
             testComponents.GameMaster.SendMessage(messageFromGm);
             Thread.Sleep(100);
 

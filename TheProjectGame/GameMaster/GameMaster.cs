@@ -122,6 +122,7 @@ namespace GameMaster
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
+                    response.SetCorrelationId(message.CorrelationId);
                     SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
