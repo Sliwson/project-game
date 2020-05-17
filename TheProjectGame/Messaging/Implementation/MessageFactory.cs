@@ -1,24 +1,22 @@
 ﻿using Messaging.Contracts;
+using System;
 
 namespace Messaging.Implementation
 {
     public static class MessageFactory
     {
-        public static Message<T> GetMessage<T>(T payload, int agentId) where T:IPayload
+        private static Random random = new Random();
+
+        public static Message<T> GetMessage<T>(T payload, int agentId = 0, int? correlationId = null) where T:IPayload
         {
+            if (correlationId == null)
+                correlationId = random.Next();
+
             return new Message<T>
             (
                 messageId: payload.GetMessageId(),
                 agentId: agentId,
-                payload: payload
-            );
-        }
-
-        public static Message<T> GetMessage<T>(T payload) where T : IPayload
-        {
-            return new Message<T>
-            (
-                messageId: payload.GetMessageId(),
+                correlationID: correlationId.Value,
                 payload: payload
             );
         }

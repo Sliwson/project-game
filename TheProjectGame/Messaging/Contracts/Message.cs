@@ -12,6 +12,9 @@ namespace Messaging.Contracts
         [JsonProperty(PropertyName = "agentID", Order = 1)]
         public int AgentId { get; protected set; }
 
+        [JsonProperty(PropertyName = "correlationID", Order = 2, DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public int? CorrelationId { get; protected set; }
+
         [JsonIgnore]
         public IPayload Payload { get; protected set; }
 
@@ -19,18 +22,24 @@ namespace Messaging.Contracts
         {
             AgentId = newId;
         }
+
+        public void SetCorrelationId(int? newId)
+        {
+            CorrelationId = newId;
+        }
     }
 
     public class Message<T> : BaseMessage where T : IPayload
     {
         [JsonRequired]
-        [JsonProperty(PropertyName = "payload", Order = 2)]
+        [JsonProperty(PropertyName = "payload", Order = 3)]
         new public T Payload { get; }
 
-        public Message(MessageId messageId, T payload, int agentId = 0)
+        public Message(MessageId messageId, T payload, int? correlationID = null, int agentId = 0)
         {
             MessageId = messageId;
             AgentId = agentId;
+            CorrelationId = correlationID;
             Payload = payload;
         }
     }
