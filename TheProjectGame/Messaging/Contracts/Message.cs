@@ -9,7 +9,6 @@ namespace Messaging.Contracts
         [JsonProperty(PropertyName = "messageID", Order = 0)]
         public MessageId MessageId { get; protected set; }
 
-        [JsonRequired]
         [JsonProperty(PropertyName = "agentID", Order = 1)]
         public int AgentId { get; protected set; }
 
@@ -28,7 +27,7 @@ namespace Messaging.Contracts
         [JsonProperty(PropertyName = "payload", Order = 2)]
         new public T Payload { get; }
 
-        public Message(MessageId messageId, int agentId, T payload)
+        public Message(MessageId messageId, T payload, int agentId = 0)
         {
             MessageId = messageId;
             AgentId = agentId;

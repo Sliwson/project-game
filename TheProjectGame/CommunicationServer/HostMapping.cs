@@ -12,8 +12,8 @@ namespace CommunicationServer
         private ConcurrentDictionary<int, Socket> mapping;
         private ConcurrentDictionary<Socket, int> inversedMapping;
 
-        private int lastHostId = 0;
-        private int gmHostId = 0;
+        private int lastHostId = 1;
+        private int gmHostId = 1;
 
         private static Logger logger = LogManager.GetCurrentClassLogger(); 
 

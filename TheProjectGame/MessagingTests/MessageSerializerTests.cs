@@ -39,6 +39,20 @@ namespace MessagingTests
         }
 
         [Test]
+        public void MessageSerializer_ShouldSetAgentIdToZeroIfNotProvided()
+        {
+            foreach (var message in messages)
+            {
+                var serialized = MessagingTestHelper.SerializeWithoutAgentId(message);
+                var deserialized = MessageSerializer.DeserializeMessage(serialized);
+
+                Assert.AreEqual(0, deserialized.AgentId);
+            }
+
+            Assert.Pass();
+        }
+
+        [Test]
         public void DeserializeMessage_ShouldNotChangeValue()
         {
             foreach (var message in messages)
