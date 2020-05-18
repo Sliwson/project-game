@@ -84,24 +84,6 @@ namespace GameMaster
             return true;
         }
 
-        public void PauseGame()
-        {
-            state = GameMasterState.Paused;
-
-            //TODO: send
-            Logger.Get().Info("[GM] Pausing game");
-            GameLogic.GetPauseMessages();
-        }
-
-        public void ResumeGame()
-        {
-            state = GameMasterState.InGame;
-
-            //TODO: send
-            Logger.Get().Info("[GM] Resuming game");
-            GameLogic.GetResumeMessages();
-        }
-
         //called from window system each frame, updates all components
         public void Update(double dt)
         {

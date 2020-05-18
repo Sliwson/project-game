@@ -136,6 +136,11 @@ namespace GameMasterPresentation
             GMState = data.State;
         }
 
+        public void ClearBoard()
+        {
+            canvas.Children.Clear();
+        }
+
         private void CalculateBoardSize()
         {
             double widthStep = canvas.ActualWidth / (double)BoardColumns;
