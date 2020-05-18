@@ -40,17 +40,17 @@ namespace Messaging.Serialization
 
         #region Deserialization
 
-        public static IEnumerable<BaseMessage> UnwrapAndDeserializeMessages(byte[] wrappedMessage, int bytesRead)
+        public static IEnumerable<BaseMessage> UnwrapAndDeserializeMessages(byte[] wrappedMessage, int bytesRead, bool throwIfNoAgentId = false)
         {
             foreach(var serializedMessage in UnwrapMessages(wrappedMessage, bytesRead))
-                yield return DeserializeMessage(serializedMessage);
+                yield return DeserializeMessage(serializedMessage, throwIfNoAgentId);
         }
 
-        public static BaseMessage DeserializeMessage(string serializedMessage)
+        public static BaseMessage DeserializeMessage(string serializedMessage, bool throwIfNoAgentId = false)
         {
             var settings = new JsonSerializerSettings
             {
-                Converters = { new PayloadTypeConverter() },
+                Converters = { new PayloadTypeConverter(throwIfNoAgentId) },
             };
 
             return JsonConvert.DeserializeObject<BaseMessage>(serializedMessage, settings);

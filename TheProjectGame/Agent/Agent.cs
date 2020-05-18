@@ -250,7 +250,7 @@ namespace Agent
             return ActionResult.Continue;
         }
 
-        public ActionResult GiveInfo(int respondToId = -1)
+        public ActionResult GiveInfo(int respondToId = int.MinValue)
         {
             if (AgentState != AgentState.InGame)
             {
@@ -258,14 +258,14 @@ namespace Agent
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
 
-            if (respondToId == -1 && WaitingPlayers.Count > 0)
+            if (!StartGameComponent.TeamMates.Contains(respondToId) && WaitingPlayers.Count > 0)
             {
                 respondToId = WaitingPlayers[0];
                 WaitingPlayers.RemoveAt(0);
                 logger.Debug("[Agent {id}] Sent exchange information response to first waiting player ({id2})", Id, respondToId);
             }
 
-            if (respondToId == -1)
+            if (!StartGameComponent.TeamMates.Contains(respondToId))
             {
                 logger.Warn("[Agent {id}] Requested give info, but has no target", Id);
                 if (EndIfUnexpectedAction)
