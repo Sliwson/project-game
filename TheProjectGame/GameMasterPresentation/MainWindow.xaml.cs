@@ -1,16 +1,13 @@
-﻿using NLog.Fluent;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Threading;
 
 namespace GameMasterPresentation
@@ -20,10 +17,36 @@ namespace GameMasterPresentation
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        //properties
+        #region Private variables
+
         private GameMaster.GameMaster gameMaster;
 
         private Configuration.Configuration _gmConfig;
+
+        private BoardComponent _board;
+
+        private bool IsConnecting = false;
+
+        private DispatcherTimer updateTimer;
+        private DispatcherTimer guiTimer;
+        private Stopwatch stopwatch;
+        private Stopwatch frameStopwatch;
+
+        private int frameCount = 0;
+        private long previousTime = 0;
+        private int _fps = 0;
+
+        //log
+        private string _searchString;
+
+        private bool IsUserScrollingLog = false;
+
+        private List<LogEntry> LogEntries { get; set; } = new List<LogEntry>();
+        public ObservableCollection<LogEntry> FilteredLogEntries { get; set; } = new ObservableCollection<LogEntry>();
+
+        #endregion Private variables
+
+        #region Properties
 
         public Configuration.Configuration GMConfig
         {
@@ -38,8 +61,6 @@ namespace GameMasterPresentation
             }
         }
 
-        private BoardComponent _board;
-
         public BoardComponent Board
         {
             get
@@ -52,17 +73,6 @@ namespace GameMasterPresentation
                 NotifyPropertyChanged();
             }
         }
-
-        private bool IsConnecting = false;
-
-        private DispatcherTimer updateTimer;
-        private DispatcherTimer guiTimer;
-        private Stopwatch stopwatch;
-        private Stopwatch frameStopwatch;
-
-        private int frameCount = 0;
-        private long previousTime = 0;
-        private int _fps = 0;
 
         public int FPS
         {
@@ -78,7 +88,6 @@ namespace GameMasterPresentation
         }
 
         //log
-        private string _searchString;
 
         public string SearchString
         {
@@ -95,11 +104,9 @@ namespace GameMasterPresentation
             }
         }
 
+        #endregion Properties
 
-        private bool IsUserScrollingLog = false;
-
-        private List<LogEntry> LogEntries { get; set; } = new List<LogEntry>();
-        public ObservableCollection<LogEntry> FilteredLogEntries { get; set; } = new ObservableCollection<LogEntry>();
+        #region Event handlers
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -108,64 +115,9 @@ namespace GameMasterPresentation
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public MainWindow()
-        {
-            InitializeComponent();
-
-            var configuration = GameMaster.GameMasterConfiguration.GetDefault();
-            GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
-            if (GMConfig != null)
-                configuration = GMConfig.ConvertToGMConfiguration();
-
-            gameMaster = new GameMaster.GameMaster(configuration);
-
-            Board = new BoardComponent(BoardCanvas);
-
-            GMConfig.PropertyChanged += GMConfig_PropertyChanged;
-
-            updateTimer = new DispatcherTimer();
-            guiTimer = new DispatcherTimer();
-            stopwatch = new Stopwatch();
-            frameStopwatch = new Stopwatch();
-            //33-> 30FPS
-            updateTimer.Interval = TimeSpan.FromMilliseconds(3);            
-            updateTimer.Tick += UpdateTimerEvent;
-
-            guiTimer.Interval = TimeSpan.FromMilliseconds(33);
-            guiTimer.Tick += GuiTimerEvent;
-
-            stopwatch.Start();
-
-            frameStopwatch.Start();
-            updateTimer.Start();
-            guiTimer.Start();
-        }
-
         private void GMConfig_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             NotifyPropertyChanged(nameof(GMConfig));
-        }
-
-        private void UpdateTimerEvent(object sender, EventArgs e)
-        {
-            long currentFrame = frameStopwatch.ElapsedMilliseconds;
-            frameCount++;
-            if (currentFrame - previousTime >= 1000)
-            {
-                FPS = frameCount;
-                frameCount = 0;
-                previousTime = currentFrame;
-            }
-            stopwatch.Stop();
-            var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
-            stopwatch.Reset();
-            stopwatch.Start();
-            Update(elapsed);            
-        }
-
-        private void GuiTimerEvent(object sender, EventArgs e)
-        {
-            Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
         }
 
         private void ConnectRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -213,6 +165,119 @@ namespace GameMasterPresentation
                 ResetGame();
         }
 
+        private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = false;
+        }
+
+        private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            IsUserScrollingLog = true;
+        }
+
+        private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == false)
+            {
+                if (GMConfig == null)
+                    GMConfig = new Configuration.Configuration();
+                var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
+                //this line should be useful but produces weird behaviour of minimizing main window after closing child window
+                //ConfigurationWindow.Owner = this;
+                ConfigurationWindow.Show();
+            }
+            else
+            {
+                if (configurationWindows.First().WindowState == WindowState.Minimized)
+                    configurationWindows.First().WindowState = WindowState.Normal;
+            }
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
+            if (configurationWindows.Any() == true)
+            {
+                configurationWindows.First().Close();
+                if (configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
+                {
+                    if (confWindow.IsClosed == false)
+                    {
+                        e.Cancel = true;
+                    }
+                }
+            }
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            gameMaster.OnDestroy();
+        }
+
+        #endregion Event handlers
+
+        #region Timer events
+
+        private void UpdateTimerEvent(object sender, EventArgs e)
+        {
+            long currentFrame = frameStopwatch.ElapsedMilliseconds;
+            frameCount++;
+            if (currentFrame - previousTime >= 1000)
+            {
+                FPS = frameCount;
+                frameCount = 0;
+                previousTime = currentFrame;
+            }
+            stopwatch.Stop();
+            var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
+            stopwatch.Reset();
+            stopwatch.Start();
+            Update(elapsed);
+        }
+
+        private void GuiTimerEvent(object sender, EventArgs e)
+        {
+            Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
+        }
+
+        #endregion Timer events
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            var configuration = GameMaster.GameMasterConfiguration.GetDefault();
+            GMConfig = Configuration.Configuration.ReadFromFile(Constants.ConfigurationFilePath);
+            if (GMConfig != null)
+                configuration = GMConfig.ConvertToGMConfiguration();
+
+            gameMaster = new GameMaster.GameMaster(configuration);
+
+            Board = new BoardComponent(BoardCanvas);
+
+            GMConfig.PropertyChanged += GMConfig_PropertyChanged;
+
+            updateTimer = new DispatcherTimer();
+            guiTimer = new DispatcherTimer();
+            stopwatch = new Stopwatch();
+            frameStopwatch = new Stopwatch();
+            //33-> 30FPS
+            updateTimer.Interval = TimeSpan.FromMilliseconds(3);
+            updateTimer.Tick += UpdateTimerEvent;
+
+            guiTimer.Interval = TimeSpan.FromMilliseconds(33);
+            guiTimer.Tick += GuiTimerEvent;
+
+            stopwatch.Start();
+
+            frameStopwatch.Start();
+            updateTimer.Start();
+            guiTimer.Start();
+        }
+
+        #region Private Methods
+
         private void UpdateLog(string text)
         {
             var log = new LogEntry(text);
@@ -222,17 +287,7 @@ namespace GameMasterPresentation
             if (IsUserScrollingLog == false)
             {
                 LogScrollViewer.ScrollToEnd();
-            }            
-        }
-
-        private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
-        {
-            IsUserScrollingLog = false;
-        }
-
-        private void LogScrollViewer_GotFocus(object sender, RoutedEventArgs e)
-        {
-            IsUserScrollingLog = true;
+            }
         }
 
         private bool StartGame()
@@ -307,44 +362,6 @@ namespace GameMasterPresentation
                 UpdateLog(log);
         }
 
-        private void ConfigurationButton_Click(object sender, RoutedEventArgs e)
-        {
-            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
-            if (configurationWindows.Any() == false)
-            {
-                if (GMConfig == null)
-                    GMConfig = new Configuration.Configuration();
-                var ConfigurationWindow = new Configuration.ConfigurationWindow(GMConfig);
-                //this line should be useful but produces weird behaviour of minimizing main window after closing child window
-                //ConfigurationWindow.Owner = this;
-                ConfigurationWindow.Show();
-            }
-            else
-            {
-                if (configurationWindows.First().WindowState == WindowState.Minimized)
-                    configurationWindows.First().WindowState = WindowState.Normal;
-            }
-        }
-
-        private void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            var configurationWindows = Application.Current.Windows.OfType<Configuration.ConfigurationWindow>();
-            if (configurationWindows.Any() == true)
-            {
-                configurationWindows.First().Close();
-                if (configurationWindows.First() is Configuration.ConfigurationWindow confWindow)
-                {
-                    if (confWindow.IsClosed == false)
-                    {
-                        e.Cancel = true;
-                    }
-                }
-            }
-        }
-
-        private void MainWindow_Closed(object sender, EventArgs e)
-        {
-            gameMaster.OnDestroy();
-        }
+        #endregion Private Methods
     }
 }
