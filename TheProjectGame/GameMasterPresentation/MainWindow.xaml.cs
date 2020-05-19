@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,7 +21,12 @@ namespace GameMasterPresentation
     {
         #region Private variables
 
+        private Mutex gameMasterMutex = new Mutex();
+        private Task gameMasterThread = null;
         private GameMaster.GameMaster gameMaster;
+
+        private Mutex shouldCloseMutex = new Mutex();
+        private bool shouldClose = false;
 
         private Configuration.Configuration _gmConfig;
 
@@ -27,13 +34,8 @@ namespace GameMasterPresentation
 
         private bool IsConnecting = false;
 
-        private DispatcherTimer updateTimer;
         private DispatcherTimer guiTimer;
-        private Stopwatch stopwatch;
-        private Stopwatch frameStopwatch;
 
-        private int frameCount = 0;
-        private long previousTime = 0;
         private int _fps = 0;
 
         //log
@@ -125,6 +127,7 @@ namespace GameMasterPresentation
             if (IsConnecting == true)
                 return;
 
+            gameMasterMutex.WaitOne();
             IsConnecting = true;
             gameMaster.SetConfiguration(GMConfig.ConvertToGMConfiguration());
 
@@ -141,6 +144,9 @@ namespace GameMasterPresentation
                 IsConnecting = false;
                 ConnectRadioButton.IsChecked = false;
             }
+
+
+            gameMasterMutex.ReleaseMutex();
         }
 
         private void StartRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -212,33 +218,23 @@ namespace GameMasterPresentation
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            gameMaster.OnDestroy();
+            shouldCloseMutex.WaitOne();
+            shouldClose = true;
+            shouldCloseMutex.ReleaseMutex();
         }
 
         #endregion Event handlers
 
         #region Timer events
 
-        private void UpdateTimerEvent(object sender, EventArgs e)
-        {
-            long currentFrame = frameStopwatch.ElapsedMilliseconds;
-            frameCount++;
-            if (currentFrame - previousTime >= 1000)
-            {
-                FPS = frameCount;
-                frameCount = 0;
-                previousTime = currentFrame;
-            }
-            stopwatch.Stop();
-            var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
-            stopwatch.Reset();
-            stopwatch.Start();
-            Update(elapsed);
-        }
-
         private void GuiTimerEvent(object sender, EventArgs e)
         {
-            Board.UpdateBoard(gameMaster.PresentationComponent.GetPresentationData());
+            gameMasterMutex.WaitOne();
+            var presentationData = gameMaster.PresentationComponent.GetPresentationData();
+            gameMasterMutex.ReleaseMutex();
+
+            Board.UpdateBoard(presentationData);
+            FlushLogs();
         }
 
         #endregion Timer events
@@ -258,22 +254,13 @@ namespace GameMasterPresentation
 
             GMConfig.PropertyChanged += GMConfig_PropertyChanged;
 
-            updateTimer = new DispatcherTimer();
             guiTimer = new DispatcherTimer();
-            stopwatch = new Stopwatch();
-            frameStopwatch = new Stopwatch();
-            //33-> 30FPS
-            updateTimer.Interval = TimeSpan.FromMilliseconds(3);
-            updateTimer.Tick += UpdateTimerEvent;
-
-            guiTimer.Interval = TimeSpan.FromMilliseconds(33);
+            guiTimer.Interval = TimeSpan.FromMilliseconds(16);
             guiTimer.Tick += GuiTimerEvent;
-
-            stopwatch.Start();
-
-            frameStopwatch.Start();
-            updateTimer.Start();
             guiTimer.Start();
+
+            gameMasterThread = new Task(RunGameMasterThread);
+            gameMasterThread.Start();
         }
 
         #region Private Methods
@@ -292,26 +279,30 @@ namespace GameMasterPresentation
 
         private bool StartGame()
         {
-            if (gameMaster.StartGame())
-            {
+            gameMasterMutex.WaitOne();
+            var result = gameMaster.StartGame();
+
+            if (result)
                 Board.InitializeBoard(gameMaster.Agents.Count, GMConfig);
-                return true;
-            }
-            return false;
+
+            gameMasterMutex.ReleaseMutex();
+            return result;
         }
 
         private void ResetGame()
         {
-            stopwatch.Stop();
-            frameStopwatch.Stop();
-            updateTimer.Stop();
             guiTimer.Stop();
-            frameCount = 0;
-            previousTime = 0;
             FPS = 0;
             IsConnecting = false;
 
-            gameMaster.OnDestroy();
+            //schedule close of old gm
+            shouldCloseMutex.WaitOne();
+            shouldClose = true;
+            shouldCloseMutex.ReleaseMutex();
+            gameMasterThread.Wait();
+
+            shouldClose = false;
+            gameMaster = null;
 
             StartRadioButton.Content = "Start";
             StartRadioButton.IsEnabled = false;
@@ -334,30 +325,74 @@ namespace GameMasterPresentation
 
             Board.ClearBoard();
 
+            // start new gm
             gameMaster = new GameMaster.GameMaster(GMConfig.ConvertToGMConfiguration());
-
             Board = new BoardComponent(BoardCanvas);
-
-            stopwatch.Start();
-            frameStopwatch.Start();
-            updateTimer.Start();
             guiTimer.Start();
+
+            gameMasterThread = new Task(RunGameMasterThread);
+            gameMasterThread.Start();
         }
 
-        private void Update(double dt)
+        private void RunGameMasterThread()
         {
-            gameMaster.Update(dt);
-            if (gameMaster.state == GameMaster.GameMasterState.CriticalError)
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            double frameTimer = 0;
+            int frameCount = 0;
+
+            shouldCloseMutex.WaitOne();
+            var close = shouldClose;
+            shouldCloseMutex.ReleaseMutex();
+
+            while (close == false)
             {
-                MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
-                Application.Current.Shutdown();
+                stopwatch.Stop();
+                var elapsed = (double)stopwatch.ElapsedMilliseconds / 1000.0;
+                stopwatch.Reset();
+                stopwatch.Start();
+
+                frameTimer += elapsed;
+                frameCount++;
+
+                if (frameTimer >= 1)
+                {
+                    FPS = frameCount;
+                    frameTimer = 0;
+                    frameCount = 0;
+                }
+
+                gameMasterMutex.WaitOne(); 
+                gameMaster.Update(elapsed);
+                var state = gameMaster.state;
+                gameMasterMutex.ReleaseMutex();
+
+                if (state == GameMaster.GameMasterState.CriticalError)
+                    OnCriticalError();
+
+                Thread.Sleep(3);
+
+                shouldCloseMutex.WaitOne();
+                close = shouldClose;
+                shouldCloseMutex.ReleaseMutex();
             }
-            FlushLogs();
+
+            gameMaster.OnDestroy();
+        }
+
+        private void OnCriticalError()
+        {
+            MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (Application.Current != null)
+                Application.Current.Shutdown();
         }
 
         private void FlushLogs()
         {
+            gameMasterMutex.WaitOne();
             var logs = gameMaster.Logger.GetPendingLogs();
+            gameMasterMutex.ReleaseMutex();
+
             foreach (var log in logs)
                 UpdateLog(log);
         }
