@@ -364,7 +364,7 @@ namespace GameMasterPresentation.Configuration
                 return false;
             if (IPAddress.TryParse(CSAddress, out _) == false)
                 return false;
-            if (CSPort > 1000 && CSPort > 65535)
+            if (CSPort <= 1000 || CSPort > 65535)
                 return false;
             if (MovePenalty < 0)
                 return false;
