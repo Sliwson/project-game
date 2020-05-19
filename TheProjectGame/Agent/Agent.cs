@@ -1,4 +1,4 @@
-﻿﻿using Agent.Enums;
+﻿using Agent.Enums;
 using Agent.strategies;
 using Messaging.Communication;
 using Messaging.Contracts;
@@ -28,6 +28,10 @@ namespace Agent
         private const double penaltyAdd = 0.06;
 
         private const int maxSkip = 10;
+
+        private const int winningStrategy = 0;
+
+        private const int doNothingStrategy = -1;
 
         public int Id { get; set; }
 
@@ -69,7 +73,18 @@ namespace Agent
             NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
-            strategy = new WinningStrategy();
+            switch (agentConfiguration.Strategy)
+            {
+                case winningStrategy:
+                    strategy = new WinningStrategy();
+                    break;
+                case doNothingStrategy:
+                    strategy = new DoNothingStrategy();
+                    break;
+                default:
+                    strategy = new SimpleStrategy();
+                    break;
+            }
             injectedMessages = new List<BaseMessage>();
             AgentState = AgentState.Created;
             ProcessMessages = new ProcessMessages(this);
@@ -97,11 +112,6 @@ namespace Agent
         {
             var ret = StartGameComponent.Penalties.TryGetValue(action, out TimeSpan span);
             if (ret) SetPenalty(span.TotalSeconds, shouldRepeat);
-        }
-
-        public void SetDoNothingStrategy()
-        {
-            strategy = new DoNothingStrategy();
         }
 
         public ActionResult Update(double dt)

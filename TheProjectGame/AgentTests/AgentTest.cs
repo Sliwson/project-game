@@ -354,6 +354,7 @@ namespace AgentTests
         private Agent.Agent GetDefaultAgent()
         {
             var config = AgentConfiguration.GetDefault();
+            config.Strategy = -1; //DoNothingStrategy
             return GetInitializedAgent(config);
         }
 
@@ -363,7 +364,6 @@ namespace AgentTests
 
             var startGamePayload = GetDefaultStartGamePayload();
             agent.StartGameComponent.Initialize(startGamePayload);
-            agent.SetDoNothingStrategy();
             return agent;
         }
 
