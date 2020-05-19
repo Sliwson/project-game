@@ -8,6 +8,7 @@ using Messaging.Communication;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using NLog;
+using Messaging.Contracts;
 
 [assembly: InternalsVisibleTo("CommunicationServerTests")]
 
@@ -132,22 +133,25 @@ namespace CommunicationServer
             {
                 var senderHostId = HostMapping.GetHostIdForSocket(receivedMessage.SenderSocket);
                 int receipentHostId;
+                BaseMessage deserializedMessage;
 
                 logger.Debug("[CS] Received message from host with id = {senderHostId}", senderHostId);
-                var deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
-                logger.Debug("[CS] Message type = {id} (id = {indId})", deserializedMessage.MessageId, (int)deserializedMessage.MessageId);
 
                 if (!HostMapping.IsHostGameMaster(senderHostId))
                 {
                     // TODO: Decide what should be done if GameMaster has not connected yet (NoGameMaster)
                     receipentHostId = HostMapping.GetGameMasterHostId();
+
+                    deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage);
                     deserializedMessage.SetAgentId(senderHostId);
                 }
                 else
                 {
+                    deserializedMessage = MessageSerializer.DeserializeMessage(receivedMessage.SerializedMessage, true);
                     receipentHostId = deserializedMessage.AgentId;
                 }
 
+                logger.Debug("[CS] Message type = {id} (id = {indId})", deserializedMessage.MessageId, (int)deserializedMessage.MessageId);
                 logger.Debug("[CS] Forwarding to host with id = {recipent}", receipentHostId);
 
                 var receipentSocket = HostMapping.GetSocketForHostId(receipentHostId);

@@ -58,24 +58,6 @@ namespace GameMaster
             return messages;
         }
 
-        public List<BaseMessage> GetPauseMessages()
-        {
-            var agents = gameMaster.Agents;
-            var messages = new List<BaseMessage>();
-
-            //TODO: check for pause message
-            return messages;
-        }
-
-        public List<BaseMessage> GetResumeMessages()
-        {
-            var agents = gameMaster.Agents;
-            var messages = new List<BaseMessage>();
-
-            //TODO: check for resume message
-            return messages;
-        }
-
         public List<BaseMessage> GetEndGameMessages(TeamId winner)
         {
             var agents = gameMaster.Agents;

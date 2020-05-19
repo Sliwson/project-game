@@ -1,4 +1,4 @@
-﻿using Agent.Enums;
+﻿﻿using Agent.Enums;
 using Agent.strategies;
 using Messaging.Communication;
 using Messaging.Contracts;
@@ -23,7 +23,9 @@ namespace Agent
 
         public int MoveResponsesCount { get; } = 10;
 
-        private const double penaltyMultiply = 1.5;
+        private const double penaltyMultiply = 1.0;
+
+        private const double penaltyAdd = 0.06;
 
         private const int maxSkip = 10;
 
@@ -87,7 +89,7 @@ namespace Agent
         public void SetPenalty(double add, bool shouldRepeat)
         {
             if (add <= 0.0) return;
-            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply;
+            AgentInformationsComponent.RemainingPenalty += add * penaltyMultiply + penaltyAdd;
             if (shouldRepeat) AgentInformationsComponent.LastRequestPenalty = add;
         }
 
@@ -259,7 +261,7 @@ namespace Agent
             return ActionResult.Continue;
         }
 
-        public ActionResult GiveInfo(int respondToId = -1)
+        public ActionResult GiveInfo(int respondToId = int.MinValue)
         {
             if (AgentState != AgentState.InGame)
             {
@@ -267,16 +269,16 @@ namespace Agent
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
 
-            bool shouldRepeat = respondToId != -1;
+            bool shouldRepeat = StartGameComponent.TeamMates.Contains(respondToId);
 
-            if (respondToId == -1 && WaitingPlayers.Count > 0)
+            if (!StartGameComponent.TeamMates.Contains(respondToId) && WaitingPlayers.Count > 0)
             {
                 respondToId = WaitingPlayers[0];
                 WaitingPlayers.RemoveAt(0);
                 logger.Debug("[Agent {id}] Sent exchange information response to first waiting player ({id2})", Id, respondToId);
             }
 
-            if (respondToId == -1)
+            if (!StartGameComponent.TeamMates.Contains(respondToId))
             {
                 logger.Warn("[Agent {id}] Requested give info, but has no target", Id);
                 if (EndIfUnexpectedAction)
