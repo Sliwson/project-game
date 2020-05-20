@@ -40,8 +40,6 @@ namespace Agent.strategies
         {
             switch (action)
             {
-                case SpecificActionType.DestroyPiece:
-                    return agent.DestroyPiece();
                 case SpecificActionType.GiveInfo:
                     return agent.GiveInfo(argument);
                 case SpecificActionType.PickUp:
