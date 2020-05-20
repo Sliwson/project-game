@@ -86,10 +86,19 @@ namespace Agent
         {
             logger.Debug("[Agent {id}] Received information exchange response", agent.Id);
 
+            agent.AgentInformationsComponent.IsWaiting = false;
+
             //agent.BoardLogicComponent.UpdateDistances(message.Payload.Distances);
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
-            return agent.MakeDecisionFromStrategy();
+
+            if (Common.KnowsAll(agent))
+            {
+                agent.AgentInformationsComponent.AssignToWholeTaskArea();
+            }
+
+            var newMessage = agent.GetMessage();
+            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
 
         public ActionResult Process(Message<MoveResponse> message)
@@ -99,7 +108,7 @@ namespace Agent
             agent.BoardLogicComponent.Position = message.Payload.CurrentPosition;
             if (message.Payload.MadeMove)
             {
-                agent.AgentInformationsComponent.DeniedLastMove = false;
+                agent.AgentInformationsComponent.DeniedMove(false);
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece = message.Payload.ClosestPiece;
                 agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                 if (message.Payload.ClosestPiece == 0 && agent.Piece == null)
@@ -107,7 +116,7 @@ namespace Agent
             }
             else
             {
-                agent.AgentInformationsComponent.DeniedLastMove = true;
+                agent.AgentInformationsComponent.DeniedMove(true);
                 var deniedField = Common.GetFieldInDirection(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.LastDirection);
                 if (Common.OnBoard(deniedField, agent.BoardLogicComponent.BoardSize)) 
                     agent.BoardLogicComponent.Board[deniedField.Y, deniedField.X].deniedMove = DateTime.Now;
@@ -148,6 +157,10 @@ namespace Agent
                     agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                     break;
             }
+            if (Common.KnowsAll(agent))
+            {
+                agent.AgentInformationsComponent.AssignToWholeTaskArea();
+            }
             return agent.MakeDecisionFromStrategy();
         }
 
@@ -163,13 +176,12 @@ namespace Agent
             if (message.Payload.TeamId != agent.StartGameComponent.Team)
             {
                 logger.Debug("[Agent {id}] Request from opposite team", agent.Id);
-                return agent.MakeDecisionFromStrategy();
             }
             else
             {
                 agent.WaitingPlayers.Add(message.Payload.AskingAgentId);
-                return agent.MakeDecisionFromStrategy();
             }
+            return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<JoinResponse> message)
@@ -230,7 +242,7 @@ namespace Agent
         public ActionResult Process(Message<MoveError> message)
         {
             logger.Debug("[Agent {id}] Received move error message", agent.Id);
-            agent.AgentInformationsComponent.DeniedLastMove = true;
+            agent.AgentInformationsComponent.DeniedMove(true);
             agent.BoardLogicComponent.Position = message.Payload.Position;
             return agent.MakeDecisionFromStrategy();
         }
@@ -272,3 +284,5 @@ namespace Agent
         }
     }
 }
+
+

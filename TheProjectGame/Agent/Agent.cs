@@ -21,11 +21,17 @@ namespace Agent
 
         public bool DivideAgents { get; } = true;
 
+        public int MoveResponsesCount { get; } = 10;
+
         private const double penaltyMultiply = 1.0;
 
         private const double penaltyAdd = 0.06;
 
         private const int maxSkip = 10;
+
+        private const int winningStrategy = 0;
+
+        private const int doNothingStrategy = -1;
 
         public int Id { get; set; }
 
@@ -53,7 +59,6 @@ namespace Agent
 
         public INetworkComponent NetworkComponent { get; private set; }
 
-
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public Agent(AgentConfiguration agentConfiguration)
@@ -68,7 +73,18 @@ namespace Agent
             NetworkComponent = new ClientNetworkComponent(agentConfiguration.CsIP, agentConfiguration.CsPort);
             Piece = null;
             WaitingPlayers = new List<int>();
-            strategy = new SimpleStrategy();
+            switch (agentConfiguration.Strategy)
+            {
+                case winningStrategy:
+                    strategy = new WinningStrategy();
+                    break;
+                case doNothingStrategy:
+                    strategy = new DoNothingStrategy();
+                    break;
+                default:
+                    strategy = new SimpleStrategy();
+                    break;
+            }
             injectedMessages = new List<BaseMessage>();
             AgentState = AgentState.Created;
             ProcessMessages = new ProcessMessages(this);
@@ -96,11 +112,6 @@ namespace Agent
         {
             var ret = StartGameComponent.Penalties.TryGetValue(action, out TimeSpan span);
             if (ret) SetPenalty(span.TotalSeconds, shouldRepeat);
-        }
-
-        public void SetDoNothingStrategy()
-        {
-            strategy = new DoNothingStrategy();
         }
 
         public ActionResult Update(double dt)
@@ -169,10 +180,20 @@ namespace Agent
 
         private ActionResult UpdateStateInGame(double dt)
         {
-            if (AgentInformationsComponent.DeniedLastRequest) 
+            var message = GetImportantMessage();
+            if (message != null)
+            {
+                // TODO: repeat previous action after accepting important message
+                AgentInformationsComponent.DeniedLastRequest = false;
+                return AcceptMessage(message);
+            }
+
+            if (AgentInformationsComponent.DeniedLastRequest)
+            {
                 return RepeatRequest();
-                    
-            var message = GetMessage();
+            }
+
+            message = GetMessage();
 
             if (message == null && AgentInformationsComponent.SkipTime < TimeSpan.FromTicks(StartGameComponent.AverageTime.Ticks * maxSkip))
             {
@@ -232,20 +253,20 @@ namespace Agent
             {
                 logger.Warn("[Agent {id}] Begged for info, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
-                return MakeDecisionFromStrategy();
             }
 
-            if (StartGameComponent.TeamMatesToAsk.Length == 0)
+            if (AgentInformationsComponent.TeamMatesToAsk.Length == 0)
             {
                 logger.Warn("[Agent {id}] Wanted information exchange but do not know teammates", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
                 return MakeDecisionFromStrategy();
             }
 
+            AgentInformationsComponent.IsWaiting = true;
             AgentInformationsComponent.LastAskedTeammate++;
-            AgentInformationsComponent.LastAskedTeammate %= StartGameComponent.TeamMatesToAsk.Length;
+            AgentInformationsComponent.LastAskedTeammate %= AgentInformationsComponent.TeamMatesToAsk.Length;
             SetPenalty(ActionType.InformationExchange, true);
-            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(StartGameComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
+            SendMessage(MessageFactory.GetMessage(new ExchangeInformationRequest(AgentInformationsComponent.TeamMatesToAsk[AgentInformationsComponent.LastAskedTeammate])), true);
             logger.Debug("[Agent {id}] Sent exchange information request", Id);
             return ActionResult.Continue;
         }
@@ -257,6 +278,8 @@ namespace Agent
                 logger.Warn("[Agent {id}] Requested give info, but not in game", Id);
                 if (EndIfUnexpectedAction) return ActionResult.Finish;
             }
+
+            bool shouldRepeat = StartGameComponent.TeamMates.Contains(respondToId);
 
             if (!StartGameComponent.TeamMates.Contains(respondToId) && WaitingPlayers.Count > 0)
             {
@@ -274,12 +297,12 @@ namespace Agent
                     return MakeDecisionFromStrategy();
             }
 
-            SetPenalty(ActionType.InformationExchange, false);
+            SetPenalty(ActionType.InformationExchange, shouldRepeat);
             SendMessage(MessageFactory.GetMessage(new ExchangeInformationResponse(respondToId,
                 BoardLogicComponent.GetDistances(),
                 BoardLogicComponent.GetRedTeamGoalAreaInformation(),
                 BoardLogicComponent.GetBlueTeamGoalAreaInformation())),
-                false);
+                shouldRepeat);
 
             logger.Debug("[Agent {id}] Sent exchange information response to {id2} ", Id, respondToId);
             return ActionResult.Continue;
@@ -334,8 +357,8 @@ namespace Agent
             }
 
             AgentInformationsComponent.DeniedLastRequest = false;
-            SetPenalty(AgentInformationsComponent.LastRequestPenalty, true);
-            SendMessage(AgentInformationsComponent.LastRequest, true);
+            SetPenalty(AgentInformationsComponent.LastRequestPenalty, false);
+            SendMessage(AgentInformationsComponent.LastRequest, false);
             logger.Debug("[Agent {id}] Resent previous action", Id);
             return ActionResult.Continue;
         }
@@ -354,10 +377,24 @@ namespace Agent
         {
             if (injectedMessages.Count == 0)
                 return null;
+            var message = GetImportantMessage();
+            if (message != null)
+                return message;
+            message = injectedMessages[0];
+            injectedMessages.Remove(message);
+            return message;
+        }
+
+        public BaseMessage GetImportantMessage()
+        {
+            if (injectedMessages.Count == 0)
+                return null;
 
             var message = injectedMessages.FirstOrDefault(m => m.MessageId == MessageId.EndGameMessage);
-            if (message == null) message = injectedMessages[0];
-            injectedMessages.Remove(message);
+            if (message == null)
+                message = GetMessageFromLeader();
+            if (message != null)
+                injectedMessages.Remove(message);
             return message;
         }
 
@@ -409,10 +446,10 @@ namespace Agent
             AgentInformationsComponent.Discovered = false;
 
             var ingameTypes = ProcessMessages.GetIngameMessageTypes();
-            if (ingameTypes.Contains(message.MessageId)  &&AgentState != AgentState.InGame)
+            if (ingameTypes.Contains(message.MessageId)  && AgentState != AgentState.InGame)
             {
                 logger.Warn("[Agent {id}] Received message of type {type}, but not in game", Id, message.MessageId);
-                return EndIfUnexpectedAction ? ActionResult.Finish : ActionResult.Continue;
+                return EndIfUnexpectedMessage ? ActionResult.Finish : ActionResult.Continue;
             }
 
             dynamic dynamicMessage = message;

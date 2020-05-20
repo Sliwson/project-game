@@ -53,7 +53,7 @@ namespace Agent.strategies
 
         public ActionResult MakeDecision(Agent agent)
         {
-            if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
+            if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea))
             {
                 agent.AgentInformationsComponent.StayInLineCount = 0;
             }
@@ -68,7 +68,7 @@ namespace Agent.strategies
                 return agent.GiveInfo();
             }
             if (agent.AgentInformationsComponent.DidNotAskCount > askInterval &&
-                agent.StartGameComponent.TeamMatesToAsk.Length > 0)
+                agent.AgentInformationsComponent.TeamMatesToAsk.Length > 0)
             {
                 agent.AgentInformationsComponent.DidNotAskCount = 0;
                 return agent.BegForInfo();
@@ -81,13 +81,13 @@ namespace Agent.strategies
             }
             if (agent.Piece != null &&
                 !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea))
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea))
             {
                 agent.AgentInformationsComponent.StayInLineCount = 0;
                 return agent.Put();
             }
             if (agent.Piece != null &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.StartGameComponent.OwnGoalArea) &&
+                Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) &&
                 !agent.AgentInformationsComponent.IsComingBack)
             {
                 var dir = Common.StayInRectangle(agent, shortTime, agent.AgentInformationsComponent.StayInLineCount, agent.AgentInformationsComponent.DirectionEastWest, out bool shouldComeBack);
@@ -106,7 +106,7 @@ namespace Agent.strategies
                         else
                         {
                             dir = agent.StartGameComponent.Team == TeamId.Red ? Direction.North : Direction.South;
-                            if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, dir), agent.StartGameComponent.OwnGoalArea) ||
+                            if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, dir), agent.AgentInformationsComponent.OwnGoalArea) ||
                                 !Common.CouldMove(agent, dir, shortTime))
                             {
                                 agent.AgentInformationsComponent.IsComingBack = true;
