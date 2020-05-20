@@ -165,7 +165,7 @@ namespace AgentTests
         public void ProcessMessage_ExchangeInformationPayload_IfNotTeamLeaderAsking_ShouldBeAddedToWaitingList()
         {
             agent.AgentState = AgentState.InGame;
-            agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
+            agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(10, 10), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationRequestForward(2, false, Messaging.Enumerators.TeamId.Blue), 1));
 
