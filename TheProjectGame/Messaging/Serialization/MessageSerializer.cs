@@ -47,7 +47,7 @@ namespace Messaging.Serialization
         {
             foreach(var serializedMessage in UnwrapMessages(wrappedMessage, bytesRead))
             {
-                logger.Debug("[ClientNetworkComponent] Received: {message}", serializedMessage));
+                logger.Debug("[ClientNetworkComponent] Received: {message}", serializedMessage);
                 yield return DeserializeMessage(serializedMessage, throwIfNoAgentId);
             }
         }
