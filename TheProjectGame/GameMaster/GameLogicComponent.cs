@@ -125,7 +125,15 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
             }
 
-            return MessageFactory.GetMessage(new CheckShamResponse(agent.Piece.IsSham), agent.Id);
+            //agent has piece
+            var isSham = agent.Piece.IsSham;
+            if (isSham)
+            {
+                agent.RemovePiece();
+                gameMaster.BoardLogic.RemovePieceAndDropNew();
+            }
+
+            return MessageFactory.GetMessage(new CheckShamResponse(isSham), agent.Id);
         }
 
         private BaseMessage Process(Message<DestroyPieceRequest> message, Agent agent)

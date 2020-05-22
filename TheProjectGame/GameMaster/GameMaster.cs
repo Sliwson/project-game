@@ -173,11 +173,14 @@ namespace GameMaster
 
         private List<BaseMessage> GetIncomingMessages()
         {
+            //TODO (#IO-57): refactor
+#if DEBUG
             var clone = new List<BaseMessage>(injectedMessages);
             injectedMessages.Clear();
-
-            //TODO (#IO-57): refactor
             return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
+#else
+            return NetworkComponent.GetIncomingMessages().ToList();
+#endif
         }
 
         private void SetCriticalException(Exception ex)
