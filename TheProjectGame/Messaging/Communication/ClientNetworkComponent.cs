@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 
 namespace Messaging.Communication
@@ -95,6 +96,7 @@ namespace Messaging.Communication
         {
             var wrappedMessage = MessageSerializer.SerializeAndWrapMessage(message);
 
+            logger.Debug("[ClientNetworkComponent] Sending: {message}", Encoding.UTF8.GetString(wrappedMessage, 0, wrappedMessage.Length));
             Send(socket, wrappedMessage);
         }
 
