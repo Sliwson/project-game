@@ -6,7 +6,6 @@ namespace Agent.Enums
 {
     public enum SpecificActionType
     {
-        DestroyPiece,
         GiveInfo,
         PickUp
     }
