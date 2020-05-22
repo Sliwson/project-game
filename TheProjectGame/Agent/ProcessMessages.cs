@@ -43,13 +43,13 @@ namespace Agent
             if (message.Payload.Sham)
             {
                 logger.Debug("[Agent {id}] Forced piece destroy after sham check", agent.Id);
-                return agent.MakeForcedDecision(SpecificActionType.DestroyPiece);
+                agent.Piece = null;
             }
             else
             {
                 agent.Piece.isDiscovered = true;
-                return agent.MakeDecisionFromStrategy();
             }
+            return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<DestroyPieceResponse> message)
