@@ -1,6 +1,5 @@
 ﻿using Agent.Enums;
 using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
@@ -9,7 +8,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace Agent
 {

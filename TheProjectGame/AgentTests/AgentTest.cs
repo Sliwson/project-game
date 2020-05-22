@@ -1,7 +1,5 @@
 using Agent;
-using Agent.strategies;
 using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;

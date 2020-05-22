@@ -1,13 +1,10 @@
 using Agent;
-using CommunicationServer;
 using GameMasterPresentation;
 using IntegrationTests;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.Windows;
 
 namespace GameplayMockupTests
 {

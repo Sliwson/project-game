@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Data;
 using System.Diagnostics;
 
 namespace GameMasterPresentation
 {
-	public class DebugConverter : IValueConverter
+    public class DebugConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
