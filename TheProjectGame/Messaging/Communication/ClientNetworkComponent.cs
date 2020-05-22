@@ -170,8 +170,13 @@ namespace Messaging.Communication
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    logger.Warn("[ClientNetworkComponent] {message}", e.Message);
+                    logger.Error("[ClientNetworkComponent] {message}", e.Message);
                 }
+                catch (Exception e)
+                {
+                    logger.Error("[ClientNetworkComponent] {message}", e.Message);
+                }
+
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
