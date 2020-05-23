@@ -269,7 +269,9 @@ namespace Agent
         {
             logger.Warn("[Agent {id}] Received undefined error", agent.Id);
 
-            agent.BoardLogicComponent.Position = message.Payload.Position;
+            if(message.Payload.Position.HasValue)
+                agent.BoardLogicComponent.Position = message.Payload.Position.Value;
+            
             BaseMessage messageFromLeader = agent.GetMessageFromLeader();
             if (messageFromLeader == null)
             {
