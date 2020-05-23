@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿#if DEBUG
+using NUnit.Framework;
 using GameMaster;
 using System;
 using System.Collections.Generic;
@@ -95,5 +96,5 @@ namespace GameMasterTests
         }
     }
 }
-
+#endif
 

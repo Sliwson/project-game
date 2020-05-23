@@ -1,6 +1,5 @@
 ﻿using Agent.Enums;
 using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
@@ -9,7 +8,6 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace Agent
 {
@@ -194,7 +192,7 @@ namespace Agent
 
             if (message.Payload.Accepted)
             {
-                logger.Warn("[Agent {id}] Received join response, accepted", agent.Id);
+                logger.Info("[Agent {id}] Received join response, accepted", message.Payload.AgentId);
                 bool wasWaiting = agent.AgentState == AgentState.WaitingForJoin;
                 agent.AgentState = AgentState.WaitingForStart;
                 agent.Id = message.Payload.AgentId;

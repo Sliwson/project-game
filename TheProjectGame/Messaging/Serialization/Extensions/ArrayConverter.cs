@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Messaging.Serialization.Extensions
+﻿namespace Messaging.Serialization.Extensions
 {
     public static class ArrayConverter
     {

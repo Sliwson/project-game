@@ -1,6 +1,4 @@
-﻿using Messaging.Communication;
-using System;
-using System.IO;
+﻿using System;
 
 namespace CommunicationServer
 {

@@ -1,13 +1,10 @@
 using Agent;
-using CommunicationServer;
 using GameMasterPresentation;
 using IntegrationTests;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using System.Windows;
 
 namespace GameplayMockupTests
 {
@@ -16,7 +13,7 @@ namespace GameplayMockupTests
         const int agentsInTeam = 1;
         const int agentSleepMs = 16;
 
-        [Ignore("This test is made only for running and debugging game setup with all components")]
+        //[Ignore("This test is made only for running and debugging game setup with all components")]
         [Test]
         public void RunMockup()
         {
