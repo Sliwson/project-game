@@ -170,10 +170,6 @@ namespace Messaging.Communication
                         messageQueue.Enqueue(message);
                     }
                 }
-                catch (ArgumentOutOfRangeException e)
-                {
-                    logger.Error("[ClientNetworkComponent] {message}", e.Message);
-                }
                 catch (Exception e)
                 {
                     logger.Error("[ClientNetworkComponent] {message}", e.Message);
