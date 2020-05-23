@@ -4,7 +4,6 @@ using Messaging.Contracts.Agent;
 using Messaging.Enumerators;
 using Messaging.Implementation;
 using NUnit.Framework;
-using System.ComponentModel.DataAnnotations;
 using System.Net.Sockets;
 
 namespace CommunicationServerTests

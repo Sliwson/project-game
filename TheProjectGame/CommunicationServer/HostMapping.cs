@@ -1,8 +1,6 @@
 ﻿using Messaging.Communication;
 using NLog;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace CommunicationServer
