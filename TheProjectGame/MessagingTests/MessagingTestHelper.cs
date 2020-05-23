@@ -88,10 +88,11 @@ namespace MessagingTests
             return message != null && message.Payload is IErrorPayload;
         }
 
-        public static string SerializeWithoutAgentId(BaseMessage message)
+        public static string SerializeWithoutProperties(BaseMessage message, params string[] propertyNames)
         {
             var jObject = JObject.FromObject(message);
-            jObject.Remove("agentID");
+            foreach(var propertyName in propertyNames)
+                jObject.Remove(propertyName);
 
             return jObject.ToString();
         }

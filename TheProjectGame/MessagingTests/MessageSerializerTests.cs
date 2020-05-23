@@ -3,6 +3,8 @@ using Messaging.Contracts;
 using System.Collections.Generic;
 using Messaging.Serialization;
 using Newtonsoft.Json;
+using Messaging.Implementation;
+using Messaging.Contracts.Errors;
 
 namespace MessagingTests
 {
@@ -44,7 +46,7 @@ namespace MessagingTests
         {
             foreach (var message in messages)
             {
-                var serialized = MessagingTestHelper.SerializeWithoutAgentId(message);
+                var serialized = MessagingTestHelper.SerializeWithoutProperties(message, "agentID");
                 var deserialized = MessageSerializer.DeserializeMessage(serialized);
 
                 Assert.AreEqual(0, deserialized.AgentId);
@@ -101,7 +103,7 @@ namespace MessagingTests
         {
             foreach (var message in messages)
             {
-                var serialized = MessagingTestHelper.SerializeWithoutAgentId(message);
+                var serialized = MessagingTestHelper.SerializeWithoutProperties(message, "agentID");
 
                 Assert.Throws<JsonSerializationException>(() => MessageSerializer.DeserializeMessage(serialized, true));
             }
@@ -119,6 +121,28 @@ namespace MessagingTests
             }
 
             Assert.Pass();
+        }
+
+        [Test]
+        public void DeserializeMessage_ShouldNotSetUnrequiredFieldsForUndefinedError()
+        {
+            var message = MessageFactory.GetMessage(new UndefinedError(null, null));
+            var serialized = MessageSerializer.SerializeMessage(message);
+            dynamic deserialized = MessageSerializer.DeserializeMessage(serialized);
+
+            var payload = deserialized.Payload as UndefinedError;
+            Assert.IsNull(payload.Position);
+            Assert.IsNull(payload.HoldingPiece);
+        }
+
+        [Test]
+        public void SerializeMessage_ShouldNotSerializeDefaultValuesForUndefinedError()
+        {
+            var message = MessageFactory.GetMessage(new UndefinedError(null, null));
+            var serialized = MessageSerializer.SerializeMessage(message);
+
+            Assert.IsFalse(serialized.Contains("position"));
+            Assert.IsFalse(serialized.Contains("holdingPiece"));
         }
     }
 }

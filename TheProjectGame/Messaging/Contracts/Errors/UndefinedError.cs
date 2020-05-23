@@ -9,16 +9,14 @@ namespace Messaging.Contracts.Errors
     {
         public MessageId GetMessageId() => MessageId.UndefinedError;
 
-        [JsonRequired]
         [JsonConverter(typeof(PointJsonConverter))]
-        [JsonProperty(PropertyName = "position")]
-        public Point Position { get; private set; }
+        [JsonProperty(PropertyName = "position", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public Point? Position { get; private set; }
 
-        [JsonRequired]
-        [JsonProperty(PropertyName = "holdingPiece")]
-        public bool HoldingPiece { get; private set; }
+        [JsonProperty(PropertyName = "holdingPiece", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool? HoldingPiece { get; private set; }
 
-        public UndefinedError(Point position, bool isHoldingPiece)
+        public UndefinedError(Point? position, bool? isHoldingPiece)
         {
             Position = position;
             HoldingPiece = isHoldingPiece;
