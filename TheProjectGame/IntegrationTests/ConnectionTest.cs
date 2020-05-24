@@ -11,7 +11,7 @@ using System;
 
 namespace IntegrationTests
 {
-    public class IntegrationTests
+    public class ConnectionTest
     {
         int agentsInTeam = 1;
         const int agentSleepMs = 30;

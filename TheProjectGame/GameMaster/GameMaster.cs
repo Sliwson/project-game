@@ -52,9 +52,12 @@ namespace GameMaster
             }
         }
 
-        public void ConnectToCommunicationServer()
+        public void ConnectToCommunicationServer(INetworkComponent mockedNetworkComponent = null)
         {
-            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+            NetworkComponent = mockedNetworkComponent != null 
+                ? mockedNetworkComponent 
+                : new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
 
@@ -160,27 +163,9 @@ namespace GameMaster
             }
         }
 
-        //TODO (#IO-57): Move to mocked tests
-#if DEBUG
-        private List<BaseMessage> injectedMessages = new List<BaseMessage>();
-
-        public void InjectMessage(BaseMessage message)
-        {
-            injectedMessages.Add(message);
-        }
-
-#endif
-
         private List<BaseMessage> GetIncomingMessages()
         {
-            //TODO (#IO-57): refactor
-#if DEBUG
-            var clone = new List<BaseMessage>(injectedMessages);
-            injectedMessages.Clear();
-            return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
-#else
             return NetworkComponent.GetIncomingMessages().ToList();
-#endif
         }
 
         private void SetCriticalException(Exception ex)
