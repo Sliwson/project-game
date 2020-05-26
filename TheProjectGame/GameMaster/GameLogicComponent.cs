@@ -81,7 +81,7 @@ namespace GameMaster
                 NLog.NestedDiagnosticsContext.Pop();
 
                 if (message.MessageId != MessageId.JoinRequest)
-                    return MessageFactory.GetMessage(new UndefinedError(new Point(0, 0), false), message.AgentId);
+                    return MessageFactory.GetMessage(new UndefinedError(null, null), message.AgentId);
                 else
                     return MessageFactory.GetMessage(new JoinResponse(false, message.AgentId), message.AgentId);
             }
@@ -99,7 +99,7 @@ namespace GameMaster
                 logger.Debug("[Logic] Agent has to exchange information");
                 NLog.NestedDiagnosticsContext.Pop();
 
-                return MessageFactory.GetMessage(new UndefinedError(agent.Position, false), agent.Id);
+                return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
             }
 
             if (message.MessageId != MessageId.JoinRequest && message.MessageId != MessageId.PickUpPieceRequest)
