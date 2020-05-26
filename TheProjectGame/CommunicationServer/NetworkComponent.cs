@@ -222,7 +222,7 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            return IPAddress.Parse("127.0.0.1");
+            return IPAddress.Parse("0.0.0.0");
 
             //// Skip Virtual Machines' IP addresses
             //// https://stackoverflow.com/questions/8089685/c-sharp-finding-my-machines-local-ip-address-and-not-the-vms

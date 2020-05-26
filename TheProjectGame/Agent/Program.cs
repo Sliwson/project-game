@@ -13,8 +13,9 @@ namespace Agent
         {
             if (args.Length == 0)
             {
+                var config = CreateAgentConfiguration();
                 var agents = new Agent[] {
-                    CreateAgentWithConfiguration()
+                    new Agent(config)
                 };
 
                 Run(agents);
@@ -22,6 +23,8 @@ namespace Agent
             else if (args.Length == 2)
             {
                 int blue = 0, red = 0;
+                var config = CreateAgentConfiguration();
+
                 try
                 {
                     blue = int.Parse(args[0]);
@@ -38,7 +41,7 @@ namespace Agent
                     red = 0;
                 }
 
-                var agents = CreateDefaultAgents(blue, red);
+                var agents = CreateDefaultAgents(blue, red, config);
                 Run(agents);
             }
             else
@@ -47,7 +50,7 @@ namespace Agent
             }
         }
 
-        private static Agent CreateAgentWithConfiguration()
+        private static AgentConfiguration CreateAgentConfiguration()
         {
             var config = AgentConfiguration.GetDefault();
 
@@ -64,22 +67,22 @@ namespace Agent
                     config = newConfig;
             }
 
-            return new Agent(config);
+            return config;
         }
 
-        private static Agent[] CreateDefaultAgents(int blue, int red)
+        private static Agent[] CreateDefaultAgents(int blue, int red, AgentConfiguration defaultConfig)
         {
             var agents = new Agent[blue + red];
             for (int i = 0; i < blue; i++)
             {
-                var config = AgentConfiguration.GetDefault();
+                var config = defaultConfig;
                 config.TeamID = "blue";
                 agents[i] = new Agent(config);
             }
 
             for (int i = 0; i < red; i++)
             {
-                var config = AgentConfiguration.GetDefault();
+                var config = defaultConfig;
                 config.TeamID = "red";
                 agents[blue + i] = new Agent(config);
             }
