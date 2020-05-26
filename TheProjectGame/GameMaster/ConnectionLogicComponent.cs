@@ -47,14 +47,14 @@ namespace GameMaster
             if (bannedIds.Contains(message.AgentId))
             {
                 logger.Warn("[Connection] Rejecting - agent is banned");
-                return MessageFactory.GetMessage(new UndefinedError(new System.Drawing.Point(-1, -1), false), message.AgentId);
+                return MessageFactory.GetMessage(new UndefinedError(null, null), message.AgentId);
             }
 
             if (message.MessageId != MessageId.JoinRequest)
             {
                 logger.Warn("[Connection] Banning agent - message other than join sent in connection phase");
                 bannedIds.Add(message.AgentId);
-                return MessageFactory.GetMessage(new UndefinedError(new System.Drawing.Point(-1, -1), false), message.AgentId);
+                return MessageFactory.GetMessage(new UndefinedError(null, null), message.AgentId);
             }
 
             return Process(message as Message<JoinRequest>);
