@@ -114,6 +114,16 @@ namespace Agent.strategies
                         {
                             agent.AgentInformationsComponent.StayInLineCount = 0;
                             agent.AgentInformationsComponent.DirectionEastWest = agent.AgentInformationsComponent.DirectionEastWest.GetOppositeDirection();
+                            if (agent.BoardLogicComponent.Position.X ==
+                                Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
+                            {
+                                agent.AgentInformationsComponent.DirectionEastWest = Direction.West;
+                            }
+                            else if (agent.BoardLogicComponent.Position.X ==
+                                Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
+                            {
+                                agent.AgentInformationsComponent.DirectionEastWest = Direction.East;
+                            }
                         }
                     }
                     return agent.Move(movingDirection);
