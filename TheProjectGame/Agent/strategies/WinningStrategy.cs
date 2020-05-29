@@ -1,5 +1,6 @@
 ﻿using Agent.Enums;
 using Messaging.Enumerators;
+using System;
 
 namespace Agent.strategies
 {
@@ -60,50 +61,63 @@ namespace Agent.strategies
             }
             Direction movingDirection = Common.GetRandomDirection();
             if (agent.Piece != null &&
+                agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item1.Y &&
+                agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item2.Y)
+            {
+                movingDirection = Common.StayInLine(agent, shortTime, agent.AgentInformationsComponent.DirectionEastWest);
+                movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
+                if (!Common.IsDirectionGoalDirection(movingDirection))
+                    agent.AgentInformationsComponent.DirectionEastWest = movingDirection;
+                return agent.Move(movingDirection);
+            }
+            else
+            {
+                if (agent.Piece != null &&
                 Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) &&
                 !agent.AgentInformationsComponent.IsComingBack)
-            {
-                movingDirection = Common.StayInRectangle(agent, shortTime, agent.AgentInformationsComponent.StayInLineCount, agent.AgentInformationsComponent.DirectionEastWest, out bool shouldComeBack);
-                if (shouldComeBack)
                 {
-                    agent.AgentInformationsComponent.IsComingBack = true;
-                }
-                else if (movingDirection != agent.AgentInformationsComponent.DirectionEastWest)
-                {
-                    movingDirection = agent.StartGameComponent.Team == TeamId.Red ? Direction.North : Direction.South;
-                    if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, movingDirection), agent.AgentInformationsComponent.OwnGoalArea) ||
-                        !Common.CouldMove(agent, movingDirection, shortTime))
+                    movingDirection = Common.StayInRectangle(agent, shortTime, agent.AgentInformationsComponent.StayInLineCount, agent.AgentInformationsComponent.DirectionEastWest, out bool shouldComeBack);
+                    if (shouldComeBack)
                     {
                         agent.AgentInformationsComponent.IsComingBack = true;
                     }
-                }
-            }
-            if (agent.Piece != null)
-            {
-                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
-                    agent.AgentInformationsComponent.IsComingBack)
-                {
-                    movingDirection = Common.GetOwnGoalDirection(agent, shortTime);
-                }
-                movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
-                if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
-                    agent.AgentInformationsComponent.IsComingBack)
-                {
-                    agent.AgentInformationsComponent.StayInLineCount = 0;
-                }
-                else
-                {
-                    if (movingDirection == agent.AgentInformationsComponent.DirectionEastWest)
+                    else if (movingDirection != agent.AgentInformationsComponent.DirectionEastWest)
                     {
-                        agent.AgentInformationsComponent.StayInLineCount = agent.AgentInformationsComponent.StayInLineCount + 1;
+                        movingDirection = agent.StartGameComponent.Team == TeamId.Red ? Direction.North : Direction.South;
+                        if (!Common.InRectangle(Common.GetFieldInDirection(agent.BoardLogicComponent.Position, movingDirection), agent.AgentInformationsComponent.OwnGoalArea) ||
+                            !Common.CouldMove(agent, movingDirection, shortTime))
+                        {
+                            agent.AgentInformationsComponent.IsComingBack = true;
+                        }
+                    }
+                }
+                if (agent.Piece != null)
+                {
+                    if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
+                        agent.AgentInformationsComponent.IsComingBack)
+                    {
+                        movingDirection = Common.GetOwnGoalDirection(agent, shortTime);
+                    }
+                    movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
+                    if (!Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea) ||
+                        agent.AgentInformationsComponent.IsComingBack)
+                    {
+                        agent.AgentInformationsComponent.StayInLineCount = 0;
                     }
                     else
                     {
-                        agent.AgentInformationsComponent.StayInLineCount = 0;
-                        agent.AgentInformationsComponent.DirectionEastWest = agent.AgentInformationsComponent.DirectionEastWest.GetOppositeDirection();
+                        if (movingDirection == agent.AgentInformationsComponent.DirectionEastWest)
+                        {
+                            agent.AgentInformationsComponent.StayInLineCount = agent.AgentInformationsComponent.StayInLineCount + 1;
+                        }
+                        else
+                        {
+                            agent.AgentInformationsComponent.StayInLineCount = 0;
+                            agent.AgentInformationsComponent.DirectionEastWest = agent.AgentInformationsComponent.DirectionEastWest.GetOppositeDirection();
+                        }
                     }
+                    return agent.Move(movingDirection);
                 }
-                return agent.Move(movingDirection);
             }
             if (!agent.AgentInformationsComponent.Discovered)
             {
