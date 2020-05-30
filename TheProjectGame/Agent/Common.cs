@@ -124,6 +124,13 @@ namespace Agent
             return Direction.North;
         }
 
+        public static Direction StayInLine(Agent agent, int shortTime, Direction directionEastWest)
+        {
+            if (CouldMove(agent, directionEastWest, shortTime))
+                return directionEastWest;
+            return directionEastWest.GetOppositeDirection();
+        }
+
         public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, Direction directionEastWest, out bool shouldComeBack)
         {
             if (stayInLineCount >= Math.Abs(agent.AgentInformationsComponent.OwnGoalArea.Item2.X - agent.AgentInformationsComponent.OwnGoalArea.Item1.X))

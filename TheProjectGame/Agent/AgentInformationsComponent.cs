@@ -49,7 +49,7 @@ namespace Agent
             LastMoveResponse = 0;
         }
 
-        public void AssignToWholeTaskArea()
+        private void AssignToWholeTaskArea()
         {
             TeamMatesToAsk = new int[agent.StartGameComponent.TeamMates.Length];
             for (int i = 0; i < agent.StartGameComponent.TeamMates.Length; i++)
@@ -58,6 +58,53 @@ namespace Agent
                     (new Point(0, agent.BoardLogicComponent.BoardSize.Y - agent.BoardLogicComponent.GoalAreaSize), new Point(agent.BoardLogicComponent.BoardSize.X - 1, agent.BoardLogicComponent.BoardSize.Y - 1)) :
                     (new Point(0, agent.BoardLogicComponent.GoalAreaSize - 1), new Point(agent.BoardLogicComponent.BoardSize.X - 1, 0));
             LastAskedTeammate = 0;
+        }
+
+        public void UpdateAssignment()
+        {
+            int rowDirection, firstRow, lastRow, lastRowPlusOne;
+            if (agent.StartGameComponent.Team == TeamId.Red)
+            {
+                rowDirection = 1;
+                firstRow = Math.Min(OwnGoalArea.Item1.Y, OwnGoalArea.Item2.Y);
+                lastRow = Math.Max(OwnGoalArea.Item1.Y, OwnGoalArea.Item2.Y);
+                lastRowPlusOne = lastRow + 1;
+            }
+            else
+            {
+                rowDirection = -1;
+                firstRow = Math.Max(OwnGoalArea.Item1.Y, OwnGoalArea.Item2.Y);
+                lastRow = Math.Min(OwnGoalArea.Item1.Y, OwnGoalArea.Item2.Y);
+                lastRowPlusOne = lastRow - 1;
+            }
+            int firstColumn = Math.Min(OwnGoalArea.Item1.X, OwnGoalArea.Item2.X);
+            int lastColumn = Math.Max(OwnGoalArea.Item1.X, OwnGoalArea.Item2.X);
+            int rowToCheck = firstRow;
+            while (rowToCheck != lastRowPlusOne)
+            {
+                bool knowsAll = true;
+                for (int columnToCheck = firstColumn; columnToCheck <= lastColumn; columnToCheck++)
+                {
+                    if (agent.BoardLogicComponent.Board[rowToCheck, columnToCheck].goalInfo == GoalInformation.NoInformation)
+                    {
+                        knowsAll = false;
+                        break;
+                    }
+                }
+                if (knowsAll)
+                {
+                    firstRow += rowDirection;
+                }
+                rowToCheck += rowDirection;
+            }
+            if (firstRow == lastRowPlusOne)
+            {
+                AssignToWholeTaskArea();
+            }
+            else
+            {
+                OwnGoalArea = (new Point(firstColumn, firstRow), new Point(lastColumn, lastRow));
+            }
         }
 
         public void DeniedMove(bool denied)
