@@ -172,19 +172,20 @@ namespace GameMaster
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
             }
 
-            targetAgent.InformationExchangeRequested(agent.IsTeamLeader);
+            targetAgent.InformationExchangeRequested(agent.Id, agent.IsTeamLeader);
             return MessageFactory.GetMessage(new ExchangeInformationRequestForward(agent.Id, agent.IsTeamLeader, agent.Team), targetAgent.Id);
         }
 
         private BaseMessage Process(Message<ExchangeInformationResponse> message, Agent agent)
         {
-            if (!agent.CanExchange())
+            var targetId = message.Payload.RespondToId;
+            if (!agent.CanExchange(targetId))
             {
                 logger.Debug("[Logic] Exchange response sent without permission");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
             }
 
-            agent.ClearExchangeState();
+            agent.InformationExchangePerformed(targetId);
             return MessageFactory.GetMessage(new ExchangeInformationResponseForward(message), message.Payload.RespondToId);
         }
 
