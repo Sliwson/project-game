@@ -57,7 +57,7 @@ namespace GameMasterTests
         public void ProcessMessage_ShouldReturnUndefinedErrorMessageWhenForcedAgentNotAnswered()
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
-            agent.InformationExchangeRequested(true);
+            agent.InformationExchangeRequested(333, true);
 
             gameMaster.Agents.Add(agent);
 
@@ -265,7 +265,7 @@ namespace GameMasterTests
         public void ProcessMessage_ExchangeInformationResponse_OnlyAgentIdShouldBeChanged()
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
-            agent.InformationExchangeRequested(false);
+            agent.InformationExchangeRequested(333, false);
 
             gameMaster.Agents.Add(agent);
 
