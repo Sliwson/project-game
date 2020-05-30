@@ -4,6 +4,7 @@ using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Messaging.Communication
         public Exception Exception { get; private set; } = null;
 
         private ConcurrentQueue<BaseMessage> messageQueue;
+        //private ConcurrentQueue<string> messageQueue2;
 
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
@@ -26,6 +28,7 @@ namespace Messaging.Communication
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
             messageQueue = new ConcurrentQueue<BaseMessage>();
+            //messageQueue2 = new ConcurrentQueue<string>();
             connectDone = new ManualResetEvent(false);
 
             try
@@ -46,8 +49,9 @@ namespace Messaging.Communication
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.NoDelay = true;
-                socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
-                connectDone.WaitOne();
+                socket.Connect(communicationServerEndpoint);
+                //socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
+                //connectDone.WaitOne();
                 if (Exception != null)
                     return false;
 
@@ -102,29 +106,32 @@ namespace Messaging.Communication
 
         public IEnumerable<BaseMessage> GetIncomingMessages()
         {
+            //var result = messageQueue2
+            //    .Select(serializedMessage => MessageSerializer.DeserializeMessage(serializedMessage));
+            //messageQueue2.Clear();
             var result = messageQueue.ToArray();
             messageQueue.Clear();
             return result;
         }
 
-        private void ConnectCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket client = (Socket)ar.AsyncState;
+        //private void ConnectCallback(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        Socket client = (Socket)ar.AsyncState;
 
-                client.EndConnect(ar);
-            }
-            catch (Exception e)
-            {
-                logger.Error("[ClientNetworkComponent] {message}", e.Message);
-                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
-            }
-            finally
-            {
-                connectDone.Set();
-            }
-        }
+        //        client.EndConnect(ar);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        logger.Error("[ClientNetworkComponent] {message}", e.Message);
+        //        Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+        //    }
+        //    finally
+        //    {
+        //        connectDone.Set();
+        //    }
+        //}
 
         private void Send(Socket client, byte[] message)
         {
@@ -165,6 +172,10 @@ namespace Messaging.Communication
             {
                 try
                 {
+                    //foreach(var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
+                    //{
+                    //    messageQueue2.Enqueue(message);
+                    //}
                     foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
                     {
                         messageQueue.Enqueue(message);

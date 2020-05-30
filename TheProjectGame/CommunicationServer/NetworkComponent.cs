@@ -76,7 +76,12 @@ namespace CommunicationServer
 
             try
             {
-                handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+                //handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
+
+                var bytesSent = handler.Send(messageData, 0, messageData.Length, SocketFlags.None);
+
+                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
+
             }
             catch (Exception e)
             {
@@ -124,9 +129,20 @@ namespace CommunicationServer
 
                 while (true)
                 {
-                    listener.Barrier.Reset();
-                    listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
-                    listener.Barrier.WaitOne();
+                    //listener.Barrier.Reset();
+                    //listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+                    //listener.Barrier.WaitOne();
+
+                    var handler = listener.Listener.Accept();
+                    //var handler = listener.Listener;
+                    handler.NoDelay = true;
+
+                    var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
+
+                    var state = new StateObject(ref handler, listener.ClientType);
+                    state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+
+                    logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
 
                     if (listener.ClientType == ClientType.GameMaster)
                         break;
@@ -138,28 +154,28 @@ namespace CommunicationServer
             }
         }
 
-        private void AcceptCallback(IAsyncResult ar)
-        {
-            var listener = (ExtendedListener)ar.AsyncState;
+        //private void AcceptCallback(IAsyncResult ar)
+        //{
+        //    var listener = (ExtendedListener)ar.AsyncState;
 
-            listener.Barrier.Set();
-            try
-            {
-                var handler = listener.Listener.EndAccept(ar);
-                handler.NoDelay = true;
+        //    listener.Barrier.Set();
+        //    try
+        //    {
+        //        var handler = listener.Listener.EndAccept(ar);
+        //        handler.NoDelay = true;
 
-                var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
+        //        var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
 
-                var state = new StateObject(ref handler, listener.ClientType);
-                state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
+        //        var state = new StateObject(ref handler, listener.ClientType);
+        //        state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-                logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
-            }
-            catch (Exception e)
-            {
-                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
-            }
-        }
+        //        logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+        //    }
+        //}
 
         private void ReceiveCallback(IAsyncResult ar)
         {
@@ -205,20 +221,20 @@ namespace CommunicationServer
             }
         }
 
-        private void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket handler = (Socket)ar.AsyncState;
+        //private void SendCallback(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        Socket handler = (Socket)ar.AsyncState;
 
-                int bytesSent = handler.EndSend(ar);
-                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
-            }
-            catch (Exception e)
-            {
-                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
-            }
-        }
+        //        int bytesSent = handler.EndSend(ar);
+        //        logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+        //    }
+        //}
 
         internal IPAddress GetLocalIPAddress()
         {
