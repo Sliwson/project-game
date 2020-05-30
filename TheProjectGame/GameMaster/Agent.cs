@@ -71,7 +71,14 @@ namespace GameMaster
 
         public bool CanExchange(int targetId)
         {
-            return contactRequests.Find(r => r.Id == targetId) != null;
+            var found = contactRequests.Find(r => r.Id == targetId);
+            if (found == null)
+                return false;
+
+            if (HaveToExchange() && found.TeamLeader == false)
+                return false;
+
+            return true;
         }
 
         private class ContactRequest
