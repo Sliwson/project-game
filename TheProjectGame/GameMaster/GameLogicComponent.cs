@@ -181,7 +181,7 @@ namespace GameMaster
             var targetId = message.Payload.RespondToId;
             if (!agent.CanExchange(targetId))
             {
-                logger.Debug("[Logic] Exchange response sent without permission");
+                logger.Debug("[Logic] Exchange response sent without permission (agent wasn't requested, or team leader response pending)");
                 return MessageFactory.GetMessage(new UndefinedError(agent.Position, agent.Piece != null), agent.Id);
             }
 
