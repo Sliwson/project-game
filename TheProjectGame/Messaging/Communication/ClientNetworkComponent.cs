@@ -16,8 +16,7 @@ namespace Messaging.Communication
     {
         public Exception Exception { get; private set; } = null;
 
-        private ConcurrentQueue<BaseMessage> messageQueue;
-        //private ConcurrentQueue<string> messageQueue2;
+        private ConcurrentQueue<string> messageQueue;
 
         private IPEndPoint communicationServerEndpoint;
         private Socket socket;
@@ -27,8 +26,7 @@ namespace Messaging.Communication
 
         public ClientNetworkComponent(string serverIPAddress, int serverPort)
         {
-            messageQueue = new ConcurrentQueue<BaseMessage>();
-            //messageQueue2 = new ConcurrentQueue<string>();
+            messageQueue = new ConcurrentQueue<string>();
             connectDone = new ManualResetEvent(false);
 
             try
@@ -50,8 +48,7 @@ namespace Messaging.Communication
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.NoDelay = true;
                 socket.Connect(communicationServerEndpoint);
-                //socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
-                //connectDone.WaitOne();
+
                 if (Exception != null)
                     return false;
 
@@ -106,10 +103,10 @@ namespace Messaging.Communication
 
         public IEnumerable<BaseMessage> GetIncomingMessages()
         {
-            //var result = messageQueue2
-            //    .Select(serializedMessage => MessageSerializer.DeserializeMessage(serializedMessage));
-            //messageQueue2.Clear();
-            var result = messageQueue.ToArray();
+            var result = messageQueue
+                .Select(serializedMessage => MessageSerializer.DeserializeMessage(serializedMessage))
+                .ToList();
+
             messageQueue.Clear();
             return result;
         }
@@ -172,11 +169,7 @@ namespace Messaging.Communication
             {
                 try
                 {
-                    //foreach(var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
-                    //{
-                    //    messageQueue2.Enqueue(message);
-                    //}
-                    foreach (var message in MessageSerializer.UnwrapAndDeserializeMessages(state.Buffer, bytesRead))
+                    foreach (var message in MessageSerializer.UnwrapMessages(state.Buffer, bytesRead))
                     {
                         messageQueue.Enqueue(message);
                     }

@@ -76,12 +76,7 @@ namespace CommunicationServer
 
             try
             {
-                //handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
-
-                var bytesSent = handler.Send(messageData, 0, messageData.Length, SocketFlags.None);
-
-                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
-
+                handler.BeginSend(messageData, 0, messageData.Length, SocketFlags.None, new AsyncCallback(SendCallback), handler);
             }
             catch (Exception e)
             {
@@ -134,7 +129,6 @@ namespace CommunicationServer
                     //listener.Barrier.WaitOne();
 
                     var handler = listener.Listener.Accept();
-                    //var handler = listener.Listener;
                     handler.NoDelay = true;
 
                     var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
@@ -221,20 +215,20 @@ namespace CommunicationServer
             }
         }
 
-        //private void SendCallback(IAsyncResult ar)
-        //{
-        //    try
-        //    {
-        //        Socket handler = (Socket)ar.AsyncState;
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket handler = (Socket)ar.AsyncState;
 
-        //        int bytesSent = handler.EndSend(ar);
-        //        logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
-        //    }
-        //}
+                int bytesSent = handler.EndSend(ar);
+                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
+            }
+            catch (Exception e)
+            {
+                server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
+            }
+        }
 
         internal IPAddress GetLocalIPAddress()
         {
