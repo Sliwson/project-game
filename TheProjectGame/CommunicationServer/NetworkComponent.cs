@@ -124,10 +124,6 @@ namespace CommunicationServer
 
                 while (true)
                 {
-                    //listener.Barrier.Reset();
-                    //listener.Listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
-                    //listener.Barrier.WaitOne();
-
                     var handler = listener.Listener.Accept();
                     handler.NoDelay = true;
 
@@ -147,29 +143,6 @@ namespace CommunicationServer
                 server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.SocketNotCreated, e));
             }
         }
-
-        //private void AcceptCallback(IAsyncResult ar)
-        //{
-        //    var listener = (ExtendedListener)ar.AsyncState;
-
-        //    listener.Barrier.Set();
-        //    try
-        //    {
-        //        var handler = listener.Listener.EndAccept(ar);
-        //        handler.NoDelay = true;
-
-        //        var hostId = server.HostMapping.AddClientToMapping(listener.ClientType, handler);
-
-        //        var state = new StateObject(ref handler, listener.ClientType);
-        //        state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
-
-        //        logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        server.RaiseException(new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e));
-        //    }
-        //}
 
         private void ReceiveCallback(IAsyncResult ar)
         {

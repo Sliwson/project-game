@@ -111,25 +111,6 @@ namespace Messaging.Communication
             return result;
         }
 
-        //private void ConnectCallback(IAsyncResult ar)
-        //{
-        //    try
-        //    {
-        //        Socket client = (Socket)ar.AsyncState;
-
-        //        client.EndConnect(ar);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        logger.Error("[ClientNetworkComponent] {message}", e.Message);
-        //        Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
-        //    }
-        //    finally
-        //    {
-        //        connectDone.Set();
-        //    }
-        //}
-
         private void Send(Socket client, byte[] message)
         {
             try
