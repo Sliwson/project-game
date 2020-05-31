@@ -7,7 +7,7 @@ namespace Agent
 {
     class Program
     {
-        private const int updateInterval = 10;
+        private const int updateInterval = 2;
 
         static void Main(string[] args)
         {
