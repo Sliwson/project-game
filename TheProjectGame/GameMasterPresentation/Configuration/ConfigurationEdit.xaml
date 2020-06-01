@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
-             d:DesignHeight="910" d:DesignWidth="500" FontSize="18"
+             d:DesignWidth="500" FontSize="18"
              Loaded="UserControl_Loaded"
              Background="White">
     <!--TODO: delete background-->
