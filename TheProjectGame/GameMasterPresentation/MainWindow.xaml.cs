@@ -136,7 +136,6 @@ namespace GameMasterPresentation
                 gameMaster.ConnectToCommunicationServer();
                 ConnectRadioButton.Content = "Connected";
                 StartRadioButton.IsEnabled = true;
-                ResetRadioButton.IsEnabled = true;
             }
             catch (Exception ex)
             {
@@ -162,13 +161,6 @@ namespace GameMasterPresentation
                 ConnectRadioButton.IsChecked = true;
                 MessageBox.Show("Error starting Game!", "Game Master", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
-        }
-
-        private void ResetRadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Are you sure?", Constants.GameMasterMessageBoxName, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
-                ResetGame();
         }
 
         private void LogScrollViewer_LostFocus(object sender, RoutedEventArgs e)
@@ -287,51 +279,6 @@ namespace GameMasterPresentation
 
             gameMasterMutex.ReleaseMutex();
             return result;
-        }
-
-        private void ResetGame()
-        {
-            guiTimer.Stop();
-            FPS = 0;
-            IsConnecting = false;
-
-            //schedule close of old gm
-            shouldCloseMutex.WaitOne();
-            shouldClose = true;
-            shouldCloseMutex.ReleaseMutex();
-            gameMasterThread.Wait();
-
-            shouldClose = false;
-            gameMaster = null;
-
-            StartRadioButton.Content = "Start";
-            StartRadioButton.IsEnabled = false;
-            StartRadioButton.IsChecked = false;
-
-            ConnectRadioButton.Content = "Connect";
-            ConnectRadioButton.IsChecked = false;
-
-            Binding myBinding = new Binding(nameof(GMConfig));
-            myBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            myBinding.Mode = BindingMode.OneWay;
-            myBinding.Converter = new GMConfigToBoolConverter();
-            BindingOperations.SetBinding(ConnectRadioButton, RadioButton.IsEnabledProperty, myBinding);
-
-            ResetRadioButton.IsChecked = false;
-            ResetRadioButton.IsEnabled = false;
-
-            LogEntries.Clear();
-            FilteredLogEntries.Clear();
-
-            Board.ClearBoard();
-
-            // start new gm
-            gameMaster = new GameMaster.GameMaster(GMConfig.ConvertToGMConfiguration());
-            Board = new BoardComponent(BoardCanvas);
-            guiTimer.Start();
-
-            gameMasterThread = new Task(RunGameMasterThread);
-            gameMasterThread.Start();
         }
 
         private void RunGameMasterThread()
