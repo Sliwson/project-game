@@ -88,7 +88,14 @@ namespace Agent
                     (agent.StartGameComponent.Team == TeamId.Red ?
                         (new Point(0, beginBoard), new Point(agent.BoardLogicComponent.BoardSize.X - 1, endBoard)) :
                         (new Point(0, endBoard), new Point(agent.BoardLogicComponent.BoardSize.X - 1, beginBoard)));
-                TeamMatesToAsk = new int[endMates - beginMates];
+                int teamMatesToAskLength = 0;
+                for (int i = beginMates; i <= endMates; i++)
+                {
+                    if (allIds[i] == agent.Id)
+                        continue;
+                    teamMatesToAskLength++;
+                }
+                TeamMatesToAsk = new int[teamMatesToAskLength];
                 int mate = 0;
                 for (int i = beginMates; i <= endMates; i++)
                 {
