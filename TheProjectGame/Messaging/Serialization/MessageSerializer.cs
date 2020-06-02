@@ -90,7 +90,5 @@ namespace Messaging.Serialization
         }
 
         #endregion
-
-
     }
 }
