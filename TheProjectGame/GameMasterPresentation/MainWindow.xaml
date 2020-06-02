@@ -155,7 +155,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
-                        <RowDefinition />
                     </Grid.RowDefinitions>
                     <RadioButton Content="Connect"
 							 Grid.Row="0"
@@ -168,12 +167,6 @@
 							 Style="{StaticResource ButtonGame}"
                              Name="StartRadioButton"
                              Checked="StartRadioButton_Checked"
-                             IsEnabled="False" />
-                    <RadioButton Content="Reset"
-							 Grid.Row="2"
-							 Style="{StaticResource ButtonGame}"
-                             Name="ResetRadioButton"
-                             Checked="ResetRadioButton_Checked"
                              IsEnabled="False" />
                 </Grid>
             </GroupBox>
