@@ -2,6 +2,7 @@
 {
     public enum SpecificActionType
     {
+        BegForInfo,
         GiveInfo,
         PickUp
     }

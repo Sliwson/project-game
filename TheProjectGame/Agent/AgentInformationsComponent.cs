@@ -99,8 +99,9 @@ namespace Agent
             }
         }
 
-        public void UpdateAssignment()
+        public bool UpdateAssignment()
         {
+            bool changedGroup = false;
             int rowDirection, firstRow, lastRow, lastRowPlusOne;
             if (agent.StartGameComponent.Team == TeamId.Red)
             {
@@ -138,6 +139,7 @@ namespace Agent
             }
             if (firstRow == lastRowPlusOne)
             {
+                changedGroup = true;
                 LastAskedTeammate = 0;
                 GroupAdd++;
                 AssignToOwnGoalArea();
@@ -146,6 +148,7 @@ namespace Agent
             {
                 OwnGoalArea = (new Point(firstColumn, firstRow), new Point(lastColumn, lastRow));
             }
+            return changedGroup;
         }
 
         public void DeniedMove(bool denied)
