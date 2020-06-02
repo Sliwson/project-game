@@ -69,7 +69,7 @@ namespace Agent
                 int ownId = Array.IndexOf(allIds, agent.Id);
                 bool divideWidth = startGamePayload.BoardSize.X >= startGamePayload.GoalAreaHeight;
                 int lengthToDivide = divideWidth ? startGamePayload.BoardSize.X : startGamePayload.GoalAreaHeight;
-                int groupSize = Math.Max(2, allIds.Length / lengthToDivide);
+                int groupSize = Math.Max(1, allIds.Length / lengthToDivide);
                 int numberOfGroups = allIds.Length / groupSize;
                 int lengthOnBoard = lengthToDivide / numberOfGroups;
                 int groupId = Math.Min(ownId / groupSize, numberOfGroups - 1);
