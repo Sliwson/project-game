@@ -47,8 +47,8 @@ namespace Messaging.Communication
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.NoDelay = true;
-                socket.Connect(communicationServerEndpoint);
-
+                socket.BeginConnect(communicationServerEndpoint, new AsyncCallback(ConnectCallback), socket);
+                connectDone.WaitOne();
                 if (Exception != null)
                     return false;
 
@@ -105,10 +105,29 @@ namespace Messaging.Communication
         {
             var result = messageQueue
                 .Select(serializedMessage => MessageSerializer.DeserializeMessage(serializedMessage))
-                .ToList();
-
+                .ToList(); 
+            
             messageQueue.Clear();
             return result;
+        }
+
+        private void ConnectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket client = (Socket)ar.AsyncState;
+
+                client.EndConnect(ar);
+            }
+            catch (Exception e)
+            {
+                logger.Error("[ClientNetworkComponent] {message}", e.Message);
+                Exception = new CommunicationErrorException(CommunicationExceptionType.InvalidSocket, e);
+            }
+            finally
+            {
+                connectDone.Set();
+            }
         }
 
         private void Send(Socket client, byte[] message)
