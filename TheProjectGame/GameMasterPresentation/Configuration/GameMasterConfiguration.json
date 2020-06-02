@@ -1,17 +1,1 @@
-{
-  "CsIP": "127.0.0.1",
-  "CsPort": 54322,
-  "movePenalty": 150,
-  "informationExchangePenalty": 100,
-  "discoveryPenalty": 70,
-  "putPenalty": 50,
-  "checkForShamPenalty": 70,
-  "destroyPiecePenalty": 50,
-  "boardX": 10,
-  "boardY": 10,
-  "goalAreaHeight": 2,
-  "numberOfGoals": 5,
-  "numberOfPieces": 10,
-  "teamSize": 10,
-  "shamPieceProbability": 0.5
-}
+{"CsIP":"127.0.0.1","CsPort":54322,"movePenalty":150,"informationExchangePenalty":300,"discoveryPenalty":50,"putPenalty":50,"checkForShamPenalty":70,"destroyPiecePenalty":5000,"boardX":15,"boardY":30,"goalAreaHeight":5,"numberOfGoals":50,"numberOfPieces":10,"teamSize":10,"shamPieceProbability":0.5}
