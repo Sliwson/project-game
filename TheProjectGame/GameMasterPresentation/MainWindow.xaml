@@ -7,6 +7,7 @@
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
 		mc:Ignorable="d"
 		Title="Game Master" Height="720" Width="1280"
+        MinHeight="600" MinWidth="1250"
 		WindowStartupLocation="CenterScreen"
 		WindowState="Maximized"
         Closing="MainWindow_Closing"
@@ -92,20 +93,23 @@
         <!--MainGrid-->
         <Grid Name="MainGrid" Grid.Row="0" Style="{StaticResource GridRows}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="7*" MinWidth="200" />
-                <ColumnDefinition Width="2*" MinWidth="200" />
-                <ColumnDefinition Width="2*" MinWidth="200" />
+                <ColumnDefinition Width="7*" MinWidth="400" />
+                <ColumnDefinition Width="2*" MinWidth="100" />
+                <ColumnDefinition Width="2*" MinWidth="100" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="*" MinHeight="120" />
+                <RowDefinition Height="*" MinHeight="60"/>
                 <RowDefinition Height="4*" />
                 <RowDefinition Height="4*" />
             </Grid.RowDefinitions>
-            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration"
+            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration"                      
 					  Grid.Row="0" Grid.Column="0"
+                      MinHeight="90"
 					  Style="{StaticResource GroupBoxInGrid}">
-                <Grid Style="{StaticResource GridConfiguration}">
+                <Grid Style="{StaticResource GridConfiguration}"
+                      MinHeight="75"
+                      Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="2*" />
@@ -118,6 +122,7 @@
                            FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
                     <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" Click="ConfigurationButton_Click" />
                     <Label Grid.Column="3"
+                           Background="Transparent"
                            Content="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToTextConverter}}"
                            Foreground="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToColorConverter}}" 
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
