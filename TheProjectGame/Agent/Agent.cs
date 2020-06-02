@@ -25,7 +25,7 @@ namespace Agent
 
         private const double penaltyMultiply = 1.0;
 
-        private const double penaltyAdd = 0.06;
+        private const double penaltyAdd = 0.0;
 
         private const int maxSkip = 10;
 
