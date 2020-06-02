@@ -626,6 +626,7 @@ namespace GameMasterTests
             for (int i = 0; i < all_pieces_before.Count; i++)
             {
                 Assert.AreSame(gameMaster.BoardLogic.GetField(all_pieces_before[i]), gameMaster.BoardLogic.GetField(all_pieces_after[i]));
+                Assert.AreEqual(gameMaster.BoardLogic.GetField(all_pieces_before[i]).Pieces.Count, gameMaster.BoardLogic.GetField(all_pieces_after[i]).Pieces.Count);
             }
             Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
             Assert.IsNull(agent.Piece);
@@ -696,7 +697,8 @@ namespace GameMasterTests
             Assert.AreEqual(all_pieces_before.Count, all_pieces_after.Count);
             for (int i = 0; i < all_pieces_before.Count; i++)
             {
-                Assert.AreEqual(gameMaster.BoardLogic.GetField(all_pieces_before[i]), gameMaster.BoardLogic.GetField(all_pieces_after[i]));
+                Assert.AreSame(gameMaster.BoardLogic.GetField(all_pieces_before[i]), gameMaster.BoardLogic.GetField(all_pieces_after[i]));
+                Assert.AreEqual(gameMaster.BoardLogic.GetField(all_pieces_before[i]).Pieces.Count, gameMaster.BoardLogic.GetField(all_pieces_after[i]).Pieces.Count);
             }
             Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
             Assert.IsNull(agent.Piece);
