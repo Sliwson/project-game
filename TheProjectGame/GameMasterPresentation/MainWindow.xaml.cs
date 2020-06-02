@@ -331,7 +331,7 @@ namespace GameMasterPresentation
         {
             MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
             if (Application.Current != null)
-                Application.Current.Shutdown();
+                Dispatcher.Invoke(() => Application.Current.Shutdown());
         }
 
         private void FlushLogs()
