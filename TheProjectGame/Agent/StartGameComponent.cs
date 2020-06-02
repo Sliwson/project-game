@@ -70,14 +70,12 @@ namespace Agent
                 bool divideWidth = startGamePayload.BoardSize.X >= startGamePayload.GoalAreaHeight;
                 int lengthToDivide = divideWidth ? startGamePayload.BoardSize.X : startGamePayload.GoalAreaHeight;
                 int groupSize = Math.Max(1, allIds.Length / lengthToDivide);
-                int numberOfGroups = allIds.Length / groupSize;
-                int lengthOnBoard = lengthToDivide / numberOfGroups;
+                int numberOfGroups = Math.Min(allIds.Length, lengthToDivide) / groupSize;
+                double lengthOnBoard = (double)lengthToDivide / (double)numberOfGroups;
                 int groupId = Math.Min(ownId / groupSize, numberOfGroups - 1);
-                int biggerBoard = groupId == numberOfGroups - 1 ?
-                    lengthToDivide - numberOfGroups * lengthOnBoard : 0;
                 int biggerMates = groupId == numberOfGroups - 1 ?
                     allIds.Length - numberOfGroups * groupSize : 0;
-                int beginBoard = groupId * lengthOnBoard, endBoard = Math.Min((groupId + 1) * lengthOnBoard + biggerBoard, lengthToDivide) - 1;
+                int beginBoard = (int)(groupId * lengthOnBoard), endBoard = Math.Min((int)((groupId + 1) * lengthOnBoard), lengthToDivide) - 1;
                 int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize + biggerMates, allIds.Length) - 1;
                 agent.AgentInformationsComponent.OwnGoalArea = divideWidth ?
                     (Team == TeamId.Red ?
