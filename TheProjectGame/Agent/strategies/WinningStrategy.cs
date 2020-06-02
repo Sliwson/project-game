@@ -18,9 +18,6 @@ namespace Agent.strategies
         {
             switch (action)
             {
-                case SpecificActionType.BegForInfo:
-                    agent.AgentInformationsComponent.DidNotAskCount = 0;
-                    return agent.BegForInfo();
                 case SpecificActionType.GiveInfo:
                     return agent.GiveInfo(argument);
                 case SpecificActionType.PickUp:

@@ -90,14 +90,10 @@ namespace Agent
             agent.BoardLogicComponent.UpdateBlueTeamGoalAreaInformation(message.Payload.BlueTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
             agent.BoardLogicComponent.UpdateRedTeamGoalAreaInformation(message.Payload.RedTeamGoalAreaInformation.ToTwoDimensionalArray(agent.BoardLogicComponent.GoalAreaSize, agent.BoardLogicComponent.BoardSize.X));
 
-            bool changedGroup = agent.AgentInformationsComponent.UpdateAssignment();
+            agent.AgentInformationsComponent.UpdateAssignment();
 
             var newMessage = agent.GetMessage();
-            if (newMessage != null)
-                return agent.AcceptMessage(newMessage);
-            else if (changedGroup)
-                return agent.MakeForcedDecision(SpecificActionType.BegForInfo);
-            else return agent.MakeDecisionFromStrategy();
+            return newMessage == null ? agent.MakeDecisionFromStrategy() : agent.AcceptMessage(newMessage);
         }
 
         public ActionResult Process(Message<MoveResponse> message)
@@ -156,8 +152,8 @@ namespace Agent
                     agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distLearned = DateTime.Now;
                     break;
             }
-            bool changedGroup = agent.AgentInformationsComponent.UpdateAssignment();
-            return changedGroup ? agent.MakeForcedDecision(SpecificActionType.BegForInfo) : agent.MakeDecisionFromStrategy();
+            agent.AgentInformationsComponent.UpdateAssignment();
+            return agent.MakeDecisionFromStrategy();
         }
 
         public ActionResult Process(Message<ExchangeInformationRequestForward> message)
