@@ -74,6 +74,16 @@ namespace Agent.strategies
                 agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item1.Y &&
                 agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item2.Y)
             {
+                if (agent.BoardLogicComponent.Position.X <
+                    Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
+                {
+                    agent.AgentInformationsComponent.DirectionEastWest = Direction.East;
+                }
+                else if (agent.BoardLogicComponent.Position.X >
+                    Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
+                {
+                    agent.AgentInformationsComponent.DirectionEastWest = Direction.West;
+                }
                 movingDirection = Common.StayInLine(agent, shortTime, agent.AgentInformationsComponent.DirectionEastWest);
                 movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
                 if (!Common.IsDirectionGoalDirection(movingDirection))
