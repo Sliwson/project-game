@@ -204,7 +204,9 @@ namespace Agent
                     if ((i != agent.BoardLogicComponent.Position.X || j != agent.BoardLogicComponent.Position.Y) &&
                         OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
                         !OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.AverageTime) &&
-                        agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece))
+                        (agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece) ||
+                        (agent.BoardLogicComponent.Board[j, i].distToPiece == Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece) &&
+                        DateTime.Now.Ticks % 2 == 0)))
                     {
                         shortest = agent.BoardLogicComponent.Board[j, i].distToPiece;
                         if (j > agent.BoardLogicComponent.Position.Y) direction = Direction.North;
