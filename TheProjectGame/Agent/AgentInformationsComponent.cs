@@ -99,7 +99,7 @@ namespace Agent
             }
         }
 
-        public bool UpdateAssignment()
+        public void UpdateAssignment()
         {
             int rowDirection, firstRow, lastRow, lastRowPlusOne;
             if (agent.StartGameComponent.Team == TeamId.Red)
