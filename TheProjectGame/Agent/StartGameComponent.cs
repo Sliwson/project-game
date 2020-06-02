@@ -36,7 +36,7 @@ namespace Agent
         {
             IsLeader = agent.Id == startGamePayload.LeaderId ? true : false;
             Team = startGamePayload.TeamId;
-            TeamMates = startGamePayload.AlliesIds;
+            TeamMates = startGamePayload.AlliesIds.Where(x => x != agent.Id).ToArray();
             Penalties = startGamePayload.Penalties;
             AverageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
             ShamPieceProbability = startGamePayload.ShamPieceProbability;
