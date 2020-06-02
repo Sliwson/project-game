@@ -126,26 +126,30 @@ namespace Agent
                 return ActionResult.Continue;
 
             var result = ActionResult.Continue;
-            switch (AgentState)
+            try
             {
-                case AgentState.Created:
-                    result = UpdateStateCreated();
-                    break;
-                case AgentState.WaitingForJoin:
-                    result = UpdateStateWaitingForJoin();
-                    break;
-                case AgentState.WaitingForStart:
-                    result = UpdateStateWaitingForStart();
-                    break;
-                case AgentState.InGame:
-                    result = UpdateStateInGame(dt);
-                    break;
-                case AgentState.Finished:
-                    return ActionResult.Finish;
-                default:
-                    logger.Error("[Agent {id}] in unknown state: {state}", Id, AgentState);
-                    return ActionResult.Finish;
+                switch (AgentState)
+                {
+                    case AgentState.Created:
+                        result = UpdateStateCreated();
+                        break;
+                    case AgentState.WaitingForJoin:
+                        result = UpdateStateWaitingForJoin();
+                        break;
+                    case AgentState.WaitingForStart:
+                        result = UpdateStateWaitingForStart();
+                        break;
+                    case AgentState.InGame:
+                        result = UpdateStateInGame(dt);
+                        break;
+                    case AgentState.Finished:
+                        return ActionResult.Finish;
+                    default:
+                        logger.Error("[Agent {id}] in unknown state: {state}", Id, AgentState);
+                        return ActionResult.Finish;
+                }
             }
+            catch (Exception e) { }
 
             if (result == ActionResult.Finish)
                 AgentState = AgentState.Finished;
