@@ -1,4 +1,5 @@
 ﻿using Messaging.Contracts;
+using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
 using System;
 using System.Drawing;
@@ -27,6 +28,7 @@ namespace Agent
         public (Point, Point) OwnGoalArea { get; set; }
         public bool[] DeniedMoves { get; set; }
         private int LastMoveResponse { get; set; }
+        private int GroupAdd { get; set; }
 
         public AgentInformationsComponent(Agent agent)
         {
@@ -47,17 +49,54 @@ namespace Agent
             for (int i = 0; i < DeniedMoves.Length; i++)
                 DeniedMoves[i] = false;
             LastMoveResponse = 0;
+            GroupAdd = 0;
         }
 
-        private void AssignToWholeTaskArea()
+        public void AssignToOwnGoalArea()
         {
-            TeamMatesToAsk = new int[agent.StartGameComponent.TeamMates.Length];
-            for (int i = 0; i < agent.StartGameComponent.TeamMates.Length; i++)
-                TeamMatesToAsk[i] = agent.StartGameComponent.TeamMates[i];
-            OwnGoalArea = agent.StartGameComponent.Team == TeamId.Red ?
-                    (new Point(0, agent.BoardLogicComponent.BoardSize.Y - agent.BoardLogicComponent.GoalAreaSize), new Point(agent.BoardLogicComponent.BoardSize.X - 1, agent.BoardLogicComponent.BoardSize.Y - 1)) :
-                    (new Point(0, agent.BoardLogicComponent.GoalAreaSize - 1), new Point(agent.BoardLogicComponent.BoardSize.X - 1, 0));
-            LastAskedTeammate = 0;
+            if (!agent.DivideAgents || agent.StartGameComponent.TeamMates.Length == 0 || Math.Max(agent.BoardLogicComponent.BoardSize.X, agent.BoardLogicComponent.GoalAreaSize) <= 0)
+            {
+                TeamMatesToAsk = new int[agent.StartGameComponent.TeamMates.Length];
+                for (int i = 0; i < agent.StartGameComponent.TeamMates.Length; i++)
+                    TeamMatesToAsk[i] = agent.StartGameComponent.TeamMates[i];
+                OwnGoalArea = agent.StartGameComponent.Team == TeamId.Red ?
+                        (new Point(0, agent.BoardLogicComponent.BoardSize.Y - agent.BoardLogicComponent.GoalAreaSize), new Point(agent.BoardLogicComponent.BoardSize.X - 1, agent.BoardLogicComponent.BoardSize.Y - 1)) :
+                        (new Point(0, agent.BoardLogicComponent.GoalAreaSize - 1), new Point(agent.BoardLogicComponent.BoardSize.X - 1, 0));
+            }
+            else
+            {
+                int[] allIds = new int[agent.StartGameComponent.TeamMates.Length + 1];
+                for (int i = 0; i < agent.StartGameComponent.TeamMates.Length; i++)
+                    allIds[i] = agent.StartGameComponent.TeamMates[i];
+                allIds[allIds.Length - 1] = agent.Id;
+                Array.Sort(allIds);
+                int ownId = Array.IndexOf(allIds, agent.Id);
+                bool divideWidth = agent.BoardLogicComponent.BoardSize.X >= agent.BoardLogicComponent.GoalAreaSize;
+                int lengthToDivide = divideWidth ? agent.BoardLogicComponent.BoardSize.X : agent.BoardLogicComponent.GoalAreaSize;
+                int groupSize = Math.Max(1, allIds.Length / lengthToDivide);
+                int numberOfGroups = Math.Min(allIds.Length, lengthToDivide) / groupSize;
+                double lengthOnBoard = (double)lengthToDivide / (double)numberOfGroups;
+                int groupId = (Math.Min(ownId / groupSize, numberOfGroups - 1) + GroupAdd) % numberOfGroups;
+                int biggerMates = groupId == numberOfGroups - 1 ?
+                    allIds.Length - numberOfGroups * groupSize : 0;
+                int beginBoard = (int)(groupId * lengthOnBoard), endBoard = Math.Min((int)((groupId + 1) * lengthOnBoard), lengthToDivide) - 1;
+                int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize + biggerMates, allIds.Length) - 1;
+                OwnGoalArea = divideWidth ?
+                    (agent.StartGameComponent.Team == TeamId.Red ?
+                        (new Point(beginBoard, agent.BoardLogicComponent.BoardSize.Y - agent.BoardLogicComponent.GoalAreaSize), new Point(endBoard, agent.BoardLogicComponent.BoardSize.Y - 1)) :
+                        (new Point(beginBoard, agent.BoardLogicComponent.GoalAreaSize - 1), new Point(endBoard, 0))) :
+                    (agent.StartGameComponent.Team == TeamId.Red ?
+                        (new Point(0, beginBoard), new Point(agent.BoardLogicComponent.BoardSize.X - 1, endBoard)) :
+                        (new Point(0, endBoard), new Point(agent.BoardLogicComponent.BoardSize.X - 1, beginBoard)));
+                TeamMatesToAsk = new int[endMates - beginMates];
+                int mate = 0;
+                for (int i = beginMates; i <= endMates; i++)
+                {
+                    if (allIds[i] == agent.Id) continue;
+                    TeamMatesToAsk[mate] = allIds[i];
+                    mate++;
+                }
+            }
         }
 
         public void UpdateAssignment()
@@ -99,7 +138,11 @@ namespace Agent
             }
             if (firstRow == lastRowPlusOne)
             {
-                AssignToWholeTaskArea();
+                LastAskedTeammate = 0;
+                IsWaiting = false;
+                DidNotAskCount = int.MaxValue;
+                GroupAdd++;
+                AssignToOwnGoalArea();
             }
             else
             {

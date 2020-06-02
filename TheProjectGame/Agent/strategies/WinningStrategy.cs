@@ -32,15 +32,16 @@ namespace Agent.strategies
             if (agent.AgentInformationsComponent.IsComingBack && Common.IsBack(agent))
             {
                 agent.AgentInformationsComponent.IsComingBack = false;
+                agent.AgentInformationsComponent.StayInLineCount = 0;
                 if (agent.BoardLogicComponent.Position.X ==
-                    Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
-                {
-                    agent.AgentInformationsComponent.DirectionEastWest = Direction.East;
-                }
-                else if (agent.BoardLogicComponent.Position.X ==
-                    Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
+                    Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X))
                 {
                     agent.AgentInformationsComponent.DirectionEastWest = Direction.West;
+                }
+                else if (agent.BoardLogicComponent.Position.X ==
+                    Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X))
+                {
+                    agent.AgentInformationsComponent.DirectionEastWest = Direction.East;
                 }
             }
             if (!agent.AgentInformationsComponent.IsWaiting)
@@ -64,16 +65,26 @@ namespace Agent.strategies
                 return agent.CheckPiece();
             }
             if (agent.Piece != null &&
-                !Common.DoesAgentKnowGoalInfo(agent) &&
-                Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea))
+               !Common.DoesAgentKnowGoalInfo(agent) &&
+               Common.InRectangle(agent.BoardLogicComponent.Position, agent.AgentInformationsComponent.OwnGoalArea))
             {
-                return agent.Put();
+               return agent.Put();
             }
             Direction movingDirection = Common.GetRandomDirection();
             if (agent.Piece != null &&
                 agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item1.Y &&
                 agent.BoardLogicComponent.Position.Y == agent.AgentInformationsComponent.OwnGoalArea.Item2.Y)
             {
+                if (agent.BoardLogicComponent.Position.X <=
+                    Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X))
+                {
+                    agent.AgentInformationsComponent.DirectionEastWest = Direction.East;
+                }
+                else if (agent.BoardLogicComponent.Position.X >=
+                    Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X))
+                {
+                    agent.AgentInformationsComponent.DirectionEastWest = Direction.West;
+                }
                 movingDirection = Common.StayInLine(agent, shortTime, agent.AgentInformationsComponent.DirectionEastWest);
                 movingDirection = Common.FixDirection(agent, movingDirection, manyDenies);
                 if (!Common.IsDirectionGoalDirection(movingDirection))
