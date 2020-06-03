@@ -14,7 +14,7 @@ I decided to be a Scrum Master - [Szymon](https://github.com/szymon159).
 Apart from that, we are all developers responsible mostly for specific modules:
 
 * Game Master - [Mateusz](https://github.com/Sliwson), [Michał](https://github.com/Rogal27)
-* Agent - [Marta](https://github.com/martabanel c), [Weronika](https://github.com/werglu)
+* Agent - [Marta](https://github.com/martabanel), [Weronika](https://github.com/werglu)
 * Communication server - [Szymon](https://github.com/szymon159)
 * Intermodule Communication - Everyone
 
