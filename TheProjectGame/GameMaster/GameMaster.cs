@@ -102,7 +102,7 @@ namespace GameMaster
             var messages = GetIncomingMessages();
             if (messages.Count > 0)
             {
-                Logger.Get().Info("[GM] Processing {n} message(s)", messages.Count);
+                Logger.Get().Debug("[GM] Processing {n} message(s)", messages.Count);
                 NLog.NestedDiagnosticsContext.Push("    ");
                 foreach (var message in messages)
                 {

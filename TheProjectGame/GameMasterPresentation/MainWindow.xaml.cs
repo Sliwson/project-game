@@ -263,6 +263,11 @@ namespace GameMasterPresentation
             LogEntries.Add(log);
             if (string.IsNullOrEmpty(SearchString) || text.ToLower().Contains(SearchString.ToLower()))
                 FilteredLogEntries.Add(log);
+            if (LogEntries.Count > 1000)
+            {
+                LogEntries.Clear();
+                FilteredLogEntries.Clear();
+            }
             if (IsUserScrollingLog == false)
             {
                 LogScrollViewer.ScrollToEnd();
@@ -331,7 +336,7 @@ namespace GameMasterPresentation
         {
             MessageBox.Show(gameMaster.LastException?.Message, "Critical exception occured, application will close", MessageBoxButton.OK, MessageBoxImage.Error);
             if (Application.Current != null)
-                Application.Current.Shutdown();
+                Dispatcher.Invoke(() => Application.Current.Shutdown());
         }
 
         private void FlushLogs()

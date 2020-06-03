@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:GameMasterPresentation.Configuration"
              mc:Ignorable="d"
              d:DesignWidth="500" FontSize="18"
+             MinWidth="500" MinHeight="500"
              Background="White"
              Loaded="UserControl_Loaded">
     <!--TODO: delete background-->
