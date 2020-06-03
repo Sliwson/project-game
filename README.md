@@ -1,4 +1,4 @@
-# README #
+# Project Game #
 
 ![GameMaster screenshot](documentation/program.png)
 
