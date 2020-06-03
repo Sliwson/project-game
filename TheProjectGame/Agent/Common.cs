@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
+using System.Linq;
 
 namespace Agent
 {
@@ -50,6 +50,11 @@ namespace Agent
                 OldTime(agent.BoardLogicComponent.Board[target.Y, target.X].deniedMove, shortTime, agent.StartGameComponent.AverageTime);
         }
 
+        public static bool GotManyDenies(Agent agent, double  manyDenies)
+        {
+            return (double)(agent.AgentInformationsComponent.DeniedMoves.Where(x => x).Count()) / (double)(agent.AgentInformationsComponent.DeniedMoves.Length) > manyDenies;
+        }
+
         public static Direction GetGoalDirection(Agent agent, int shortTime, out bool shouldComeBack)
         {
             if (agent.StartGameComponent.Team == TeamId.Red)
@@ -79,10 +84,10 @@ namespace Agent
         public static Direction GetOwnGoalDirection(Agent agent, int shortTime)
         {
             int desiredY = agent.StartGameComponent.Team == TeamId.Red ?
-                Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y) :
-                Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y);
-            int minDesiredX = Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.X, agent.StartGameComponent.OwnGoalArea.Item2.X);
-            int maxDesiredX = Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.X, agent.StartGameComponent.OwnGoalArea.Item2.X);
+                Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y) :
+                Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
+            int minDesiredX = Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X);
+            int maxDesiredX = Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X);
             if (desiredY > agent.BoardLogicComponent.Position.Y && CouldMove(agent, Direction.North, shortTime))
                 return Direction.North;
             if (desiredY < agent.BoardLogicComponent.Position.Y && CouldMove(agent, Direction.South, shortTime))
@@ -119,12 +124,19 @@ namespace Agent
             return Direction.North;
         }
 
+        public static Direction StayInLine(Agent agent, int shortTime, Direction directionEastWest)
+        {
+            if (CouldMove(agent, directionEastWest, shortTime))
+                return directionEastWest;
+            return directionEastWest.GetOppositeDirection();
+        }
+
         public static Direction StayInRectangle(Agent agent, int shortTime, int stayInLineCount, Direction directionEastWest, out bool shouldComeBack)
         {
-            if (stayInLineCount >= Math.Abs(agent.StartGameComponent.OwnGoalArea.Item2.X - agent.StartGameComponent.OwnGoalArea.Item1.X))
+            if (stayInLineCount >= Math.Abs(agent.AgentInformationsComponent.OwnGoalArea.Item2.X - agent.AgentInformationsComponent.OwnGoalArea.Item1.X))
             {
                 Direction direction = GetGoalDirection(agent, shortTime, out bool should);
-                if (!should && InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea))
+                if (!should && InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.AgentInformationsComponent.OwnGoalArea))
                 {
                     shouldComeBack = false;
                     return direction;
@@ -135,7 +147,7 @@ namespace Agent
                 new List<Direction>() { Direction.West, Direction.East };
             foreach (var direction in directionsToCheck)
             {
-                if (InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.StartGameComponent.OwnGoalArea) && CouldMove(agent, direction, shortTime))
+                if (InRectangle(GetFieldInDirection(agent.BoardLogicComponent.Position, direction), agent.AgentInformationsComponent.OwnGoalArea) && CouldMove(agent, direction, shortTime))
                 {
                     shouldComeBack = false;
                     return direction;
@@ -147,8 +159,8 @@ namespace Agent
         public static bool IsBack(Agent agent)
         {
             return agent.StartGameComponent.Team == TeamId.Red?
-                agent.BoardLogicComponent.Position.Y == Math.Min(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y) :
-                agent.BoardLogicComponent.Position.Y == Math.Max(agent.StartGameComponent.OwnGoalArea.Item1.Y, agent.StartGameComponent.OwnGoalArea.Item2.Y);
+                agent.BoardLogicComponent.Position.Y == Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y) :
+                agent.BoardLogicComponent.Position.Y == Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
         }
 
         public static bool IsDirectionGoalDirection(Direction direction)
@@ -156,9 +168,31 @@ namespace Agent
             return direction == Direction.North || direction == Direction.South;
         }
 
+        public static Direction FixDirection(Agent agent, Direction direction, double manyDenies)
+        {
+            if ((agent.AgentInformationsComponent.DeniedLastMove &&
+                direction == agent.AgentInformationsComponent.LastDirection) ||
+                GotManyDenies(agent, manyDenies))
+                return GetRandomDirection();
+            return direction;
+        }
+
         public static bool DoesAgentKnowGoalInfo(Agent agent)
         {
             return agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].goalInfo != GoalInformation.NoInformation;
+        }
+
+        public static bool KnowsAll(Agent agent)
+        {
+            int minX = Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X);
+            int maxX = Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.X, agent.AgentInformationsComponent.OwnGoalArea.Item2.X);
+            int minY = Math.Min(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
+            int maxY = Math.Max(agent.AgentInformationsComponent.OwnGoalArea.Item1.Y, agent.AgentInformationsComponent.OwnGoalArea.Item2.Y);
+            for (int i = minX; i <= maxX; i++)
+                for (int j = minY; j <= maxY; j++)
+                    if (agent.BoardLogicComponent.Board[j, i].goalInfo == GoalInformation.NoInformation)
+                        return false;
+            return true;
         }
 
         public static int FindClosest(Agent agent, int shortTime, out Direction direction)
@@ -170,7 +204,9 @@ namespace Agent
                     if ((i != agent.BoardLogicComponent.Position.X || j != agent.BoardLogicComponent.Position.Y) &&
                         OnBoard(new Point(i, j), agent.BoardLogicComponent.BoardSize) &&
                         !OldTime(agent.BoardLogicComponent.Board[j, i].distLearned, shortTime, agent.StartGameComponent.AverageTime) &&
-                        agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece))
+                        (agent.BoardLogicComponent.Board[j, i].distToPiece < Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece) ||
+                        (agent.BoardLogicComponent.Board[j, i].distToPiece == Math.Min(shortest, agent.BoardLogicComponent.Board[agent.BoardLogicComponent.Position.Y, agent.BoardLogicComponent.Position.X].distToPiece) &&
+                        DateTime.Now.Ticks % 2 == 0)))
                     {
                         shortest = agent.BoardLogicComponent.Board[j, i].distToPiece;
                         if (j > agent.BoardLogicComponent.Position.Y) direction = Direction.North;

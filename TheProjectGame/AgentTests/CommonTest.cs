@@ -16,7 +16,6 @@ namespace AgentTests
         {
             int shortTime = 4;
             AgentConfiguration agentConfiguration = new AgentConfiguration();
-            agentConfiguration.WantsToBeTeamLeader = false;
             agentConfiguration.TeamID = "Red";
             agentConfiguration.CsIP = "127.0.0.1";
             agentConfiguration.CsPort = 54321;

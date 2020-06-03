@@ -52,9 +52,12 @@ namespace GameMaster
             }
         }
 
-        public void ConnectToCommunicationServer()
+        public void ConnectToCommunicationServer(INetworkComponent mockedNetworkComponent = null)
         {
-            NetworkComponent = new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+            NetworkComponent = mockedNetworkComponent != null 
+                ? mockedNetworkComponent 
+                : new ClientNetworkComponent(Configuration.CsIP, Configuration.CsPort);
+
             if (!NetworkComponent.Connect(ClientType.GameMaster))
                 throw new ApplicationException("Unable to connect to CS");
 
@@ -84,24 +87,6 @@ namespace GameMaster
             return true;
         }
 
-        public void PauseGame()
-        {
-            state = GameMasterState.Paused;
-
-            //TODO: send
-            Logger.Get().Info("[GM] Pausing game");
-            GameLogic.GetPauseMessages();
-        }
-
-        public void ResumeGame()
-        {
-            state = GameMasterState.InGame;
-
-            //TODO: send
-            Logger.Get().Info("[GM] Resuming game");
-            GameLogic.GetResumeMessages();
-        }
-
         //called from window system each frame, updates all components
         public void Update(double dt)
         {
@@ -117,11 +102,12 @@ namespace GameMaster
             var messages = GetIncomingMessages();
             if (messages.Count > 0)
             {
-                Logger.Get().Info("[GM] Processing {n} messages", messages.Count);
+                Logger.Get().Debug("[GM] Processing {n} message(s)", messages.Count);
                 NLog.NestedDiagnosticsContext.Push("    ");
                 foreach (var message in messages)
                 {
                     var response = currentMessageProcessor.ProcessMessage(message);
+                    response.SetCorrelationId(message.CorrelationId);
                     SendMessage(response);
                 }
                 NLog.NestedDiagnosticsContext.Pop();
@@ -177,24 +163,9 @@ namespace GameMaster
             }
         }
 
-        //TODO (#IO-57): Move to mocked tests
-#if DEBUG
-        private List<BaseMessage> injectedMessages = new List<BaseMessage>();
-
-        public void InjectMessage(BaseMessage message)
-        {
-            injectedMessages.Add(message);
-        }
-
-#endif
-
         private List<BaseMessage> GetIncomingMessages()
         {
-            var clone = new List<BaseMessage>(injectedMessages);
-            injectedMessages.Clear();
-
-            //TODO: refactor
-            return clone.Concat(NetworkComponent.GetIncomingMessages().ToList()).ToList();
+            return NetworkComponent.GetIncomingMessages().ToList();
         }
 
         private void SetCriticalException(Exception ex)

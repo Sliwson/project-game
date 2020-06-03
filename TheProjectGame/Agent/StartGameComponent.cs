@@ -1,10 +1,10 @@
 ﻿using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 
 namespace Agent
 {
@@ -12,13 +12,9 @@ namespace Agent
     {
         private Agent agent;
 
-        private static NLog.Logger logger;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public int[] TeamMates { get; private set; }
-
-        public int[] TeamMatesToAsk { get; set; }
-
-        public (Point, Point) OwnGoalArea { get; set; }
 
         public Dictionary<ActionType, TimeSpan> Penalties { get; private set; }
 
@@ -34,90 +30,41 @@ namespace Agent
         {
             this.agent = agent;
             Team = teamId;
-            logger = NLog.LogManager.GetCurrentClassLogger();
         }
 
         public void Initialize(StartGamePayload startGamePayload)
         {
             IsLeader = agent.Id == startGamePayload.LeaderId ? true : false;
             Team = startGamePayload.TeamId;
-            TeamMates = startGamePayload.AlliesIds;
+            TeamMates = startGamePayload.AlliesIds.Where(x => x != agent.Id).ToArray();
             Penalties = startGamePayload.Penalties;
             AverageTime = startGamePayload.Penalties.Count > 0 ? startGamePayload.Penalties.Values.Max() : TimeSpan.FromSeconds(1.0);
             ShamPieceProbability = startGamePayload.ShamPieceProbability;
-            logger.Info("Initialize: Agent initialized" + " AgentID: " + agent.Id.ToString());
             agent.BoardLogicComponent = new BoardLogicComponent(agent, startGamePayload.BoardSize, startGamePayload.GoalAreaHeight, startGamePayload.Position);
-            AssignToOwnGoalArea(startGamePayload);
-            FindFirstTeamMateToAsk();
-        }
 
-        private void AssignToOwnGoalArea(StartGamePayload startGamePayload)
-        {
-            if (!agent.DivideAgents || TeamMates.Length == 0)
-            {
-                TeamMatesToAsk = new int[TeamMates.Length];
-                for (int i = 0; i < TeamMates.Length; i++)
-                    TeamMatesToAsk[i] = TeamMates[i];
-                OwnGoalArea = Team == TeamId.Red ?
-                        (new Point(0, startGamePayload.BoardSize.Y - startGamePayload.GoalAreaHeight), new Point(startGamePayload.BoardSize.X - 1, startGamePayload.BoardSize.Y - 1)) :
-                        (new Point(0, startGamePayload.GoalAreaHeight - 1), new Point(startGamePayload.BoardSize.X - 1, 0));
-            }
-            else
-            {
-                int[] allIds = new int[startGamePayload.AlliesIds.Length + 1];
-                for (int i = 0; i < startGamePayload.AlliesIds.Length; i++)
-                    allIds[i] = startGamePayload.AlliesIds[i];
-                allIds[allIds.Length - 1] = agent.Id;
-                Array.Sort(allIds);
-                int ownId = Array.IndexOf(allIds, agent.Id);
-                bool divideWidth = startGamePayload.BoardSize.X >= startGamePayload.GoalAreaHeight;
-                int lengthToDivide = divideWidth ? startGamePayload.BoardSize.X : startGamePayload.GoalAreaHeight;
-                int groupSize = 2;
-                int numberOfGroups = allIds.Length / groupSize;
-                int lengthOnBoard = lengthToDivide / numberOfGroups;
-                int groupId = ownId / groupSize;
-                int biggerBoard = (groupId == numberOfGroups - 1 &&
-                    numberOfGroups * lengthOnBoard < lengthToDivide) ?
-                    1 : 0;
-                int biggerMates = (groupId == numberOfGroups - 1 &&
-                    numberOfGroups * groupSize < allIds.Length) ?
-                    1 : 0;
-                int beginBoard = groupId * lengthOnBoard, endBoard = Math.Min((groupId + 1) * lengthOnBoard + biggerBoard, lengthToDivide) - 1;
-                int beginMates = groupId * groupSize, endMates = Math.Min((groupId + 1) * groupSize + biggerMates, allIds.Length) - 1;
-                OwnGoalArea = divideWidth ?
-                    (Team == TeamId.Red ?
-                        (new Point(beginBoard, startGamePayload.BoardSize.Y - startGamePayload.GoalAreaHeight), new Point(endBoard, startGamePayload.BoardSize.Y - 1)) :
-                        (new Point(beginBoard, startGamePayload.GoalAreaHeight - 1), new Point(endBoard, 0))) :
-                    (Team == TeamId.Red ?
-                        (new Point(0, beginBoard), new Point(startGamePayload.BoardSize.X - 1, endBoard)) :
-                        (new Point(0, endBoard), new Point(startGamePayload.BoardSize.X - 1, beginBoard)));
-                TeamMatesToAsk = new int[endMates - beginMates];
-                int mate = 0;
-                for (int i = beginMates; i <= endMates; i++)
-                {
-                    if (allIds[i] == agent.Id) continue;
-                    TeamMatesToAsk[mate] = allIds[i];
-                    mate++;
-                }
-            }
+            agent.AgentInformationsComponent.AssignToOwnGoalArea();
+            FindFirstTeamMateToAsk();
+
+            logger.Info("[Agent {id}] Initialized", agent.Id);
         }
         
         private void FindFirstTeamMateToAsk()
         {
             int closestHigherId = 0, minId = 0;
             int minDist = int.MaxValue;
-            for (int i = 0; i < TeamMatesToAsk.Length; i++)
+            for (int i = 0; i < agent.AgentInformationsComponent.TeamMatesToAsk.Length; i++)
             {
-                if (TeamMatesToAsk[i] < TeamMatesToAsk[minId])
+                if (agent.AgentInformationsComponent.TeamMatesToAsk[i] < agent.AgentInformationsComponent.TeamMatesToAsk[minId])
                 {
                     minId = i;
                 }
-                if (TeamMatesToAsk[i] - agent.Id > 0 && TeamMatesToAsk[i] - agent.Id < minDist)
+                if (agent.AgentInformationsComponent.TeamMatesToAsk[i] - agent.Id > 0 && agent.AgentInformationsComponent.TeamMatesToAsk[i] - agent.Id < minDist)
                 {
-                    minDist = TeamMatesToAsk[i] - agent.Id;
+                    minDist = agent.AgentInformationsComponent.TeamMatesToAsk[i] - agent.Id;
                     closestHigherId = i;
                 }
             }
+
             agent.AgentInformationsComponent.LastAskedTeammate = minDist == int.MaxValue ? minId : closestHigherId;
         }
     }

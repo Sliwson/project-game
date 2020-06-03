@@ -7,6 +7,7 @@
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
 		mc:Ignorable="d"
 		Title="Game Master" Height="720" Width="1280"
+        MinHeight="600" MinWidth="1250"
 		WindowStartupLocation="CenterScreen"
 		WindowState="Maximized"
         Closing="MainWindow_Closing"
@@ -80,7 +81,7 @@
         </Style>
 
         <DataTemplate DataType="{x:Type local:LogEntry}">
-            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13"/>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="13" Foreground="{Binding Color}"/>
         </DataTemplate>
 
     </Window.Resources>
@@ -92,20 +93,23 @@
         <!--MainGrid-->
         <Grid Name="MainGrid" Grid.Row="0" Style="{StaticResource GridRows}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="7*" MinWidth="200" />
-                <ColumnDefinition Width="2*" MinWidth="200" />
-                <ColumnDefinition Width="2*" MinWidth="200" />
+                <ColumnDefinition Width="7*" MinWidth="400" />
+                <ColumnDefinition Width="2*" MinWidth="100" />
+                <ColumnDefinition Width="2*" MinWidth="100" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="*" MinHeight="120" />
+                <RowDefinition Height="*" MinHeight="60"/>
                 <RowDefinition Height="4*" />
                 <RowDefinition Height="4*" />
             </Grid.RowDefinitions>
-            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration"
+            <GroupBox Name="ConfigurationGroupBox"  Header="Configuration"                      
 					  Grid.Row="0" Grid.Column="0"
+                      MinHeight="90"
 					  Style="{StaticResource GroupBoxInGrid}">
-                <Grid Style="{StaticResource GridConfiguration}">
+                <Grid Style="{StaticResource GridConfiguration}"
+                      MinHeight="75"
+                      Background="Transparent">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="2*" />
@@ -118,6 +122,7 @@
                            FontSize="20" VerticalAlignment="Center" ClipToBounds="True" />
                     <Button Grid.Column="2" Content="Details" Style="{StaticResource ButtonConfiguration}" Click="ConfigurationButton_Click" />
                     <Label Grid.Column="3"
+                           Background="Transparent"
                            Content="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToTextConverter}}"
                            Foreground="{Binding GMConfig, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource GMConfigToColorConverter}}" 
                            VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -155,7 +160,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
-                        <RowDefinition />
                     </Grid.RowDefinitions>
                     <RadioButton Content="Connect"
 							 Grid.Row="0"
@@ -169,12 +173,6 @@
                              Name="StartRadioButton"
                              Checked="StartRadioButton_Checked"
                              IsEnabled="False" />
-                    <RadioButton Content="Pause"
-							 Grid.Row="2"
-							 Style="{StaticResource ButtonGame}"
-                             Name="PauseRadioButton"
-                             Checked="PauseRadioButton_Checked"
-                             IsEnabled="False" />
                 </Grid>
             </GroupBox>
             <ScrollViewer Style="{StaticResource ScrollViewerBoard}"
@@ -187,31 +185,44 @@
                 </Label>
             </ScrollViewer>
 
-            <GroupBox Name="AgentsGroupBox" Header="Connected Agents"
-					  Grid.Row="2" Grid.Column="1"
-					  Grid.ColumnSpan="2"
-					  Style="{StaticResource GroupBoxInGrid}">
-                <StackPanel>
-                    <Label Content="Agents Count:" />
-                    <Label Name="AgentsCountLabel" Content="0" />
-                    <Button Content="Breakpoint" Click="BreakpointButton_Click" />
-                </StackPanel>
-            </GroupBox>
             <GroupBox Name="LogsGroupBox" Header="Logs"
-					  Grid.Row="3" Grid.Column="1"
+					  Grid.Row="2" Grid.Column="1"
+                      Grid.RowSpan="2"
 					  Grid.ColumnSpan="2"
 					  Style="{StaticResource GroupBoxInGrid}">
-                <DockPanel>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" GotFocus="LogScrollViewer_GotFocus" LostFocus="LogScrollViewer_LostFocus">
-                        <ItemsControl Name="LogItemsControl" ItemsSource="{Binding}" Style="{StaticResource LogViewerStyle}">
-                            <ItemsControl.Template>
-                                <ControlTemplate>
-                                    <ItemsPresenter/>
-                                </ControlTemplate>
-                            </ItemsControl.Template>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Search:" Margin="5,5,5,5"/>
+                    <TextBox 
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="5,5,5,5"
+                        Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                    <DockPanel 
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        Margin="5,5,5,5">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Name="LogScrollViewer" GotFocus="LogScrollViewer_GotFocus" LostFocus="LogScrollViewer_LostFocus">
+                            <ItemsControl 
+                                Name="LogItemsControl" 
+                                ItemsSource="{Binding FilteredLogEntries, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                                Style="{StaticResource LogViewerStyle}">
+                                <ItemsControl.Template>
+                                    <ControlTemplate>
+                                        <ItemsPresenter/>
+                                    </ControlTemplate>
+                                </ItemsControl.Template>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Grid>
             </GroupBox>
         </Grid>
         <!--/MainGrid-->

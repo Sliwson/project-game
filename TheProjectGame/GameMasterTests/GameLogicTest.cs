@@ -1,9 +1,6 @@
 ﻿using NUnit.Framework;
 using GameMaster;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using Messaging.Contracts;
 using Messaging.Contracts.GameMaster;
 using Messaging.Contracts.Agent;
@@ -11,6 +8,9 @@ using Messaging.Contracts.Errors;
 using Messaging.Implementation;
 using Messaging.Enumerators;
 using System.Drawing;
+using System.Linq;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace GameMasterTests
 {
@@ -60,7 +60,7 @@ namespace GameMasterTests
         public void ProcessMessage_ShouldReturnUndefinedErrorMessageWhenForcedAgentNotAnswered()
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
-            agent.InformationExchangeRequested(true);
+            agent.InformationExchangeRequested(333, true);
 
             gameMaster.Agents.Add(agent);
 
@@ -257,7 +257,7 @@ namespace GameMasterTests
 
             gameMaster.Agents.Add(agent);
 
-            var message = GetBaseMessage(new ExchangeInformationResponse(333, null, null, null), 666);
+            var message = GetBaseMessage(new ExchangeInformationResponse(333, new int[0], new GoalInformation[0], new GoalInformation[0]), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.UndefinedError, response.MessageId);
@@ -268,7 +268,7 @@ namespace GameMasterTests
         public void ProcessMessage_ExchangeInformationResponse_OnlyAgentIdShouldBeChanged()
         {
             var agent = new Agent(666, TeamId.Blue, new Point(3, 3), true);
-            agent.InformationExchangeRequested(false);
+            agent.InformationExchangeRequested(333, false);
 
             gameMaster.Agents.Add(agent);
 
@@ -303,7 +303,7 @@ namespace GameMasterTests
 
             gameMaster.Agents.Add(agent);
 
-            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.JoinResponse, response.MessageId);
@@ -317,7 +317,7 @@ namespace GameMasterTests
         [Test]
         public void ProcessMessage_JoinRequest_OldAgentShouldNotBeAcceptedDuringGame()
         {
-            var message = GetBaseMessage(new JoinRequest(TeamId.Blue, false), 666);
+            var message = GetBaseMessage(new JoinRequest(TeamId.Blue), 666);
 
             dynamic response = gameLogicComponent.ProcessMessage(message);
             Assert.AreEqual(MessageId.JoinResponse, response.MessageId);
@@ -605,6 +605,179 @@ namespace GameMasterTests
 
         #endregion
 
+        #region Generating Pieces
+
+        [Test]
+        public void GenaratingPieces_DestroyPiece_WhenAgentNotHoldingPiece_NewPieceShouldNotBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+
+            var all_pieces_before = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            gameMaster.Agents.Add(agent);
+            var message = GetBaseMessage(new DestroyPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            var all_pieces_after = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            Assert.AreEqual(all_pieces_before.Count, all_pieces_after.Count);
+            for (int i = 0; i < all_pieces_before.Count; i++)
+            {
+                Assert.AreSame(gameMaster.BoardLogic.GetField(all_pieces_before[i]), gameMaster.BoardLogic.GetField(all_pieces_after[i]));
+                Assert.AreEqual(gameMaster.BoardLogic.GetField(all_pieces_before[i]).Pieces.Count, gameMaster.BoardLogic.GetField(all_pieces_after[i]).Pieces.Count);
+            }
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+            Assert.IsNull(agent.Piece);
+        }
+
+        [Test]
+        public void GenaratingPieces_DestroyPiece_WhenAgentHoldingPiece_NewPieceShouldBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+            var first_piece = gameMaster.BoardLogic.GetPointWhere(x => x.Pieces.Count != 0);
+            //If this assert fails it should mean that there are 0 pieces in config
+            Assert.IsNotNull(first_piece);
+            var agent = new Agent(666, TeamId.Blue, first_piece.Value);
+
+            var piecesBefore = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+            var piecesCountBefore = GetPiecesCountList(piecesBefore);
+
+            gameMaster.Agents.Add(agent);
+            agent.PickUpPiece(gameMaster.BoardLogic.GetField(first_piece.Value).Pieces.Pop());
+            var message = GetBaseMessage(new DestroyPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            var piecesAfter = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            Assert.AreEqual(1, GetNewPiecesCount(piecesBefore, piecesCountBefore, piecesAfter));
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+            Assert.IsNull(agent.Piece);
+        }
+
+        [Test]
+        public void GenaratingPieces_PickUpPiece_WhenAgentNotHoldingPiece_NewPieceShouldNotBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+            var first_piece = gameMaster.BoardLogic.GetPointWhere(x => x.Pieces.Count != 0);
+            //If this assert fails it should mean that there are 0 pieces in config
+            Assert.IsNotNull(first_piece);
+            var agent = new Agent(666, TeamId.Blue, first_piece.Value);
+
+            var piecesBefore = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+            var piecesCountBefore = GetPiecesCountList(piecesBefore);
+
+            gameMaster.Agents.Add(agent);
+
+            var message = GetBaseMessage(new PickUpPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            Assert.AreEqual(piecesCountBefore[0] - 1, gameMaster.BoardLogic.GetField(first_piece.Value).Pieces.Count);
+            Assert.IsNotNull(agent.Piece);
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+        }
+
+        [Test]
+        public void GenaratingPieces_PutDownPiece_WhenAgentNotHoldingPiece_NewPieceShouldNotBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+            var all_pieces_before = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            var agent = new Agent(666, TeamId.Blue, new Point(3, 3));
+            gameMaster.Agents.Add(agent);
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            var all_pieces_after = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            Assert.AreEqual(all_pieces_before.Count, all_pieces_after.Count);
+            for (int i = 0; i < all_pieces_before.Count; i++)
+            {
+                Assert.AreSame(gameMaster.BoardLogic.GetField(all_pieces_before[i]), gameMaster.BoardLogic.GetField(all_pieces_after[i]));
+                Assert.AreEqual(gameMaster.BoardLogic.GetField(all_pieces_before[i]).Pieces.Count, gameMaster.BoardLogic.GetField(all_pieces_after[i]).Pieces.Count);
+            }
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+            Assert.IsNull(agent.Piece);
+        }
+
+        [Test]
+        public void GenaratingPieces_PutDownPiece_WhenAgentHoldingPieceInTaskArea_NewPieceShouldBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+            var agent = new Agent(666, TeamId.Blue, new Point(0, 0));
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInGoalArea(agent.Position));
+            gameMaster.Agents.Add(agent);
+            
+
+            var first_piece_position = gameMaster.BoardLogic.GetPointWhere(x => x.Pieces.Count != 0);
+            //If this assert fails it should mean that there are 0 pieces in config
+            Assert.IsNotNull(first_piece_position);
+
+            var first_piece = gameMaster.BoardLogic.GetField(first_piece_position.Value).Pieces.Pop();
+
+            agent.PickUpPiece(first_piece);
+
+            var piecesBefore = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+            var piecesCountBefore = GetPiecesCountList(piecesBefore);
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            var piecesAfter = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            Assert.AreEqual(1, GetNewPiecesCount(piecesBefore, piecesCountBefore, piecesAfter));
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+            Assert.IsNull(agent.Piece);
+        }
+
+        [Test]
+        public void GenaratingPieces_PutDownPiece_WhenAgentHoldingPieceInGameArea_NewPieceShouldNotBeGenerated()
+        {
+            gameMaster.BoardLogic.Clean();
+            gameMaster.BoardLogic.StartGame();
+            var agent = new Agent(666, TeamId.Blue, new Point(10, 10));
+            // Make sure the field is in goal area - if test fails here, change position / configuration
+            Assert.IsTrue(gameMaster.BoardLogic.IsFieldInTaskArea(agent.Position));
+            gameMaster.Agents.Add(agent);
+
+
+            var first_piece_position = gameMaster.BoardLogic.GetPointWhere(x => x.Pieces.Count != 0);
+            //If this assert fails it should mean that there are 0 pieces in config
+            Assert.IsNotNull(first_piece_position);
+
+            var first_piece = gameMaster.BoardLogic.GetField(first_piece_position.Value).Pieces.Pop();
+
+            gameMaster.BoardLogic.GetField(agent.Position).Pieces.Push(first_piece);
+
+            var pieces_in_agent_field_count = gameMaster.BoardLogic.GetField(agent.Position).Pieces.Count;
+            var piecesBefore = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+            var piecesCountBefore = GetPiecesCountList(piecesBefore);
+
+            first_piece = gameMaster.BoardLogic.GetField(agent.Position).Pieces.Pop();
+
+            agent.PickUpPiece(first_piece);
+
+            var message = GetBaseMessage(new PutDownPieceRequest(), 666);
+            dynamic response = gameLogicComponent.ProcessMessage(message);
+
+            var piecesAfter = gameMaster.BoardLogic.GetPointsWhere(x => x.Pieces.Count != 0);
+
+            Assert.AreEqual(pieces_in_agent_field_count, gameMaster.BoardLogic.GetField(agent.Position).Pieces.Count);
+
+            Assert.AreEqual(0, GetNewPiecesCount(piecesBefore, piecesCountBefore, piecesAfter));
+
+            Assert.AreEqual(configuration.NumberOfPieces, GetNumberOfAllPieces());
+            Assert.IsNull(agent.Piece);
+        }
+
+        #endregion
+
         // This method simulates normal situation where messages are stored in IEnumerable<BaseMessage>
         private BaseMessage GetBaseMessage<T>(T payload, int agentFromId) where T:IPayload
         {
@@ -623,6 +796,27 @@ namespace GameMasterTests
             }
             int agentPieces = gameMaster.Agents.FindAll((a) => { return a.Piece != null; }).Count;
             return onBoardPieces + agentPieces;
+        }
+
+        List<int> GetPiecesCountList(List<Point> pieces)
+        {
+            return pieces.Select(p => gameMaster.BoardLogic.GetField(p).Pieces.Count).ToList();
+        }
+
+        private int GetNewPiecesCount(List<Point> piecesBefore, List<int> piecesCountBefore, List<Point> piecesAfter)
+        {
+            var new_piece = piecesAfter.Where(x => {
+                if (piecesBefore.Contains(x) == false)
+                    return true;
+                var field = gameMaster.BoardLogic.GetField(x);
+                var index = piecesBefore.IndexOf(x);
+                var before_count = piecesCountBefore[index];
+                if (field.Pieces.Count != before_count)
+                    return true;
+                return false;
+            });
+
+            return new_piece.ToList().Count;
         }
     }
 }

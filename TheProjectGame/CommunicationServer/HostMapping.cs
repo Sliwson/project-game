@@ -1,7 +1,6 @@
 ﻿using Messaging.Communication;
-using System;
+using NLog;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace CommunicationServer
@@ -11,8 +10,10 @@ namespace CommunicationServer
         private ConcurrentDictionary<int, Socket> mapping;
         private ConcurrentDictionary<Socket, int> inversedMapping;
 
-        private int lastHostId = 0;
-        private int gmHostId = 0;
+        private int lastHostId = 1;
+        private int gmHostId = 1;
+
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
 
         internal HostMapping()
         {
@@ -49,12 +50,11 @@ namespace CommunicationServer
                 throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedGameMaster);
 
             if (!mapping.TryAdd(hostId, socket))
-            {
                 throw new CommunicationErrorException(CommunicationExceptionType.DuplicatedHostId);
-            }
+
             inversedMapping.TryAdd(socket, hostId);
 
-            Console.WriteLine($"Client of type {clientType} has been registered");
+            logger.Info("[HostMapping] Client of type {clientType} has been registered", clientType);
             return hostId;
         }
 
@@ -67,6 +67,7 @@ namespace CommunicationServer
         {
             if (!mapping.TryGetValue(gmHostId, out Socket gmSocket) || gmSocket == null)
                 throw new CommunicationErrorException(CommunicationExceptionType.NoGameMaster);
+
             return gmHostId;
         }
     }

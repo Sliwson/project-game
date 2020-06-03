@@ -1,7 +1,5 @@
 using Agent;
-using Agent.strategies;
 using Messaging.Contracts;
-using Messaging.Contracts.Agent;
 using Messaging.Contracts.Errors;
 using Messaging.Contracts.GameMaster;
 using Messaging.Enumerators;
@@ -29,23 +27,6 @@ namespace AgentTests
             agent = GetDefaultAgent();
             startTime = DateTime.Now;
             defaultConfiguration = AgentConfiguration.GetDefault();
-        }
-
-        [Test]
-        public void Initialize_ShouldInitializeTeamLeader()
-        {
-            Assert.IsTrue(defaultConfiguration.WantsToBeTeamLeader);
-            Assert.AreEqual(agent.WantsToBeLeader, true);
-        }
-
-        [Test]
-        public void Initialize_ShouldInitializeNotTeamLeader()
-        {
-            var config = AgentConfiguration.GetDefault();
-            config.WantsToBeTeamLeader = false;
-            var agent = GetInitializedAgent(config);
-
-            Assert.AreEqual(agent.WantsToBeLeader, false);
         }
 
         [Test]
@@ -182,7 +163,7 @@ namespace AgentTests
         public void ProcessMessage_ExchangeInformationPayload_IfNotTeamLeaderAsking_ShouldBeAddedToWaitingList()
         {
             agent.AgentState = AgentState.InGame;
-            agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
+            agent.StartGameComponent.Initialize(new StartGamePayload(0, new int[] { 1, 2, 3 }, 1, null, TeamId.Blue, new Point(10, 10), 0, 3, 0, 0, 0, new System.Collections.Generic.Dictionary<ActionType, TimeSpan>(), 0.0f, new Point()));
 
             agent.AcceptMessage(GetBaseMessage(new ExchangeInformationRequestForward(2, false, Messaging.Enumerators.TeamId.Blue), 1));
 
@@ -371,6 +352,7 @@ namespace AgentTests
         private Agent.Agent GetDefaultAgent()
         {
             var config = AgentConfiguration.GetDefault();
+            config.Strategy = -1; //DoNothingStrategy
             return GetInitializedAgent(config);
         }
 
@@ -380,7 +362,6 @@ namespace AgentTests
 
             var startGamePayload = GetDefaultStartGamePayload();
             agent.StartGameComponent.Initialize(startGamePayload);
-            agent.SetDoNothingStrategy();
             return agent;
         }
 

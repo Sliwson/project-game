@@ -1,8 +1,8 @@
 ﻿using System;
 using Messaging.Enumerators;
-using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GameMaster
 {
@@ -15,7 +15,7 @@ namespace GameMaster
         public double Timeout { get; private set; } = 0;
         public Piece Piece { get; private set; } = null;
 
-        private ExchangeInformationState exchangeInformationState = ExchangeInformationState.None;
+        private List<ContactRequest> contactRequests = new List<ContactRequest>();
 
         public Agent(int id, TeamId team, Point position, bool isTeamLeader = false)
         {
@@ -52,31 +52,39 @@ namespace GameMaster
             Timeout += value;
         }
 
-        public void InformationExchangeRequested(bool wasTeamLeader)
+        public void InformationExchangeRequested(int targetId, bool teamLeader)
         {
-            exchangeInformationState = wasTeamLeader ? ExchangeInformationState.Obligated : ExchangeInformationState.Eligible;
+            contactRequests.Add(new ContactRequest { Id = targetId, TeamLeader = teamLeader });
         }
 
-        public void ClearExchangeState()
+        public void InformationExchangePerformed(int targetId)
         {
-            exchangeInformationState = ExchangeInformationState.None;
+            var found = contactRequests.Find(r => r.Id == targetId);
+            if (found != null)
+                contactRequests.Remove(found);
         }
 
         public bool HaveToExchange()
         {
-            return exchangeInformationState == ExchangeInformationState.Obligated;
+            return contactRequests.Any(r => r.TeamLeader);
         }
 
-        public bool CanExchange()
+        public bool CanExchange(int targetId)
         {
-            return exchangeInformationState == ExchangeInformationState.Obligated || exchangeInformationState == ExchangeInformationState.Eligible;
+            var found = contactRequests.Find(r => r.Id == targetId);
+            if (found == null)
+                return false;
+
+            if (HaveToExchange() && found.TeamLeader == false)
+                return false;
+
+            return true;
         }
 
-        private enum ExchangeInformationState
+        private class ContactRequest
         {
-            None,
-            Eligible,
-            Obligated
+            public int Id { get; set; }
+            public bool TeamLeader { get; set; }
         }
     }
 }

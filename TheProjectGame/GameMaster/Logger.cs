@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NLog;
 
 namespace GameMaster
@@ -28,8 +26,7 @@ namespace GameMaster
             config.AddRuleForOneLevel(LogLevel.Warn, memoryTarget);
             config.AddRuleForOneLevel(LogLevel.Info, memoryTarget);
 
-            //config.AddRuleForAllLevels(memoryTarget);
-            //config.AddRuleForAllLevels(fileTarget);
+            config.AddRuleForAllLevels(fileTarget);
 
             LogManager.Configuration = config;
         }

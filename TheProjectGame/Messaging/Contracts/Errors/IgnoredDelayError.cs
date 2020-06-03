@@ -16,10 +16,9 @@ namespace Messaging.Contracts.Errors
             RemainingDelay = remainingDelay;
         }
 
-        // TODO: Wait for official specifiaction
         // Only for serialization
         [JsonRequired]
-        [JsonProperty(PropertyName = "delayInMiliseconds")]
+        [JsonProperty(PropertyName = "delay")]
         private int DelayInMiliseconds 
         { 
             get { return (int)RemainingDelay.TotalMilliseconds; }

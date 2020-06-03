@@ -1,23 +1,21 @@
-﻿using Messaging.Enumerators;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent
 {
     class Program
     {
-        private const int updateInterval = 10;
+        private const int updateInterval = 2;
 
         static void Main(string[] args)
         {
             if (args.Length == 0)
             {
+                var config = CreateAgentConfiguration();
                 var agents = new Agent[] {
-                    CreateAgentWithConfiguration()
+                    new Agent(config)
                 };
 
                 Run(agents);
@@ -25,6 +23,8 @@ namespace Agent
             else if (args.Length == 2)
             {
                 int blue = 0, red = 0;
+                var config = CreateAgentConfiguration();
+
                 try
                 {
                     blue = int.Parse(args[0]);
@@ -41,7 +41,7 @@ namespace Agent
                     red = 0;
                 }
 
-                var agents = CreateDefaultAgents(blue, red);
+                var agents = CreateDefaultAgents(blue, red, config);
                 Run(agents);
             }
             else
@@ -50,7 +50,7 @@ namespace Agent
             }
         }
 
-        private static Agent CreateAgentWithConfiguration()
+        private static AgentConfiguration CreateAgentConfiguration()
         {
             var config = AgentConfiguration.GetDefault();
 
@@ -67,25 +67,23 @@ namespace Agent
                     config = newConfig;
             }
 
-            return new Agent(config);
+            return config;
         }
 
-        private static Agent[] CreateDefaultAgents(int blue, int red)
+        private static Agent[] CreateDefaultAgents(int blue, int red, AgentConfiguration defaultConfig)
         {
             var agents = new Agent[blue + red];
             for (int i = 0; i < blue; i++)
             {
-                var config = AgentConfiguration.GetDefault();
+                var config = defaultConfig;
                 config.TeamID = "blue";
-                config.WantsToBeTeamLeader = i == 0;
                 agents[i] = new Agent(config);
             }
 
             for (int i = 0; i < red; i++)
             {
-                var config = AgentConfiguration.GetDefault();
+                var config = defaultConfig;
                 config.TeamID = "red";
-                config.WantsToBeTeamLeader = i == 0;
                 agents[blue + i] = new Agent(config);
             }
 

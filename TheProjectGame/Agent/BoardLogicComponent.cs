@@ -1,8 +1,5 @@
 ﻿using Messaging.Enumerators;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace Agent
 {
@@ -75,7 +72,6 @@ namespace Agent
 
         public void UpdateDistances(int[,] distances)
         {
-            //TODO: update only when distLearned old
             for (int i = 0; i < BoardSize.Y; i++)
             {
                 for (int j = 0; j < BoardSize.X; j++)

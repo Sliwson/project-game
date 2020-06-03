@@ -1,11 +1,10 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema",
     "type": "object",
-    "required":["waitUntil"],
+    "required":["delay"],
     "properties": {
-        "waitUntil": {
-            "type":"string",
-            "format":"date-time"
+        "delay": {
+            "type":"integer"
         }
     }
 }

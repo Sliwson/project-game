@@ -20,7 +20,7 @@ namespace IntegrationTests
 
         public static void RunGameMaster(GameMaster.GameMaster gameMaster, int gameMasterSleepMs)
         {
-            for (int i = 0; i < 300; i++)
+            for (int i = 0; i < 400; i++)
             {
                 gameMaster.Update(gameMasterSleepMs / 1000.0);
                 Thread.Sleep(gameMasterSleepMs);
@@ -70,7 +70,6 @@ namespace IntegrationTests
                     CsIP = "127.0.0.1",
                     CsPort = 54321,
                     TeamID = i < agentsInTeam ? "red" : "blue",
-                    WantsToBeTeamLeader = i % agentsInTeam == 0
                 });
 
                 agents.Add(agent);

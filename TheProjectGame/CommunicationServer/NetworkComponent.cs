@@ -1,11 +1,9 @@
 ﻿using Messaging.Communication;
 using Messaging.Contracts;
 using Messaging.Serialization;
+using NLog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +19,8 @@ namespace CommunicationServer
 
         private Socket gameMasterSocket;
         private Socket agentSocket;
+
+        private static Logger logger = LogManager.GetCurrentClassLogger(); 
 
         internal NetworkComponent(CommunicationServer communicationServer)
         {
@@ -99,13 +99,17 @@ namespace CommunicationServer
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
             }
-            catch (Exception)
+            catch (ObjectDisposedException)
             {
-
+                // disposed earlier, that's fine
+            }
+            catch (Exception ex)
+            {
+                logger.Error("[NetworkComponent] {message}", ex.Message);
             }
             finally
             {
-                Console.WriteLine($"Socket for {clientType} has been closed");
+                logger.Info("[NetworkComponent] Socket for {clientType} has been closed", clientType);
             }
         }
 
@@ -116,7 +120,7 @@ namespace CommunicationServer
             try
             {
                 listener.Listener.Listen(100);
-                Console.WriteLine($"Server for {listener.ClientType} was started with IP: {listener.Listener.LocalEndPoint}");
+                logger.Info("[NetworkComponent] Server for {type} was started with IP: {ip}", listener.ClientType, listener.Listener.LocalEndPoint);
 
                 while (true)
                 {
@@ -149,7 +153,7 @@ namespace CommunicationServer
                 var state = new StateObject(ref handler, listener.ClientType);
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
 
-                Console.WriteLine($"{listener.ClientType} connected!");
+                logger.Info("[NetworkComponent] {type} connected", listener.ClientType);
             }
             catch (Exception e)
             {
@@ -186,13 +190,13 @@ namespace CommunicationServer
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    Console.WriteLine(e.Message);
+                    logger.Warn("[NetworkComponent] {message}", e.Message);
                 }
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (bytesRead > 0)
             {
-                Console.WriteLine("Received message was too short (expected more than 2 bytes)");
+                logger.Warn("[NetworkComponent] Received message was too short (expected more than 2 bytes)");
                 state.SetReceiveCallback(new AsyncCallback(ReceiveCallback));
             }
             else if (!server.CheckIfClientDisconnected(handler))
@@ -208,7 +212,7 @@ namespace CommunicationServer
                 Socket handler = (Socket)ar.AsyncState;
 
                 int bytesSent = handler.EndSend(ar);
-                Console.WriteLine($"Sent {bytesSent} bytes to client");
+                logger.Debug("[NetworkComponent] Sent {bytesSent} bytes to client\n", bytesSent);
             }
             catch (Exception e)
             {
@@ -218,7 +222,7 @@ namespace CommunicationServer
 
         internal IPAddress GetLocalIPAddress()
         {
-            return IPAddress.Parse("127.0.0.1");
+            return IPAddress.Parse("0.0.0.0");
 
             //// Skip Virtual Machines' IP addresses
             //// https://stackoverflow.com/questions/8089685/c-sharp-finding-my-machines-local-ip-address-and-not-the-vms
