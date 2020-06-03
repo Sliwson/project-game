@@ -1,15 +1,21 @@
 # README #
-This is repository for IO2 MiNI course.
+
+![GameMaster screenshot](documentation/program.png)
+
+This is repository for Software Engineering MiNI course. The course featured creating a system cointaining 3 modules:
+* Game Master - managing players and gameplay, presentation layer,
+* Communication Server - passing messages between Game Master and Agents,
+* Agent - autonomous player, capable of playing the game and cooperating with teammates.
 
 ## Methodology
 We are working in Scrum. But our Scrum is more agile then expected.
-Product Owner is the same person as Project Manager, Team Leader, Architect and Lead Developer is one person - Mateusz is the one.
-I decided to be a Scrum Master - Szymon.
+Product Owner is the same person as Project Manager, Team Leader, Architect and Lead Developer is one person - [Mateusz](https://github.com/Sliwson) is the one.
+I decided to be a Scrum Master - [Szymon](https://github.com/szymon159).
 Apart from that, we are all developers responsible mostly for specific modules:
 
-* Game Master - Mateusz, Michał
-* Agent - Marta, Weronika
-* Communication server - Szymon
+* Game Master - [Mateusz](https://github.com/Sliwson), [Michał](https://github.com/Rogal27)
+* Agent - [Marta](https://github.com/martabanel c), [Weronika](https://github.com/werglu)
+* Communication server - [Szymon](https://github.com/szymon159)
 * Intermodule Communication - Everyone
 
 ## Schedule
